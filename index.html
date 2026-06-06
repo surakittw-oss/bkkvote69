@@ -356,8 +356,12 @@ function renderTotals(){
   }));
 }
 function renderLegend(){
-  $('legend').innerHTML=LEGEND_ORDER.map(s=>{const c=CANDS.find(x=>x.short===s);if(!c)return'';const label=s==='อัศวิน'?'พล.ต.อ.อัศวิน':s;return `<span class="lg"><span class="sw" style="background:${c.color}"></span>${label}</span>`}).join('')
-    || CANDS.slice(0,6).map(c=>`<span class="lg"><span class="sw" style="background:${c.color}"></span>${c.short}</span>`).join('');
+  // สร้างคำอธิบายสีจากผู้สมัครจริงทุกคนที่โหลดมา (เรียงตามคะแนน) — ครบทุกเบอร์
+  const sorted=[...CANDS].sort((a,b)=>b.votes-a.votes);
+  $('legend').innerHTML=sorted.map(c=>{
+    const label=c.short||shortName(c.name)||c.name||'—';
+    return `<span class="lg"><span class="sw" style="background:${c.color}"></span>${label}</span>`;
+  }).join('');
 }
 
 /* ════════════ CARTOGRAM + GEO MAP ════════════ */
