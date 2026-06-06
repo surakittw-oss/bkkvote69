@@ -339,12 +339,13 @@ function renderTotals(){
     const init=(c.short||c.name||'?').trim().slice(0,1);
     // รูปผู้สมัครทุกเบอร์: ใช้รูปจริงถ้ามี ไม่งั้นวงกลมอักษรย่อสีประจำตัว
     const av=c.avatar?`<img src="${c.avatar}" onerror="this.parentNode.style.background='${c.color}';this.parentNode.style.color='${inkOn(c.color)}';this.parentNode.textContent='${init}'">`:init;
+    const cavGlow=isWin?`;box-shadow:0 0 18px ${c.color}80`:'';
     return `<div class="trow${isWin?' win':''}" style="animation-delay:${i*55}ms">
       <span class="no">${c.no||i+1}</span>
-      <span class="cav" style="background:${c.avatar?'var(--bg3)':c.color};color:${inkOn(c.color)};border-color:${isWin?c.color:'rgba(255,255,255,.12)'}">${av}</span>
+      <span class="cav" style="background:${c.avatar?'var(--bg3)':c.color};color:${inkOn(c.color)};border-color:${isWin?c.color:'rgba(255,255,255,.12)'}${cavGlow}">${av}</span>
       <span class="who"><span class="nm">${c.name}</span><span class="pty">${c.party||''}</span></span>
       <span class="sc"><span class="vt" data-cv="${c.votes}">0</span><span class="pc">${pct.toFixed(1)}%</span></span>
-      ${isWin?`<span class="photo"></span>`
+      ${isWin?`<span class="photo" style="background:linear-gradient(90deg,${c.color},${c.color}cc);box-shadow:0 0 22px ${c.color}55"></span>`
               :`<span class="bar"><i data-w="${(c.votes/max*100).toFixed(1)}" style="background:${c.color}"></i></span>`}
     </div>`;
   }).join('');
