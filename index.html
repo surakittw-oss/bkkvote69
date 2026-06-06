@@ -114,6 +114,33 @@ body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opa
 
 .legend{display:flex;flex-wrap:wrap;gap:7px 16px;margin-top:20px;padding-top:16px;border-top:1px solid var(--line2)}
 .lg{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--t2)}
+
+/* ผล สก. ภาพรวมรายพรรค */
+.skg-note{font-size:12px;color:var(--t4);margin:-12px 0 16px}
+.skg-parties{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.skg-prow{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:14px 16px;background:var(--bg2);border:1px solid var(--line2);border-radius:10px;transition:.15s}
+.skg-prow:hover{border-color:var(--line);background:var(--bg3)}
+.skg-prow .pno{font-size:18px;font-weight:900;color:var(--t4);min-width:18px}
+.skg-prow.r1 .pno{color:var(--brand-l)}
+.skg-pname{font-size:14px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.skg-pbarwrap{height:5px;border-radius:3px;background:var(--bg4,#26282a);overflow:hidden;margin-top:6px}
+.skg-pbar{height:100%;border-radius:3px;width:0;transition:width 1s cubic-bezier(.2,.8,.2,1)}
+.skg-pseat{text-align:right}
+.skg-pseat b{font-size:22px;font-weight:900;color:#fff;line-height:1}
+.skg-pseat.r1 b{color:var(--brand-l)}
+.skg-pseat span{display:block;font-size:11px;color:var(--t4)}
+/* district modal lists */
+.dd-sec{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--t4);margin:18px 0 10px;display:flex;align-items:center;gap:10px}
+.dd-sec::after{content:"";flex:1;height:1px;background:var(--line2)}
+.dd-row{display:grid;grid-template-columns:26px 1fr auto;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line2)}
+.dd-row:last-child{border-bottom:none}
+.dd-av{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:800;overflow:hidden;border:1.5px solid rgba(255,255,255,.1)}
+.dd-av img{width:100%;height:100%;object-fit:cover}
+.dd-nm{font-size:13px;color:var(--t1);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dd-pty{font-size:11px;color:var(--t4)}
+.dd-v{font-size:13px;font-weight:700;color:#fff;text-align:right}
+.dd-v small{display:block;font-size:10px;font-weight:500;color:var(--t4)}
+.dd-elected{font-size:10px;font-weight:700;color:var(--brand-l);background:rgba(var(--brand-rgb),.14);border:1px solid rgba(var(--brand-rgb),.3);padding:1px 7px;border-radius:20px;margin-left:6px}
 .lg .sw{width:12px;height:12px;border-radius:3px;flex-shrink:0}
 .cap{margin-top:14px;font-size:12px;color:var(--t3);line-height:1.7}
 .cap b{color:var(--t2);font-weight:700}
@@ -207,9 +234,24 @@ body.embed .wrap{padding:14px}
 
     <aside class="modes" id="modes"></aside>
   </div>
+
+  <!-- ผล สก. ภาพรวมรายพรรค -->
+  <section id="skgCard" class="skg-card" style="display:none">
+    <h2 class="col-head" style="margin-top:34px">ผลเลือกตั้ง ส.ก. <span id="skgMeta" style="font-size:13px;font-weight:500;color:var(--t4);letter-spacing:0"></span></h2>
+    <div class="skg-note">คลิกที่เขตบนแผนที่ด้านบน เพื่อดูผล ส.ก. รายเขต</div>
+    <div id="skgParties" class="skg-parties"></div>
+  </section>
 </div>
 
 <div id="tip"></div>
+
+<!-- DISTRICT DETAIL MODAL (ผู้ว่าฯ + ส.ก. รายเขต) -->
+<div id="distModal" class="srcmodal" onclick="if(event.target===this)closeDist()">
+  <div class="srcbox" style="max-width:560px">
+    <div class="srchd"><span id="distTitle">เขต</span> <button onclick="closeDist()">✕</button></div>
+    <div class="srcbody" id="distBody"></div>
+  </div>
+</div>
 
 <!-- SOURCE MODAL -->
 <div id="srcModal" class="srcmodal">
@@ -239,6 +281,7 @@ body.embed .wrap{padding:14px}
       <div class="srcpane" id="pane-sheets">
         <div class="fld"><label>URL Google Sheets — ผู้สมัคร (มีคอลัมน์ no, name, party, votes, color)</label><input class="inp" id="gs-cand" placeholder="วางลิงก์ Sheet (tab ผู้สมัคร) ที่มี #gid="></div>
         <div class="fld"><label>URL — รายเขต (district, counted, votes_1, votes_2, ...) — ใส่หรือไม่ก็ได้</label><input class="inp" id="gs-dist" placeholder="วางลิงก์ Sheet (tab เขต)"></div>
+        <div class="fld"><label>URL — ส.ก. รายเขต (district, no, name, party, votes, elected, color) — ใส่หรือไม่ก็ได้</label><input class="inp" id="gs-skg" placeholder="วางลิงก์ Sheet (tab ส.ก.)"></div>
         <div class="srcrow"><button class="btn btn-p" onclick="loadSheets()">โหลดจาก Sheets</button></div>
         <p class="srcnote">แชร์เป็น "Anyone with the link" · คลิก tab ใน Sheet เพื่อให้ URL มี <code>#gid=</code></p>
         <div class="srcstatus" id="gs-status">—</div>
@@ -288,6 +331,7 @@ const DLAYOUT=[
 /* ════════════ STATE ════════════ */
 let CANDS=[], DISTRICTS=[], countedDistricts=50, pctBase=SAMPLE_PCT_BASE;
 let MODE='prop', RATIO=1, currentSource='sample', autoFirebase=true;
+let skgData={};  // ผล ส.ก. รายเขต: { "ชื่อเขต": [ {no,name,party,votes,elected,color,avatar}, ... ] }
 
 const fmt=n=>Number(n||0).toLocaleString('en-US');
 const $=id=>document.getElementById(id);
@@ -315,7 +359,27 @@ function buildSample(ratio){
     const counted=i<countedDistricts;
     return{name:d[0],col:d[1],row:d[2],voters,cast:counted?cast:0,votes:counted?votes:votes.map(()=>0),counted};
   });
+  buildSampleSkg();
   recompute();
+}
+// ส.ก. ตัวอย่าง (เพื่อสาธิตฟีเจอร์) — 50 เขต เขตละ 3-4 ผู้สมัคร เลือกได้ 1 คน
+const SKG_PARTIES=[{name:'เพื่อกรุงเทพฯ',color:'#e8453c'},{name:'ก้าวหน้า',color:'#e8590c'},{name:'ประชาธิปไตย',color:'#2f80ed'},{name:'กลุ่มอิสระ',color:'#7f8c8d'},{name:'พลังเมือง',color:'#27408b'}];
+const SKG_FIRST=['สมชาย','วิชัย','ประสงค์','สุดารัตน์','มานพ','อรุณ','พิชัย','กนกพร','ธนา','ศิริพร','วีระ','จินตนา'];
+const SKG_LAST=['ใจดี','รักเมือง','ศรีสุข','พัฒนา','มั่นคง','เจริญสุข','วงศ์ดี','ทองคำ','สุขใจ','ไกรทอง'];
+function buildSampleSkg(){
+  skgData={};
+  DLAYOUT.forEach((d,i)=>{
+    const r=rng(i*131+7);
+    const n=3+Math.floor(r()*2);
+    const arr=[];
+    for(let k=0;k<n;k++){
+      const p=SKG_PARTIES[Math.floor(r()*SKG_PARTIES.length)];
+      const nm=(r()>.5?'นาย':'นาง')+SKG_FIRST[Math.floor(r()*SKG_FIRST.length)]+' '+SKG_LAST[Math.floor(r()*SKG_LAST.length)];
+      arr.push({no:k+1,name:nm,party:p.name,votes:Math.floor(3000+r()*16000),elected:false,color:p.color,avatar:''});
+    }
+    arr.sort((a,b)=>b.votes-a.votes);arr[0].elected=true;
+    skgData[d[0]]=arr;
+  });
 }
 function recompute(){
   DISTRICTS.forEach(d=>{
@@ -453,13 +517,89 @@ function bindBoxes(){
       const d=DISTRICTS[i];if(!d)return;
       if(!d.counted){tip.innerHTML=`<div class="tt">เขต${d.name}</div><div class="tf">ยังไม่นับคะแนน</div>`;tip.classList.add('on');return;}
       const rows=[...d.votes.map((v,ci)=>({v,ci}))].sort((a,b)=>b.v-a.v).slice(0,4).map(o=>{const c=CANDS[o.ci];const p=d.cast?(o.v/d.cast*100).toFixed(1):0;return `<div class="tr"><span class="d" style="background:${c.color}"></span><span class="n">${c.short}</span><span class="v">${p}%</span></div>`}).join('');
-      tip.innerHTML=`<div class="tt">เขต${d.name}</div>${rows}<div class="tf">ผู้มาใช้สิทธิ์ ${fmt(d.cast)} · ผู้มีสิทธิ์ ${fmt(d.voters)}</div>`;
+      const hasSkg=!!(skgData&&skgData[d.name]&&skgData[d.name].length);
+      tip.innerHTML=`<div class="tt">เขต${d.name}</div>${rows}<div class="tf">ผู้มาใช้สิทธิ์ ${fmt(d.cast)} · ผู้มีสิทธิ์ ${fmt(d.voters)}${hasSkg?' · คลิกดูผล ส.ก.':' · คลิกดูรายละเอียด'}</div>`;
       tip.classList.add('on');
     });
     el.addEventListener('mousemove',e=>{const w=tip.offsetWidth,h=tip.offsetHeight;let x=e.clientX+14,y=e.clientY+14;if(x+w>innerWidth)x=e.clientX-w-14;if(y+h>innerHeight)y=e.clientY-h-14;tip.style.left=x+'px';tip.style.top=y+'px'});
     el.addEventListener('mouseleave',()=>tip.classList.remove('on'));
-    el.addEventListener('click',()=>{tip.classList.add('on');clearTimeout(el._t);el._t=setTimeout(()=>tip.classList.remove('on'),2200)});
+    el.addEventListener('click',()=>{tip.classList.remove('on');openDist(i);});
   });
+}
+
+/* ════════════ ส.ก. — ภาพรวมรายพรรค + รายเขต ════════════ */
+function skgList(distName){const arr=skgData&&(skgData[distName]||skgData[normName(distName)]);return Array.isArray(arr)?arr:[];}
+function renderSkgOverview(){
+  const card=$('skgCard');
+  const districts=Object.keys(skgData||{}).filter(k=>Array.isArray(skgData[k])&&skgData[k].length);
+  if(!districts.length){card.style.display='none';return;}
+  // รวมตามพรรค
+  const pm={};
+  districts.forEach(dn=>skgData[dn].forEach((c,idx)=>{
+    const p=c.party||'อิสระ';
+    if(!pm[p])pm[p]={name:p,votes:0,seats:0,color:c.color||PALETTE[Object.keys(pm).length%PALETTE.length]};
+    pm[p].votes+=parseInt(c.votes)||0;
+    if(c.elected)pm[p].seats++;
+    if(c.color&&pm[p].color===undefined)pm[p].color=c.color;
+  }));
+  const parties=Object.values(pm).sort((a,b)=>b.seats-a.seats||b.votes-a.votes);
+  const totalSeats=parties.reduce((s,p)=>s+p.seats,0);
+  const maxV=Math.max(1,...parties.map(p=>p.votes));
+  $('skgMeta').textContent=`· ${districts.length} เขต · ${totalSeats} ที่นั่ง · ${parties.length} พรรค/กลุ่ม`;
+  $('skgParties').innerHTML=parties.map((p,i)=>`
+    <div class="skg-prow${i===0?' r1':''}" onclick="openSkgParty('${p.name.replace(/'/g,'')}')">
+      <span class="pno">${i+1}</span>
+      <span style="min-width:0">
+        <span class="skg-pname" style="color:${i===0?p.color:'#fff'}">${p.name}</span>
+        <span class="skg-pbarwrap"><span class="skg-pbar" data-w="${(p.votes/maxV*100).toFixed(1)}" style="background:${p.color}"></span></span>
+      </span>
+      <span class="skg-pseat${i===0?' r1':''}"><b>${p.seats}</b><span>ที่นั่ง · ${fmt(p.votes)}</span></span>
+    </div>`).join('');
+  card.style.display='block';
+  requestAnimationFrame(()=>requestAnimationFrame(()=>document.querySelectorAll('#skgParties .skg-pbar').forEach(e=>e.style.width=e.dataset.w+'%')));
+}
+function avMini(name,color,avatar){const init=(name||'?').trim().slice(0,1);return avatar?`<span class="dd-av" style="border-color:${color}"><img src="${avatar}" onerror="this.parentNode.style.background='${color}';this.parentNode.style.color='${inkOn(color)}';this.parentNode.textContent='${init}'"></span>`:`<span class="dd-av" style="background:${color};color:${inkOn(color)};border-color:${color}">${init}</span>`;}
+function openDist(i){
+  const d=DISTRICTS[i];if(!d)return;
+  $('distTitle').textContent='เขต'+d.name;
+  let html='';
+  // ผู้ว่าฯ
+  if(d.counted&&d.cast){
+    const rows=[...d.votes.map((v,ci)=>({v,ci}))].sort((a,b)=>b.v-a.v).filter(o=>o.v>0).slice(0,8);
+    html+=`<div class="dd-sec">ผู้ว่าฯ กทม.</div>`+rows.map(o=>{const c=CANDS[o.ci];const p=(o.v/d.cast*100).toFixed(1);return `<div class="dd-row">${avMini(c.short||c.name,c.color,c.avatar)}<span style="min-width:0"><span class="dd-nm">${c.name}</span><span class="dd-pty">${c.party||''}</span></span><span class="dd-v">${fmt(o.v)}<small>${p}%</small></span></div>`}).join('');
+  }else{
+    html+=`<div class="dd-sec">ผู้ว่าฯ กทม.</div><div style="color:var(--t4);font-size:13px;padding:6px 0">ยังไม่มีคะแนนรายเขต</div>`;
+  }
+  // ส.ก.
+  const sk=skgList(d.name);
+  if(sk.length){
+    const sorted=[...sk].sort((a,b)=>(parseInt(b.votes)||0)-(parseInt(a.votes)||0));
+    html+=`<div class="dd-sec">ส.ก. เขต${d.name}</div>`+sorted.map((c,idx)=>{
+      const col=c.color||PALETTE[idx%PALETTE.length];
+      const elected=c.elected||idx===0;
+      return `<div class="dd-row">${avMini(c.name,col,c.avatar)}<span style="min-width:0"><span class="dd-nm">${c.name}${elected?'<span class="dd-elected">ได้รับเลือก</span>':''}</span><span class="dd-pty">${c.party||'อิสระ'}</span></span><span class="dd-v">${fmt(parseInt(c.votes)||0)}</span></div>`;
+    }).join('');
+  }else{
+    html+=`<div class="dd-sec">ส.ก. เขต${d.name}</div><div style="color:var(--t4);font-size:13px;padding:6px 0">ยังไม่มีข้อมูล ส.ก. ของเขตนี้</div>`;
+  }
+  $('distBody').innerHTML=html;
+  $('distModal').classList.add('on');
+}
+function closeDist(){$('distModal').classList.remove('on');}
+function openSkgParty(pname){
+  // รวมผู้สมัคร ส.ก. ของพรรคนี้ทุกเขต
+  const members=[];
+  Object.keys(skgData).forEach(dn=>{(skgData[dn]||[]).forEach(c=>{if((c.party||'อิสระ')===pname)members.push({...c,district:dn})})});
+  if(!members.length)return;
+  members.sort((a,b)=>(parseInt(b.votes)||0)-(parseInt(a.votes)||0));
+  const seats=members.filter(c=>c.elected).length;
+  const col=members[0].color||'var(--brand-l)';
+  $('distTitle').innerHTML=`<span style="color:${col}">${pname}</span>`;
+  $('distBody').innerHTML=`<div class="dd-sec">ส.ก. · ${seats} ที่นั่ง · ${members.length} ผู้สมัคร</div>`+members.map(c=>{
+    const cc=c.color||col;
+    return `<div class="dd-row">${avMini(c.name,cc,c.avatar)}<span style="min-width:0"><span class="dd-nm">${c.name}${c.elected?'<span class="dd-elected">ได้รับเลือก</span>':''}</span><span class="dd-pty">เขต${c.district}</span></span><span class="dd-v">${fmt(parseInt(c.votes)||0)}</span></div>`;
+  }).join('');
+  $('distModal').classList.add('on');
 }
 
 /* ════════════ VIEW MODES ════════════ */
@@ -479,7 +619,7 @@ function setMode(m){MODE=m;renderModes();renderMap();postHeight();}
 /* ════════════ RENDER ALL ════════════ */
 function renderAll(){
   $('counted').textContent=countedDistricts;
-  renderTotals();renderLegend();renderModes();renderMap();
+  renderTotals();renderLegend();renderModes();renderMap();renderSkgOverview();
   requestAnimationFrame(()=>$('prog').style.width=(countedDistricts/50*100)+'%');
   postHeight();setTimeout(postHeight,900);
 }
@@ -521,10 +661,26 @@ function applyExternal(data,label){
     // มีแต่ candidates → สร้าง district แบบสุ่มสัดส่วนตาม global เพื่อให้แผนที่มีสี
     buildDistrictsFromCands();countedDistricts=50;
   }
+  // ผล ส.ก. รายเขต
+  if(data.skg!==undefined){
+    skgData=normalizeSkg(data.skg);
+  }
   pctBase=CANDS.reduce((s,c)=>s+c.votes,0);
   recompute();
   if(label){$('srclabel').textContent=label;}
   renderAll();
+}
+// รับ skg ได้ทั้ง object {เขต:[...]} หรือ array แถว [{district,name,...}] แล้วจัดกลุ่มตามเขต
+function normalizeSkg(raw){
+  if(!raw)return{};
+  let out={};
+  if(Array.isArray(raw)){
+    raw.forEach(r=>{const dn=(r.district||r.name_dist||'').replace(/^เขต/,'').trim();if(!dn)return;(out[dn]=out[dn]||[]).push({no:parseInt(r.no)||0,name:r.name||'',party:r.party||'อิสระ',votes:parseInt(r.votes)||0,elected:r.elected===1||r.elected===true||r.elected==='1',color:r.color||'',avatar:r.avatar||''})});
+  }else{
+    Object.keys(raw).forEach(dn=>{const arr=Array.isArray(raw[dn])?raw[dn]:Object.values(raw[dn]);out[dn.replace(/^เขต/,'').trim()]=arr.map(c=>({no:parseInt(c.no)||0,name:c.name||'',party:c.party||'อิสระ',votes:parseInt(c.votes)||0,elected:c.elected===1||c.elected===true||c.elected==='1',color:c.color||'',avatar:c.avatar||''}))});
+  }
+  Object.keys(out).forEach(dn=>out[dn].sort((a,b)=>b.votes-a.votes));
+  return out;
 }
 function buildDistrictsFromCands(){
   const tot=CANDS.reduce((s,c)=>s+c.votes,0)||1;
@@ -571,6 +727,25 @@ async function fetchDistricts(url){
   const hdr=parseCSVLine(lines[hi]).map(h=>h.toLowerCase().trim());
   return lines.slice(hi+1).map(parseCSVLine).filter(r=>{const f=(r[0]||'').replace(/^"+|"+$/g,'').trim();return f&&f.length<25&&!f.startsWith('รวม')}).map(r=>{const o={};hdr.forEach((h,i)=>{const v=(r[i]||'').replace(/^"+|"+$/g,'').replace(/,/g,'').trim();if(h==='district'||h==='เขต')o.district=v;else if(h==='counted')o.counted=(v==='1'||v.toLowerCase()==='true');else if(h.startsWith('votes_'))o[h]=parseInt(v)||0});return o}).filter(o=>o.district);
 }
+// ส.ก. จาก Sheet → array แถว [{district,no,name,party,votes,elected,color,avatar}]
+async function fetchSkg(url){
+  const res=await fetch(sheetURLtoCSV(url));if(!res.ok)throw new Error('HTTP '+res.status);
+  const lines=(await res.text()).trim().split('\n').filter(l=>l.trim());if(lines.length<2)return[];
+  let hi=0;for(let i=0;i<Math.min(lines.length,8);i++){const L=parseCSVLine(lines[i]).map(c=>c.toLowerCase().trim());if((L.includes('district')||L.includes('เขต'))&&(L.includes('name')||L.includes('ชื่อ'))){hi=i;break}}
+  const hdr=parseCSVLine(lines[hi]).map(h=>h.toLowerCase().trim());
+  const gi=t=>hdr.findIndex(h=>t.some(x=>h.includes(x)));
+  const iD=gi(['district','เขต']),iNo=gi(['no','ลำดับ','เบอร์']),iNm=gi(['name','ชื่อ']),iP=gi(['party','พรรค','กลุ่ม']),iV=gi(['vote','คะแนน']),iE=gi(['elect','ได้รับเลือก','ชนะ']),iC=gi(['color','สี','hex']),iA=gi(['avatar','รูป']);
+  if(iD<0||iNm<0)throw new Error('ส.ก. ต้องมีคอลัมน์ district และ name');
+  const cl=(r,i)=>i>=0?(r[i]||'').replace(/^"+|"+$/g,'').replace(/,/g,'').trim():'';
+  // ข้าม description row
+  const firstD=cl(parseCSVLine(lines[hi+1]||''),iD);const start=hi+((firstD&&/[a-zA-Z]/.test(firstD)&&firstD.length>15)?2:1);
+  const norm=h=>{h=h.trim();return /^[0-9a-fA-F]{6}$/.test(h)?'#'+h:h;};
+  return lines.slice(start).map(parseCSVLine).filter(r=>{const d=cl(r,iD),n=cl(r,iNm);return d&&d.length<25&&n&&!d.startsWith('รวม')&&n!=='name'&&!n.includes('นามสกุล')}).map(r=>({
+    district:cl(r,iD),no:parseInt(cl(r,iNo))||0,name:cl(r,iNm),party:cl(r,iP)||'อิสระ',
+    votes:parseInt(cl(r,iV).replace(/[^0-9]/g,''))||0,elected:['1','true','ได้','ชนะ','y','yes'].includes(cl(r,iE).toLowerCase()),
+    color:norm(cl(r,iC)),avatar:gdrive(cl(r,iA))
+  }));
+}
 async function loadSheets(){
   const cu=$('gs-cand').value.trim();if(!cu){$('gs-status').textContent='กรุณาวางลิงก์ Sheet ผู้สมัคร';return}
   $('gs-status').textContent='กำลังโหลด...';
@@ -578,9 +753,13 @@ async function loadSheets(){
     const candidates=await fetchCands(cu);
     let districts=null;const du=$('gs-dist').value.trim();
     if(du)districts=await fetchDistricts(du);
+    let skg=undefined;const su=$('gs-skg').value.trim();
+    if(su)skg=await fetchSkg(su);
     autoFirebase=false;currentSource='sheets';
-    applyExternal({candidates,districts},'Google Sheets');
-    setSrcDot('on');$('gs-status').textContent='✓ โหลดสำเร็จ '+candidates.length+' ผู้สมัคร'+(districts?(', '+districts.length+' เขต'):'');
+    applyExternal({candidates,districts,skg},'Google Sheets');
+    setSrcDot('on');
+    const sk=skg?Object.keys(skgData).length:0;
+    $('gs-status').textContent='✓ โหลด '+candidates.length+' ผู้สมัคร'+(districts?(', '+districts.length+' เขต'):'')+(sk?(', ส.ก. '+sk+' เขต'):'');
     closeSrc();
   }catch(e){$('gs-status').textContent='✕ '+e.message}
 }
@@ -647,6 +826,7 @@ async function fbSave(){
     const distPayload=DISTRICTS.map(d=>{const o={district:d.name,counted:d.counted?1:0};CANDS.forEach((c,ci)=>o['votes_'+((c.idx??ci)+1)]=d.votes[ci]||0);return o});
     await fbDb.ref('election/candidates').set(candPayload);
     await fbDb.ref('election/districts').set(distPayload);
+    if(skgData&&Object.keys(skgData).length)await fbDb.ref('election/skg').set(skgData);
     await fbDb.ref('election/meta').set({updatedAt:new Date().toISOString()});
     setSrcDot('on');$('fb-status').textContent='✓ บันทึกขึ้น Firebase สำเร็จ';
   }catch(e){setSrcDot('');$('fb-status').textContent='✕ '+e.message}
@@ -692,10 +872,11 @@ async function loadImageSheet(url){return loadOverrideSheet(url);}
 async function loadFromECT(){
   $('ect-status').textContent='กำลังโหลดจาก ECT...';
   try{
-    const [govStat,govCands,govAreas]=await Promise.all([
+    const [govStat,govCands,govAreas,councilCands]=await Promise.all([
       ectGet(`/api/media/elections/${ECT_GOVERNOR_ID}/auto/statistics?level=province`),
       ectGet(`/api/media/elections/${ECT_GOVERNOR_ID}/auto/candidates?level=province`),
       ectGet(`/api/media/elections/${ECT_GOVERNOR_ID}/auto/electionAreas?level=province`),
+      ectGet(`/api/media/elections/${ECT_COUNCIL_ID}/auto/candidates?level=area`).catch(()=>null),
     ]);
     const cl=govCands?.candidates||govCands?.data?.candidates||(Array.isArray(govCands)?govCands:[]);
     if(!cl.length)throw new Error('ไม่พบผู้สมัครใน API');
@@ -707,11 +888,22 @@ async function loadFromECT(){
     if(ectImageMap)cands=cands.map(c=>{const o=ectImageMap[c.no];return o?{...c,color:o.color||c.color,avatar:o.avatar||c.avatar,name:o.name||c.name,partyLogo:o.partyLogo||c.partyLogo}:c});
     const al=govAreas?.electionAreas||govAreas?.data?.electionAreas||(Array.isArray(govAreas)?govAreas:[]);
     const districts=al.map(a=>{const name=a.name||('เขต '+a.areaNumber);const row={district:name,counted:(a.coverage?.percentage||0)>0?1:0};if(a.candidates)a.candidates.forEach(c=>{const idx=cands.findIndex(x=>x.no===c.candidateNumber);if(idx>=0)row['votes_'+(idx+1)]=c.totalVotes||0});return row});
+    // ── ส.ก. รายเขต จาก council API ──
+    let skg={};
+    const ccl=councilCands?.candidates||councilCands?.data?.candidates||(Array.isArray(councilCands)?councilCands:[]);
+    if(ccl.length){
+      ccl.forEach(c=>{
+        const dn=(c.areaName||c.districtName||('เขต '+c.areaNumber)).replace(/^เขต/,'').trim();
+        (skg[dn]=skg[dn]||[]).push({no:c.candidateNumber||0,name:c.name||'',party:c.party?.name||'อิสระ',votes:c.totalVotes||c.votes||0,elected:c.rank===1||c.isWinner===true,color:c.party?.color||'',avatar:c.imageUrl||c.image||''});
+      });
+      Object.keys(skg).forEach(d=>skg[d].sort((a,b)=>b.votes-a.votes));
+    }
     autoFirebase=false;currentSource='ect';
-    applyExternal({candidates:cands,districts},'ECT API (Live)');setSrcDot('on');
+    applyExternal({candidates:cands,districts,skg:Object.keys(skg).length?skg:undefined},'ECT API (Live)');setSrcDot('on');
     const st=govStat?.coverage||govStat?.data?.coverage||{};
     const pc=typeof st.percentage==='number'?(' · นับ '+st.percentage.toFixed(1)+'%'):'';
-    $('ect-status').textContent='● ECT Live · '+cands.length+' ผู้สมัคร'+pc;
+    const sk=Object.keys(skgData).length;
+    $('ect-status').textContent='● ECT Live · '+cands.length+' ผู้สมัคร'+pc+(sk?(' · ส.ก. '+sk+' เขต'):'');
   }catch(e){$('ect-status').textContent='✕ '+e.message;console.error('ECT',e)}
 }
 async function ectStart(){
