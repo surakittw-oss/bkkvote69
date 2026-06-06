@@ -327,6 +327,8 @@ const DLAYOUT=[
   ['บางบอน',1,6],['ราษฎร์บูรณะ',4,6],
   ['บางขุนเทียน',1,7],['ทุ่งครุ',4,7],
 ];
+// รายชื่อ 50 เขต (ใช้ fallback map areaNumber→ชื่อเขต เมื่อ API ไม่ส่งชื่อเขตจริง)
+const BKK_DISTRICTS=DLAYOUT.map(d=>d[0]);
 
 /* ════════════ STATE ════════════ */
 let CANDS=[], DISTRICTS=[], countedDistricts=50, pctBase=SAMPLE_PCT_BASE;
@@ -679,7 +681,11 @@ function normalizeSkg(raw){
   }else{
     Object.keys(raw).forEach(dn=>{const arr=Array.isArray(raw[dn])?raw[dn]:Object.values(raw[dn]);out[dn.replace(/^เขต/,'').trim()]=arr.map(c=>({no:parseInt(c.no)||0,name:c.name||'',party:c.party||'อิสระ',votes:parseInt(c.votes)||0,elected:c.elected===1||c.elected===true||c.elected==='1',color:c.color||'',avatar:c.avatar||''}))});
   }
-  Object.keys(out).forEach(dn=>out[dn].sort((a,b)=>b.votes-a.votes));
+  Object.keys(out).forEach(dn=>{
+    out[dn].sort((a,b)=>b.votes-a.votes);
+    // ถ้าไม่มีใครถูก flag ว่าได้รับเลือก → ผู้ได้คะแนนสูงสุดของเขตคือผู้ชนะ
+    if(out[dn].length&&!out[dn].some(c=>c.elected))out[dn][0].elected=true;
+  });
   return out;
 }
 function buildDistrictsFromCands(){
@@ -933,15 +939,31 @@ async function loadFromECT(){
     const govAreaMap=buildAreaNameMap((govAreas?.electionAreas||govAreas?.areas||(Array.isArray(govAreas)?govAreas:[])));
     const areaVotes={}; // areaNumber → { candIndex: votes }
     cands.forEach((c,ci)=>{(c._raw?.votesByAreaDetails||[]).forEach(a=>{const an=a.areaNumber;if(!an)return;(areaVotes[an]=areaVotes[an]||{})[ci]=a.votes||0;});});
-    let districts;
+    const govAreaList=(govAreas?.electionAreas||govAreas?.areas||(Array.isArray(govAreas)?govAreas:[]));
+    let districts, govEstimated=false;
     if(Object.keys(areaVotes).length){
+      // มีคะแนนผู้ว่าฯ แยกรายเขตจริง (votesByAreaDetails)
       districts=Object.keys(areaVotes).map(an=>{
         const nm=govAreaMap[an]||BKK_DISTRICTS[an-1]||('เขต '+an);
         const row={district:nm,counted:1};const av=areaVotes[an];
         Object.keys(av).forEach(ci=>row['votes_'+(+ci+1)]=av[ci]);
         return row;
       });
-    } else { districts=undefined; } // ไม่มี breakdown รายเขต → ให้แผนที่ประมาณการจากคะแนนรวม
+    } else if(govAreaList.length){
+      // ไม่มี breakdown รายผู้สมัคร → ใช้ turnout จริงรายเขต + ประมาณสัดส่วนจากคะแนนรวมทั้งจังหวัด
+      govEstimated=true;
+      const provTotal=cands.reduce((s,c)=>s+c.votes,0)||1;
+      const shares=cands.map(c=>c.votes/provTotal);
+      districts=govAreaList.map(a=>{
+        const an=a.areaNumber||a.number;
+        const nm=govAreaMap[an]||BKK_DISTRICTS[an-1]||(a.name||'เขต '+an);
+        const counted=((a.coverage&&a.coverage.percentage)||a.progress||0)>0?1:0;
+        const cast=a.goodVotes||a.totalVotes||0;
+        const row={district:nm,counted};
+        if(counted)cands.forEach((c,ci)=>row['votes_'+(ci+1)]=Math.round(shares[ci]*cast));
+        return row;
+      });
+    } else { districts=undefined; }
     cands=cands.map(c=>{const{_raw,...rest}=c;return rest;});
 
     // ── ส.ก. รายเขต: council candidates (level=area) จับกลุ่มตาม areaNumber ──
@@ -965,7 +987,7 @@ async function loadFromECT(){
     else if(cov.areasReported!=null&&cov.totalAreas)pctTxt=' · นับ '+cov.areasReported+'/'+cov.totalAreas+' เขต';
     else if(cov.stationsReported!=null&&cov.totalStations)pctTxt=' · '+cov.stationsReported+'/'+cov.totalStations+' หน่วย';
     const sk=Object.keys(skgData).length;
-    $('ect-status').textContent='● ECT Live · '+cands.length+' ผู้สมัคร'+pctTxt+(sk?(' · ส.ก. '+sk+' เขต'):'');
+    $('ect-status').textContent='● ECT Live · '+cands.length+' ผู้สมัคร'+pctTxt+(sk?(' · ส.ก. '+sk+' เขต'):'')+(govEstimated?' · ผู้ว่าฯ รายเขตประมาณการ':'');
   }catch(e){$('ect-status').textContent='✕ '+e.message;console.error('ECT error:',e);}
 }
 async function ectStart(){
