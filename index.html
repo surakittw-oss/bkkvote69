@@ -194,6 +194,16 @@ body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opa
 .btn-s:hover{border-color:var(--t3);color:#fff}
 .srcrow{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:6px}
 .srcnote{font-size:11px;color:var(--t4);line-height:1.6;margin-top:8px}
+/* embed cards */
+.emb{border:1px solid var(--line2);border-radius:10px;padding:12px 14px;margin-bottom:10px;background:var(--bg2)}
+.emb-hd{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+.emb-name{font-size:13px;font-weight:700;color:#fff}
+.emb-name small{display:block;font-size:11px;font-weight:400;color:var(--t4);margin-top:1px}
+.emb-copy{display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border-radius:7px;border:none;background:var(--brand);color:#fff;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:.15s;white-space:nowrap}
+.emb-copy:hover{filter:brightness(1.1)}
+.emb-copy.ok{background:var(--brand-l)}
+.emb-code{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:9px 11px;color:var(--t2);font-family:'IBM Plex Mono',monospace;font-size:10.5px;line-height:1.5;resize:vertical;min-height:70px;white-space:pre;overflow:auto}
+.emb-code:focus{outline:none;border-color:var(--brand-l)}
 .srcstatus{font-size:12px;color:var(--t3);margin-top:8px;min-height:18px}
 
 @keyframes fadeDown{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
@@ -218,6 +228,7 @@ body.section-totals #totals{max-height:none;overflow:visible;padding-right:0}
     <h1>ผลการนับคะแนนเลือกตั้งผู้ว่าฯ กทม. 69</h1>
     <div class="sub">
       <button class="src-btn" onclick="openSrc()"><span class="dot" id="srcdot"></span><span id="srclabel">แหล่งข้อมูล</span></button>
+      <button class="src-btn" onclick="openEmbed()" title="คัดลอกโค้ดฝังเว็บ"><span style="font-family:'IBM Plex Mono',monospace;font-weight:600">&lt;/&gt;</span> ฝังเว็บ</button>
     </div>
   </header>
   <div class="hr"></div>
@@ -253,6 +264,19 @@ body.section-totals #totals{max-height:none;overflow:visible;padding-right:0}
 </div>
 
 <div id="tip"></div>
+
+<!-- EMBED MODAL (คัดลอก iframe ไปวาง WordPress) -->
+<div id="embedModal" class="srcmodal" onclick="if(event.target===this)closeEmbed()">
+  <div class="srcbox" style="max-width:620px">
+    <div class="srchd">ฝังลงเว็บ / WordPress <button onclick="closeEmbed()">✕</button></div>
+    <div class="srcbody">
+      <div class="fld"><label>URL สาธารณะของหน้านี้ (แก้ได้ — ใช้ลิงก์ GitHub Pages/โฮสต์จริง)</label>
+        <input class="inp" id="embed-base" oninput="renderEmbeds()" placeholder="https://your-domain/bkkvote69/"></div>
+      <p class="srcnote" style="margin-bottom:14px">เลือกส่วนที่ต้องการ แล้วกด <b>คัดลอก</b> → วางใน WordPress (บล็อก <b>Custom HTML</b>) · iframe ปรับความสูงอัตโนมัติ</p>
+      <div id="embedList"></div>
+    </div>
+  </div>
+</div>
 
 <!-- DISTRICT DETAIL MODAL (ผู้ว่าฯ + ส.ก. รายเขต) -->
 <div id="distModal" class="srcmodal" onclick="if(event.target===this)closeDist()">
@@ -1012,14 +1036,58 @@ async function ectStart(){
 function ectStop(){clearInterval(ectTimer);ectTimer=null;$('ect-status').textContent='■ หยุดแล้ว'}
 
 /* ════════════ IFRAME / EMBED ════════════ */
-function postHeight(){try{parent.postMessage({type:'bkkvote-height',height:document.body.scrollHeight},'*')}catch(e){}}
+function postHeight(){try{const p=new URLSearchParams(location.search);const fid=p.get('fid')||p.get('section')||'full';parent.postMessage({type:'bkkvote-height',height:document.body.scrollHeight,fid:fid},'*')}catch(e){}}
 (function(){const p=new URLSearchParams(location.search);
   if(p.get('embed')==='1')document.body.classList.add('embed');
   const sec=p.get('section');
   if(sec){document.body.classList.add('embed');document.body.classList.add('section-'+sec);document.querySelector('.hd').style.display='none';document.querySelector('.hr').style.display='none';
     if(sec==='map'){document.querySelector('.grid').children[0].style.display='none'}
-    if(sec==='totals'){document.querySelector('.map-card').style.display='none';document.querySelector('.modes').style.display='none';document.querySelector('.grid').style.gridTemplateColumns='1fr'}}
+    if(sec==='totals'){document.querySelector('.map-card').style.display='none';document.querySelector('.modes').style.display='none';document.querySelector('.grid').style.gridTemplateColumns='1fr'}
+    if(sec==='skg'){document.querySelector('.grid').style.display='none'}}
 })();
+
+/* ════════════ EMBED / COPY iframe ════════════ */
+const EMBED_SECTIONS=[
+  {key:'full',  label:'แดชบอร์ดเต็ม',     desc:'ทั้งหน้า: คะแนนรวม + แผนที่ + ส.ก.', q:'embed=1'},
+  {key:'map',   label:'แผนที่รายเขต',      desc:'cartogram + แผนที่ กทม. + ปุ่มสลับมุมมอง', q:'section=map'},
+  {key:'totals',label:'คะแนนรวมผู้สมัคร',  desc:'ตารางผลผู้ว่าฯ ทุกเบอร์', q:'section=totals'},
+  {key:'skg',   label:'ผลเลือกตั้ง ส.ก.',  desc:'สรุปที่นั่งรายพรรค (คลิกได้)', q:'section=skg'},
+];
+function embedBase(){
+  let b=$('embed-base').value.trim();
+  if(!b) b=location.origin+location.pathname;
+  return b.replace(/[?#].*$/,'');
+}
+function embedSnippet(base,sec){
+  const url=base+'?'+sec.q+'&fid='+sec.key;
+  return `<!-- BKK Vote 69 · ${sec.label} -->
+<iframe src="${url}" data-bkk="${sec.key}" title="ผลเลือกตั้งผู้ว่าฯ กทม. 69 — ${sec.label}"
+  loading="lazy" scrolling="no" style="width:100%;border:0;display:block;min-height:320px"><\/iframe>
+<script>addEventListener("message",function(e){var d=e.data||{};if(d.type==="bkkvote-height"){var f=document.querySelector('iframe[data-bkk="'+d.fid+'"]');if(f)f.style.height=d.height+"px";}});<\/script>`;
+}
+function openEmbed(){
+  if(!$('embed-base').value)$('embed-base').value=(location.origin+location.pathname).replace(/[?#].*$/,'');
+  renderEmbeds();
+  $('embedModal').classList.add('on');
+}
+function closeEmbed(){$('embedModal').classList.remove('on');}
+function renderEmbeds(){
+  const base=embedBase();
+  $('embedList').innerHTML=EMBED_SECTIONS.map((s,i)=>`
+    <div class="emb">
+      <div class="emb-hd">
+        <span class="emb-name">${s.label}<small>${s.desc}</small></span>
+        <button class="emb-copy" id="embcopy-${i}" onclick="copyEmbed(${i})">⧉ คัดลอก</button>
+      </div>
+      <textarea class="emb-code" id="embcode-${i}" rows="4" readonly onclick="this.select()">${embedSnippet(base,s).replace(/</g,'&lt;')}</textarea>
+    </div>`).join('');
+}
+function copyEmbed(i){
+  const base=embedBase();const code=embedSnippet(base,EMBED_SECTIONS[i]);
+  const done=()=>{const b=$('embcopy-'+i);b.textContent='✓ คัดลอกแล้ว';b.classList.add('ok');setTimeout(()=>{b.textContent='⧉ คัดลอก';b.classList.remove('ok')},1800);};
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(code).then(done).catch(()=>{const t=$('embcode-'+i);t.removeAttribute('readonly');t.select();document.execCommand('copy');t.setAttribute('readonly','');done();});}
+  else{const t=$('embcode-'+i);t.removeAttribute('readonly');t.select();document.execCommand('copy');t.setAttribute('readonly','');done();}
+}
 
 /* ════════════ INIT ════════════ */
 function init(){
