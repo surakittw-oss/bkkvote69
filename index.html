@@ -242,9 +242,9 @@ body.embed .wrap{padding:14px}
 
       <div class="srcpane" id="pane-ect">
         <div class="fld"><label>Partner API Key (ถ้ามี)</label><input class="inp" id="ect-key" placeholder="Bearer key — เว้นว่างได้"></div>
-        <div class="fld"><label>URL Sheet รูปภาพ/สี (no, avatar, color, partyLogo) — ใส่หรือไม่ก็ได้</label><input class="inp" id="ect-img" placeholder="วางลิงก์ Sheet รูปภาพ"></div>
+        <div class="fld"><label>URL Sheet สี/รูปบาร์ผู้สมัคร — คอลัมน์ <code>no</code>, <code>color</code> (hex), <code>avatar</code>, <code>name</code> (ใส่หรือไม่ก็ได้)</label><input class="inp" id="ect-img" placeholder="วางลิงก์ Sheet สี/รูป (#gid=)"></div>
         <div class="srcrow"><button class="btn btn-p" onclick="ectStart()">▶ เริ่ม Live</button><button class="btn btn-s" onclick="ectStop()">■ หยุด</button></div>
-        <p class="srcnote">media.election.in.th · auto-refresh ทุก 60 วินาที · GOVERNOR_ID + COUNCIL_ID ตั้งไว้ในโค้ดแล้ว</p>
+        <p class="srcnote">media.election.in.th · auto-refresh ทุก 60 วินาที · <b>สีบาร์ผู้สมัคร</b>จะดึงจาก Sheet ตามเบอร์ (no) ถ้ามี ไม่งั้นใช้สีจาก API</p>
         <div class="srcstatus" id="ect-status">—</div>
       </div>
     </div>
@@ -644,9 +644,37 @@ const ECT_GOVERNOR_ID='095f76e8-bed8-42e3-859a-2b47540ba8bd';
 const ECT_COUNCIL_ID='be5498a6-9d05-4655-8f1d-ba0f9dcb07a4';
 let ectTimer=null,ectImageMap=null;
 function ectGet(path){const h=ECT_KEY?{Authorization:'Bearer '+ECT_KEY}:{};return fetch(ECT_BASE+path,{headers:h}).then(r=>r.json()).then(j=>j.data)}
-async function loadImageSheet(url){
-  try{const cands=await fetchCands(url);const m={};cands.forEach(c=>{m[c.no]={no:c.no,name:c.name,avatar:c.avatar,color:c.color,partyLogo:''}});return m}catch(e){return{}}
+// ดึง override (สี/รูป/ชื่อ) จาก Google Sheet ตามเบอร์ผู้สมัคร (no) — ยืดหยุ่น ไม่บังคับคอลัมน์ name
+// รองรับคอลัมน์: no | color (hex) | avatar | name | partyLogo  (ใส่เฉพาะที่ต้องการ override ได้)
+async function loadOverrideSheet(url){
+  const res=await fetch(sheetURLtoCSV(url));if(!res.ok)throw new Error('HTTP '+res.status);
+  const lines=(await res.text()).trim().split('\n').filter(l=>l.trim());if(lines.length<1)return{};
+  // หา header row: ต้องมี 'no'(หรือ ลำดับ/เบอร์) และอย่างน้อยหนึ่งใน color/avatar/สี/รูป/โลโก้
+  let hi=0;
+  for(let i=0;i<Math.min(lines.length,8);i++){
+    const L=parseCSVLine(lines[i]).map(c=>c.toLowerCase().replace(/^"+|"+$/g,'').trim());
+    const hasNo=L.some(c=>c==='no'||c==='ลำดับ'||c==='เบอร์'||c==='number');
+    const hasStyle=L.some(c=>/color|สี|hex|avatar|รูป|logo|โลโก/.test(c));
+    if(hasNo&&hasStyle){hi=i;break;}
+  }
+  const hdr=parseCSVLine(lines[hi]).map(h=>h.toLowerCase().replace(/^"+|"+$/g,'').trim());
+  const gi=t=>hdr.findIndex(h=>t.some(x=>h.includes(x)));
+  const iNo=gi(['no','ลำดับ','เบอร์','number']),iColor=gi(['color','สี','hex']),iAv=gi(['avatar','รูป']),iNm=gi(['name','ชื่อ']),iLogo=gi(['logo','โลโก','partylogo']);
+  if(iNo<0)throw new Error('ไม่พบคอลัมน์ no (เบอร์ผู้สมัคร)');
+  const cl=(r,i)=>i>=0?(r[i]||'').replace(/^"+|"+$/g,'').trim():'';
+  const norm=h=>{if(!h)return'';h=h.trim();return /^[0-9a-fA-F]{6}$/.test(h)?'#'+h:h;}; // เติม # ให้ hex 6 หลัก
+  // ข้าม description row (แถวถัดจาก header ที่ no ไม่ใช่ตัวเลข)
+  const firstNo=cl(parseCSVLine(lines[hi+1]||''),iNo);
+  const start=hi+((firstNo&&isNaN(parseInt(firstNo))&&firstNo.length>1)?2:1);
+  const m={};
+  lines.slice(start).map(parseCSVLine).forEach(r=>{
+    const no=parseInt(cl(r,iNo));if(!no)return;
+    m[no]={no,color:norm(cl(r,iColor)),avatar:gdrive(cl(r,iAv)),name:cl(r,iNm),partyLogo:gdrive(cl(r,iLogo))};
+  });
+  return m;
 }
+// เผื่อโค้ดเดิมเรียกชื่อนี้
+async function loadImageSheet(url){return loadOverrideSheet(url);}
 async function loadFromECT(){
   $('ect-status').textContent='กำลังโหลดจาก ECT...';
   try{
@@ -661,7 +689,8 @@ async function loadFromECT(){
       no:c.candidateNumber||i+1,originalIndex:i,name:c.name||('ผู้สมัคร '+(i+1)),party:c.party?.name||'อิสระ',
       votes:c.totalVotes||c.votes||0,color:c.party?.color||PALETTE[i%PALETTE.length],avatar:c.imageUrl||c.image||''
     }));
-    if(ectImageMap)cands=cands.map(c=>{const o=ectImageMap[c.no];return o?{...c,avatar:o.avatar||c.avatar,color:o.color||c.color,name:o.name||c.name}:c});
+    // override สีบาร์/รูป/ชื่อ จาก Google Sheet ตามเบอร์ผู้สมัคร (no) — สีจาก Sheet มาก่อนสีจาก API
+    if(ectImageMap)cands=cands.map(c=>{const o=ectImageMap[c.no];return o?{...c,color:o.color||c.color,avatar:o.avatar||c.avatar,name:o.name||c.name,partyLogo:o.partyLogo||c.partyLogo}:c});
     const al=govAreas?.electionAreas||govAreas?.data?.electionAreas||(Array.isArray(govAreas)?govAreas:[]);
     const districts=al.map(a=>{const name=a.name||('เขต '+a.areaNumber);const row={district:name,counted:(a.coverage?.percentage||0)>0?1:0};if(a.candidates)a.candidates.forEach(c=>{const idx=cands.findIndex(x=>x.no===c.candidateNumber);if(idx>=0)row['votes_'+(idx+1)]=c.totalVotes||0});return row});
     autoFirebase=false;currentSource='ect';
@@ -674,7 +703,11 @@ async function loadFromECT(){
 async function ectStart(){
   ECT_KEY=$('ect-key').value.trim();
   const img=$('ect-img').value.trim();
-  if(img){$('ect-status').textContent='โหลด Sheet รูปภาพ...';ectImageMap=await loadImageSheet(img)}else ectImageMap=null;
+  if(img){
+    $('ect-status').textContent='โหลด Sheet สี/รูป...';
+    try{ectImageMap=await loadOverrideSheet(img);$('ect-status').textContent='โหลดสี/รูป '+Object.keys(ectImageMap).length+' เบอร์';}
+    catch(e){ectImageMap=null;$('ect-status').textContent='⚠ Sheet สี/รูป: '+e.message;}
+  }else ectImageMap=null;
   clearInterval(ectTimer);await loadFromECT();ectTimer=setInterval(loadFromECT,60000);
 }
 function ectStop(){clearInterval(ectTimer);ectTimer=null;$('ect-status').textContent='■ หยุดแล้ว'}
