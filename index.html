@@ -288,10 +288,10 @@ body.embed .wrap{padding:14px}
       </div>
 
       <div class="srcpane" id="pane-ect">
-        <div class="fld"><label>Partner API Key (ถ้ามี)</label><input class="inp" id="ect-key" placeholder="Bearer key — เว้นว่างได้"></div>
+        <div class="fld"><label>API Key (Bearer token) — <b>จำเป็น</b> มิฉะนั้นได้ 401/403</label><input class="inp" id="ect-key" placeholder="วาง partner API token"></div>
         <div class="fld"><label>URL Sheet สี/รูปบาร์ผู้สมัคร — คอลัมน์ <code>no</code>, <code>color</code> (hex), <code>avatar</code>, <code>name</code> (ใส่หรือไม่ก็ได้)</label><input class="inp" id="ect-img" placeholder="วางลิงก์ Sheet สี/รูป (#gid=)"></div>
         <div class="srcrow"><button class="btn btn-p" onclick="ectStart()">▶ เริ่ม Live</button><button class="btn btn-s" onclick="ectStop()">■ หยุด</button></div>
-        <p class="srcnote">media.election.in.th · auto-refresh ทุก 60 วินาที · <b>สีบาร์ผู้สมัคร</b>จะดึงจาก Sheet ตามเบอร์ (no) ถ้ามี ไม่งั้นใช้สีจาก API</p>
+        <p class="srcnote">ERS2026 Media API · <code>bkk-governor-2026</code> (level=province) + <code>bkk-council-2026</code> ส.ก. (level=area) · auto-refresh 60 วิ · <b>สีบาร์</b>ดึงจาก Sheet ตามเบอร์ (no) ถ้ามี ไม่งั้นใช้สีจาก API</p>
         <div class="srcstatus" id="ect-status">—</div>
       </div>
     </div>
@@ -832,12 +832,39 @@ async function fbSave(){
   }catch(e){setSrcDot('');$('fb-status').textContent='✕ '+e.message}
 }
 
-/* ════════════ ECT API ════════════ */
+/* ════════════ ECT / ERS2026 Media API (v3.5.7) ════════════
+   spec: media.election.in.th/openapi.yaml — Bearer token required (per-token election scope)
+   governor: slug bkk-governor-2026 + ?level=province | council: slug bkk-council-2026 + ?level=area */
 let ECT_KEY='';const ECT_BASE='https://media.election.in.th';
-const ECT_GOVERNOR_ID='095f76e8-bed8-42e3-859a-2b47540ba8bd';
-const ECT_COUNCIL_ID='be5498a6-9d05-4655-8f1d-ba0f9dcb07a4';
+const ECT_GOVERNOR_SLUG='bkk-governor-2026';
+const ECT_COUNCIL_SLUG='bkk-council-2026';
 let ectTimer=null,ectImageMap=null;
-function ectGet(path){const h=ECT_KEY?{Authorization:'Bearer '+ECT_KEY}:{};return fetch(ECT_BASE+path,{headers:h}).then(r=>r.json()).then(j=>j.data)}
+// คืน data (envelope { success, data, correlationId }) — โยน error ที่อ่านง่ายเมื่อ 401/403/404
+async function ectGet(path){
+  const h=ECT_KEY?{Authorization:'Bearer '+ECT_KEY}:{};
+  const res=await fetch(ECT_BASE+path,{headers:h});
+  if(!res.ok){
+    let msg='HTTP '+res.status;
+    try{const j=await res.json();msg=j.error?.code||j.error?.message||j.message||msg;}catch(e){}
+    if(res.status===401)msg='401 — ต้องใส่ API Key (Bearer token)';
+    if(res.status===403)msg='403 — token ไม่มีสิทธิ์เข้าถึง election นี้ (election scope)';
+    throw new Error(msg);
+  }
+  const j=await res.json();
+  return j.data!==undefined?j.data:j;
+}
+// ดึงรายการ candidates ครบทุกหน้า (pagination: limit สูงสุด 1000)
+async function ectCandidates(slug,level){
+  let page=1,all=[],guard=0;
+  while(guard++<20){
+    const d=await ectGet(`/api/media/elections/${slug}/auto/candidates?level=${level}&page=${page}&limit=1000`);
+    const arr=d?.candidates||d?.results||(Array.isArray(d)?d:[]);
+    all=all.concat(arr);
+    const pg=d?.pagination; if(!pg||!pg.hasMore){return {candidates:all,meta:d};}
+    page++;
+  }
+  return {candidates:all,meta:null};
+}
 // ดึง override (สี/รูป/ชื่อ) จาก Google Sheet ตามเบอร์ผู้สมัคร (no) — ยืดหยุ่น ไม่บังคับคอลัมน์ name
 // รองรับคอลัมน์: no | color (hex) | avatar | name | partyLogo  (ใส่เฉพาะที่ต้องการ override ได้)
 async function loadOverrideSheet(url){
@@ -869,42 +896,77 @@ async function loadOverrideSheet(url){
 }
 // เผื่อโค้ดเดิมเรียกชื่อนี้
 async function loadImageSheet(url){return loadOverrideSheet(url);}
+// map areaNumber → ชื่อเขต (ใช้ areaName จาก API ถ้าได้ ไม่งั้น fallback ลำดับ BKK_DISTRICTS)
+function buildAreaNameMap(areaList){
+  const m={};
+  (areaList||[]).forEach(a=>{
+    const an=a.areaNumber||a.number; if(!an)return;
+    let nm=(a.areaName||a.name||'').replace(/^เขต\s*/,'').replace(/^กรุงเทพมหานคร\s*/,'').trim();
+    // ถ้า API คืนชื่อแบบ "เขตเลือกตั้งที่ N" ที่ไม่ตรงชื่อเขตจริง → ใช้ลำดับแทน
+    if(!nm||/เลือกตั้งที่|^\d+$/.test(nm)||!BKK_DISTRICTS.includes(nm))nm=BKK_DISTRICTS[an-1]||nm||('เขต '+an);
+    m[an]=nm;
+  });
+  return m;
+}
 async function loadFromECT(){
   $('ect-status').textContent='กำลังโหลดจาก ECT...';
   try{
-    const [govStat,govCands,govAreas,councilCands]=await Promise.all([
-      ectGet(`/api/media/elections/${ECT_GOVERNOR_ID}/auto/statistics?level=province`),
-      ectGet(`/api/media/elections/${ECT_GOVERNOR_ID}/auto/candidates?level=province`),
-      ectGet(`/api/media/elections/${ECT_GOVERNOR_ID}/auto/electionAreas?level=province`),
-      ectGet(`/api/media/elections/${ECT_COUNCIL_ID}/auto/candidates?level=area`).catch(()=>null),
+    const G=ECT_GOVERNOR_SLUG, C=ECT_COUNCIL_SLUG;
+    const [govStat,govC,govAreas,councilC,councilAreas]=await Promise.all([
+      ectGet(`/api/media/elections/${G}/auto/statistics?level=province`).catch(()=>null),
+      ectCandidates(G,'province'),
+      ectGet(`/api/media/elections/${G}/auto/electionAreas?level=province`).catch(()=>null),
+      ectCandidates(C,'area').catch(()=>({candidates:[]})),
+      ectGet(`/api/media/elections/${C}/auto/electionAreas?level=area`).catch(()=>null),
     ]);
-    const cl=govCands?.candidates||govCands?.data?.candidates||(Array.isArray(govCands)?govCands:[]);
-    if(!cl.length)throw new Error('ไม่พบผู้สมัครใน API');
-    let cands=cl.sort((a,b)=>(b.totalVotes||b.votes||0)-(a.totalVotes||a.votes||0)).map((c,i)=>({
-      no:c.candidateNumber||i+1,originalIndex:i,name:c.name||('ผู้สมัคร '+(i+1)),party:c.party?.name||'อิสระ',
-      votes:c.totalVotes||c.votes||0,color:c.party?.color||PALETTE[i%PALETTE.length],avatar:c.imageUrl||c.image||''
+    // ── ผู้ว่าฯ: candidates (totalVotes + rank + votesByAreaDetails) ──
+    const cl=govC.candidates||[];
+    if(!cl.length)throw new Error('ไม่พบผู้สมัครผู้ว่าฯ (ตรวจ token/level=province)');
+    let cands=cl.slice().sort((a,b)=>(b.totalVotes||0)-(a.totalVotes||0)).map((c,i)=>({
+      no:c.number||c.no||i+1, originalIndex:i, _raw:c,
+      name:(c.name||'').trim()||('ผู้สมัคร '+(i+1)), party:c.party?.name?.trim()||'อิสระ',
+      votes:c.totalVotes||0, color:c.party?.color||PALETTE[i%PALETTE.length], avatar:c.photoUrl||c.imageUrl||''
     }));
-    // override สีบาร์/รูป/ชื่อ จาก Google Sheet ตามเบอร์ผู้สมัคร (no) — สีจาก Sheet มาก่อนสีจาก API
     if(ectImageMap)cands=cands.map(c=>{const o=ectImageMap[c.no];return o?{...c,color:o.color||c.color,avatar:o.avatar||c.avatar,name:o.name||c.name,partyLogo:o.partyLogo||c.partyLogo}:c});
-    const al=govAreas?.electionAreas||govAreas?.data?.electionAreas||(Array.isArray(govAreas)?govAreas:[]);
-    const districts=al.map(a=>{const name=a.name||('เขต '+a.areaNumber);const row={district:name,counted:(a.coverage?.percentage||0)>0?1:0};if(a.candidates)a.candidates.forEach(c=>{const idx=cands.findIndex(x=>x.no===c.candidateNumber);if(idx>=0)row['votes_'+(idx+1)]=c.totalVotes||0});return row});
-    // ── ส.ก. รายเขต จาก council API ──
-    let skg={};
-    const ccl=councilCands?.candidates||councilCands?.data?.candidates||(Array.isArray(councilCands)?councilCands:[]);
-    if(ccl.length){
-      ccl.forEach(c=>{
-        const dn=(c.areaName||c.districtName||('เขต '+c.areaNumber)).replace(/^เขต/,'').trim();
-        (skg[dn]=skg[dn]||[]).push({no:c.candidateNumber||0,name:c.name||'',party:c.party?.name||'อิสระ',votes:c.totalVotes||c.votes||0,elected:c.rank===1||c.isWinner===true,color:c.party?.color||'',avatar:c.imageUrl||c.image||''});
+
+    // ── คะแนนผู้ว่าฯ รายเขต: จาก votesByAreaDetails ของแต่ละผู้สมัคร ──
+    const govAreaMap=buildAreaNameMap((govAreas?.electionAreas||govAreas?.areas||(Array.isArray(govAreas)?govAreas:[])));
+    const areaVotes={}; // areaNumber → { candIndex: votes }
+    cands.forEach((c,ci)=>{(c._raw?.votesByAreaDetails||[]).forEach(a=>{const an=a.areaNumber;if(!an)return;(areaVotes[an]=areaVotes[an]||{})[ci]=a.votes||0;});});
+    let districts;
+    if(Object.keys(areaVotes).length){
+      districts=Object.keys(areaVotes).map(an=>{
+        const nm=govAreaMap[an]||BKK_DISTRICTS[an-1]||('เขต '+an);
+        const row={district:nm,counted:1};const av=areaVotes[an];
+        Object.keys(av).forEach(ci=>row['votes_'+(+ci+1)]=av[ci]);
+        return row;
       });
-      Object.keys(skg).forEach(d=>skg[d].sort((a,b)=>b.votes-a.votes));
-    }
+    } else { districts=undefined; } // ไม่มี breakdown รายเขต → ให้แผนที่ประมาณการจากคะแนนรวม
+    cands=cands.map(c=>{const{_raw,...rest}=c;return rest;});
+
+    // ── ส.ก. รายเขต: council candidates (level=area) จับกลุ่มตาม areaNumber ──
+    const councilAreaMap=buildAreaNameMap((councilAreas?.electionAreas||councilAreas?.areas||(Array.isArray(councilAreas)?councilAreas:[])));
+    let skg={};
+    (councilC.candidates||[]).forEach(c=>{
+      const an=c.areaNumber||c.electionArea?.number||c.electionArea?.areaNumber;
+      let dn=councilAreaMap[an]||(c.areaName||c.electionArea?.name||'').replace(/^เขต\s*/,'').trim()||(an?('เขต '+an):'อื่นๆ');
+      if(BKK_DISTRICTS.includes((c.electionArea?.name||'').replace(/^เขต\s*/,'').trim()))dn=(c.electionArea.name).replace(/^เขต\s*/,'').trim();
+      (skg[dn]=skg[dn]||[]).push({no:c.number||0,name:(c.name||'').trim(),party:c.party?.name?.trim()||'อิสระ',votes:c.totalVotes||0,elected:c.rank===1,color:c.party?.color||'',avatar:c.photoUrl||c.imageUrl||''});
+    });
+    Object.keys(skg).forEach(d=>skg[d].sort((a,b)=>b.votes-a.votes));
+
     autoFirebase=false;currentSource='ect';
     applyExternal({candidates:cands,districts,skg:Object.keys(skg).length?skg:undefined},'ECT API (Live)');setSrcDot('on');
-    const st=govStat?.coverage||govStat?.data?.coverage||{};
-    const pc=typeof st.percentage==='number'?(' · นับ '+st.percentage.toFixed(1)+'%'):'';
+
+    // ── สถานะ/ความคืบหน้า ──
+    const cov=govStat?.coverage||govC.meta?.coverage||{};
+    let pctTxt='';
+    if(typeof cov.percentage==='number')pctTxt=' · นับ '+cov.percentage.toFixed(1)+'%';
+    else if(cov.areasReported!=null&&cov.totalAreas)pctTxt=' · นับ '+cov.areasReported+'/'+cov.totalAreas+' เขต';
+    else if(cov.stationsReported!=null&&cov.totalStations)pctTxt=' · '+cov.stationsReported+'/'+cov.totalStations+' หน่วย';
     const sk=Object.keys(skgData).length;
-    $('ect-status').textContent='● ECT Live · '+cands.length+' ผู้สมัคร'+pc+(sk?(' · ส.ก. '+sk+' เขต'):'');
-  }catch(e){$('ect-status').textContent='✕ '+e.message;console.error('ECT',e)}
+    $('ect-status').textContent='● ECT Live · '+cands.length+' ผู้สมัคร'+pctTxt+(sk?(' · ส.ก. '+sk+' เขต'):'');
+  }catch(e){$('ect-status').textContent='✕ '+e.message;console.error('ECT error:',e);}
 }
 async function ectStart(){
   ECT_KEY=$('ect-key').value.trim();
