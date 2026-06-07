@@ -119,8 +119,14 @@ body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opa
 .geop:hover{filter:brightness(1.25) saturate(1.2);stroke:#fff;stroke-width:1.4}
 .geolab{font-size:5px;fill:rgba(0,0,0,.55);font-weight:700;pointer-events:none;text-anchor:middle;font-family:'Noto Sans Thai',sans-serif}
 
-/* รายเขต table */
+/* รายเขต table — scroll แยกในกรอบตัวเอง (ไม่ดันทั้งหน้า) */
+#dtable-host{max-height:min(640px,76vh);overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+#dtable-host::-webkit-scrollbar{width:7px}
+#dtable-host::-webkit-scrollbar-track{background:transparent}
+#dtable-host::-webkit-scrollbar-thumb{background:var(--line);border-radius:4px}
+#dtable-host::-webkit-scrollbar-thumb:hover{background:var(--brand-l)}
 .dtable{width:100%;border-collapse:collapse;animation:fadeUp .4s both}
+.dtable thead th{position:sticky;top:0;z-index:2;background:var(--bg1)}
 .dtable th{font-size:11px;color:var(--t4);font-weight:600;text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
 .dtable th.r,.dtable td.r{text-align:right}
 .dtable td{padding:9px 10px;border-bottom:1px solid var(--line2);font-size:13px}
@@ -487,6 +493,7 @@ function renderMap(){
   const map=$('map');
   zoomReset(); // เริ่มที่ขนาดพอดีทุกครั้งที่เปลี่ยนโหมด/ข้อมูล
   const ctl=$('zoomCtl'); if(ctl) ctl.style.display=(MODE==='list')?'none':'flex';
+  const mw=$('mapWrap'); if(mw) mw.style.display=(MODE==='list')?'none':'block';
   if(MODE==='list'){map.style.display='none';renderList();return;}
   map.style.display='block';
   if(MODE==='map'){renderGeoMap();bindBoxes();return;}
