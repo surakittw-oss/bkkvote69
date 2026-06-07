@@ -95,8 +95,16 @@ body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opa
 .prog{flex:1;min-width:120px;height:5px;border-radius:3px;background:var(--bg3);overflow:hidden}
 .prog > i{display:block;height:100%;background:linear-gradient(90deg,var(--brand),var(--brand-l));width:0;transition:width 1.2s cubic-bezier(.2,.8,.2,1)}
 
-.map-wrap{width:100%;overflow:hidden}
+.map-wrap{width:100%;overflow:hidden;position:relative;touch-action:none}
+.map-wrap.zoomed{cursor:grab}
+.map-wrap.grabbing{cursor:grabbing}
+#mapZoom{transform-origin:0 0;will-change:transform}
 .map-inner{position:relative;transform-origin:top left}
+/* ปุ่มซูม */
+.zoom-ctl{position:absolute;right:10px;bottom:10px;display:flex;flex-direction:column;gap:5px;z-index:20}
+.zoom-ctl button{width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:rgba(20,21,23,.9);backdrop-filter:blur(6px);color:var(--t1);font-size:18px;font-weight:700;line-height:1;cursor:pointer;display:grid;place-items:center;transition:.15s;font-family:inherit}
+.zoom-ctl button:hover{border-color:var(--brand-l);color:var(--brand-l);background:var(--bg3)}
+.zoom-ctl button:active{transform:scale(.92)}
 .box{position:absolute;border-radius:3px;overflow:hidden;cursor:pointer;background:var(--bg3);box-shadow:0 0 0 1px rgba(255,255,255,.04) inset;opacity:0;transform:translateY(8px) scale(.9);animation:boxIn .45s cubic-bezier(.2,.8,.2,1) forwards;transition:transform .16s ease,box-shadow .16s ease,filter .16s ease;display:flex;flex-direction:column-reverse}
 .box:hover{transform:translateY(-3px) scale(1.06)!important;z-index:30;box-shadow:0 6px 18px rgba(0,0,0,.6),0 0 0 1.5px rgba(255,255,255,.25) inset;filter:saturate(1.15)}
 .box.unc{opacity:.22!important}
@@ -246,7 +254,14 @@ body.section-totals #totals{max-height:none;overflow:visible;padding-right:0}
         <span class="count-pill">นับแล้ว <b id="counted">50</b>/50 เขต</span>
         <span class="prog"><i id="prog"></i></span>
       </div>
-      <div class="map-wrap"><div class="map-inner" id="map"></div></div>
+      <div class="map-wrap" id="mapWrap">
+        <div id="mapZoom"><div class="map-inner" id="map"></div></div>
+        <div class="zoom-ctl" id="zoomCtl">
+          <button onclick="zoomBy(1.35)" title="ซูมเข้า" aria-label="zoom in">+</button>
+          <button onclick="zoomBy(0.74)" title="ซูมออก" aria-label="zoom out">−</button>
+          <button onclick="zoomReset()" title="รีเซ็ต" aria-label="reset" style="font-size:13px">⤢</button>
+        </div>
+      </div>
       <div id="dtable-host"></div>
       <div class="legend" id="legend"></div>
       <div class="cap"><b>ขนาดกล่อง</b> ตามจำนวนผู้มีสิทธิ์เลือกตั้งในเขตนั้น · <b>สัดส่วนสี</b> ในแต่ละกล่องตามสัดส่วนคะแนนของผู้สมัคร · โหมด <b>ผู้ชนะ (แผนที่)</b> แสดงรูปร่างเขตจริง</div>
@@ -470,6 +485,8 @@ const MAP_W=(COLS+1)*CELL_W, MAP_H=ROWS*CELL_H;
 function renderMap(){
   $('dtable-host').innerHTML='';
   const map=$('map');
+  zoomReset(); // เริ่มที่ขนาดพอดีทุกครั้งที่เปลี่ยนโหมด/ข้อมูล
+  const ctl=$('zoomCtl'); if(ctl) ctl.style.display=(MODE==='list')?'none':'flex';
   if(MODE==='list'){map.style.display='none';renderList();return;}
   map.style.display='block';
   if(MODE==='map'){renderGeoMap();bindBoxes();return;}
@@ -543,6 +560,73 @@ function fitMap(){
   wrap.style.height=((MODE==='prop'?MAP_H+20:MAP_H)*scale)+'px';
 }
 
+/* ════════════ ZOOM / PAN (แผนที่ทุกโหมด) ════════════ */
+let zoomState={s:1,tx:0,ty:0};
+const ZMIN=1, ZMAX=8;
+function applyZoom(){
+  const z=$('mapZoom'); if(!z) return;
+  z.style.transform=`translate(${zoomState.tx}px,${zoomState.ty}px) scale(${zoomState.s})`;
+  const w=$('mapWrap'); if(w) w.classList.toggle('zoomed', zoomState.s>1.01);
+}
+function zoomReset(){zoomState={s:1,tx:0,ty:0};applyZoom();}
+function zoomAt(cx,cy,factor){
+  const ns=Math.max(ZMIN,Math.min(ZMAX,zoomState.s*factor));
+  const k=ns/zoomState.s;
+  zoomState.tx=cx-(cx-zoomState.tx)*k;
+  zoomState.ty=cy-(cy-zoomState.ty)*k;
+  zoomState.s=ns;
+  if(ns<=ZMIN+0.001){zoomState.tx=0;zoomState.ty=0;} // กลับมาพอดีเมื่อสุดออก
+  applyZoom();
+}
+function zoomBy(factor){
+  const w=$('mapWrap'); if(!w) return;
+  const r=w.getBoundingClientRect();
+  zoomAt(r.width/2, r.height/2, factor); // ซูมจากกึ่งกลาง
+}
+(function initMapZoom(){
+  const w=$('mapWrap'); if(!w) return;
+  // ── wheel zoom (เข้าหาเคอร์เซอร์) ──
+  w.addEventListener('wheel',e=>{
+    if(MODE==='list')return;
+    e.preventDefault();
+    const r=w.getBoundingClientRect();
+    zoomAt(e.clientX-r.left, e.clientY-r.top, e.deltaY<0?1.12:0.89);
+  },{passive:false});
+  // ── pointer: ลากเลื่อน (1 นิ้ว) + pinch (2 นิ้ว) ──
+  const pts=new Map(); let last=null, pinchD=0, moved=0;
+  w.addEventListener('pointerdown',e=>{
+    if(MODE==='list')return;
+    if(e.target.closest('.zoom-ctl'))return;
+    w.setPointerCapture(e.pointerId);
+    pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    moved=0;
+    if(pts.size===1){last={x:e.clientX,y:e.clientY};w.classList.add('grabbing');}
+    else if(pts.size===2){const a=[...pts.values()];pinchD=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);}
+  });
+  w.addEventListener('pointermove',e=>{
+    if(!pts.has(e.pointerId))return;
+    pts.set(e.pointerId,{x:e.clientX,y:e.clientY});
+    const r=w.getBoundingClientRect();
+    if(pts.size>=2){
+      const a=[...pts.values()];
+      const d=Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y);
+      if(pinchD>0){const mx=(a[0].x+a[1].x)/2-r.left, my=(a[0].y+a[1].y)/2-r.top;zoomAt(mx,my,d/pinchD);}
+      pinchD=d; moved=99;
+    } else if(last){
+      const dx=e.clientX-last.x, dy=e.clientY-last.y;
+      moved+=Math.abs(dx)+Math.abs(dy);
+      if(zoomState.s>1.01){zoomState.tx+=dx;zoomState.ty+=dy;applyZoom();}
+      last={x:e.clientX,y:e.clientY};
+    }
+  });
+  const up=e=>{pts.delete(e.pointerId);if(pts.size<2)pinchD=0;if(pts.size===0){last=null;w.classList.remove('grabbing');mapPanMoved=moved>6;setTimeout(()=>mapPanMoved=false,30);}else if(pts.size===1){const a=[...pts.entries()][0][1];last={x:a.x,y:a.y};}};
+  w.addEventListener('pointerup',up);
+  w.addEventListener('pointercancel',up);
+  // double-click ซูมเข้า
+  w.addEventListener('dblclick',e=>{if(MODE==='list')return;const r=w.getBoundingClientRect();zoomAt(e.clientX-r.left,e.clientY-r.top,1.8);});
+})();
+let mapPanMoved=false;
+
 /* ════════════ TOOLTIP ════════════ */
 function bindBoxes(){
   const tip=$('tip');
@@ -558,7 +642,7 @@ function bindBoxes(){
     });
     el.addEventListener('mousemove',e=>{const w=tip.offsetWidth,h=tip.offsetHeight;let x=e.clientX+14,y=e.clientY+14;if(x+w>innerWidth)x=e.clientX-w-14;if(y+h>innerHeight)y=e.clientY-h-14;tip.style.left=x+'px';tip.style.top=y+'px'});
     el.addEventListener('mouseleave',()=>tip.classList.remove('on'));
-    el.addEventListener('click',()=>{tip.classList.remove('on');openDist(i);});
+    el.addEventListener('click',()=>{if(mapPanMoved)return;tip.classList.remove('on');openDist(i);});
   });
 }
 
