@@ -506,12 +506,12 @@ function renderMap(){
   $('dtable-host').innerHTML='';
   const map=$('map');
   zoomReset();
-  const ctl=$('zoomCtl'); if(ctl) ctl.style.display=(MODE==='list'||MODE==='prop')?'none':'flex';
+  const ctl=$('zoomCtl'); if(ctl) ctl.style.display=(MODE==='list')?'none':'flex';
   const mw=$('mapWrap');
   if(mw){
     mw.style.display=(MODE==='list')?'none':'block';
-    mw.style.overflow=(MODE==='prop')?'visible':'hidden';
-    mw.style.touchAction=(MODE==='prop')?'auto':'none';
+    mw.style.overflow='hidden';
+    mw.style.touchAction='none';
   }
   if(MODE==='list'){map.style.display='none';renderList();return;}
   map.style.display='block';
@@ -535,14 +535,14 @@ function renderMap(){
 function renderBubbleMap(){
   const map=$('map');
   map.style.transform='none'; map.style.width='100%'; map.style.height='auto';
-  const mw=document.querySelector('.map-wrap');
-  if(mw){mw.style.overflow='hidden'; mw.style.touchAction='none';}
 
-  const CELL=44, PAD=14;
-  const W=12*CELL+PAD*2, H=8*CELL+PAD*2;  // 556 × 360
+  const CELL=58, PAD=14;
+  const W=12*CELL+PAD*2, H=8*CELL+PAD*2;
   const maxCast=Math.max(1,...DISTRICTS.filter(d=>d.counted&&d.cast>0).map(d=>d.cast));
-  const RMAX=18, RMIN=4.5;
+  const RMAX=24, RMIN=5.5;
   const TF=(delay)=>`transform-box:view-box;transform-origin:50% 50%;transform:scale(0);transition:transform .65s ${delay}ms cubic-bezier(.2,.8,.2,1)`;
+  // แบ่งชื่อยาว (>7 ตัวอักษร) เป็น 2 บรรทัด
+  const labLines=n=>n.length>7?[n.slice(0,Math.ceil(n.length/2)),n.slice(Math.ceil(n.length/2))]:[n];
 
   let s='';
   // Subtle grid guides
@@ -562,17 +562,28 @@ function renderBubbleMap(){
     const opa=d.counted?1:0.2;
 
     // Glow halo
-    if(wc&&t>0.15) s+=`<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${(r+6).toFixed(1)}" fill="${bubcol}" opacity="0.18" class="bub-anim" style="${TF(delay)}"/>`;
+    if(wc&&t>0.15) s+=`<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${(r+7).toFixed(1)}" fill="${bubcol}" opacity="0.18" class="bub-anim" style="${TF(delay)}"/>`;
     // Main bubble
     s+=`<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r.toFixed(1)}" fill="${bubcol}" opacity="${opa}" class="bub-anim" style="${TF(delay)}"/>`;
     // Runner-up stroke ring
     if(d.counted&&d.cast>0){
       const r2o=[...d.votes.map((v,ci)=>({v,ci}))].sort((a,b)=>b.v-a.v)[1];
-      if(r2o&&CANDS[r2o.ci]) s+=`<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r.toFixed(1)}" fill="none" stroke="${CANDS[r2o.ci].color}" stroke-width="2" opacity="0.5" class="bub-anim" style="${TF(delay)}"/>`;
+      if(r2o&&CANDS[r2o.ci]) s+=`<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r.toFixed(1)}" fill="none" stroke="${CANDS[r2o.ci].color}" stroke-width="2.5" opacity="0.55" class="bub-anim" style="${TF(delay)}"/>`;
     }
-    // Label inside bubble
-    if(r>=11) s+=`<text x="${cx.toFixed(1)}" y="${(cy+2.5).toFixed(1)}" text-anchor="middle" style="font-family:'Noto Sans Thai',sans-serif;fill:rgba(255,255,255,.82);font-size:6.5px;font-weight:700;pointer-events:none">${d.name.slice(0,3)}</text>`;
-    else if(r>=7.5) s+=`<text x="${cx.toFixed(1)}" y="${(cy+2).toFixed(1)}" text-anchor="middle" style="font-family:'Noto Sans Thai',sans-serif;fill:rgba(255,255,255,.7);font-size:5px;font-weight:700;pointer-events:none">${d.name.slice(0,2)}</text>`;
+    // ชื่อเต็มใน bubble — font size scale ตามรัศมี + textLength บีบให้พอดี
+    if(r >= 7){
+      const lines=labLines(d.name);
+      const maxLen=Math.max(...lines.map(l=>l.length));
+      const fs=Math.min(7.5, r * 1.75 / (maxLen * 0.72));
+      const lstyle=`font-family:'Noto Sans Thai',sans-serif;fill:rgba(255,255,255,${d.counted?'.9':'.35'});font-size:${Math.max(3.8,fs).toFixed(1)}px;font-weight:700;pointer-events:none;text-anchor:middle`;
+      const tl=(r*1.72).toFixed(1); // textLength = เส้นผ่านศูนย์กลางลบ padding
+      if(lines.length===1){
+        s+=`<text x="${cx.toFixed(1)}" y="${(cy+Math.max(3.8,fs)*0.38).toFixed(1)}" textLength="${tl}" lengthAdjust="spacingAndGlyphs" style="${lstyle}">${lines[0]}</text>`;
+      } else {
+        const lh=Math.max(3.8,fs)*1.3;
+        s+=`<text style="${lstyle}"><tspan x="${cx.toFixed(1)}" y="${(cy-lh*0.5+Math.max(3.8,fs)*0.38).toFixed(1)}" textLength="${tl}" lengthAdjust="spacingAndGlyphs">${lines[0]}</tspan><tspan x="${cx.toFixed(1)}" dy="${lh.toFixed(1)}" textLength="${tl}" lengthAdjust="spacingAndGlyphs">${lines[1]}</tspan></text>`;
+      }
+    }
     // Transparent hit rect (full cell)
     s+=`<rect x="${(PAD+dcol*CELL+1).toFixed(1)}" y="${(PAD+drow*CELL+1).toFixed(1)}" width="${CELL-2}" height="${CELL-2}" fill="transparent" class="bub-hit" data-i="${i}"/>`;
   });
