@@ -119,10 +119,14 @@ body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opa
 .geop:hover{filter:brightness(1.25) saturate(1.2);stroke:#fff;stroke-width:1.4}
 .geolab{font-size:5px;fill:rgba(0,0,0,.55);font-weight:700;pointer-events:none;text-anchor:middle;font-family:'Noto Sans Thai',sans-serif}
 
-/* ── DONUT CARTOGRAM ── */
-@keyframes donutIn{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
-.donut-hit{cursor:pointer}
-.donut-name{font-family:'Noto Sans Thai',sans-serif;fill:rgba(255,255,255,.75);text-anchor:middle;dominant-baseline:middle;pointer-events:none;font-weight:700;letter-spacing:-.2px}
+/* ── SKYLINE BAR CHART ── */
+.sky-scroll{overflow-x:auto;overflow-y:hidden;width:100%;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
+.sky-scroll::-webkit-scrollbar{height:5px}
+.sky-scroll::-webkit-scrollbar-track{background:transparent}
+.sky-scroll::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+.sky-scroll::-webkit-scrollbar-thumb:hover{background:var(--brand-l)}
+.sky-hit{cursor:pointer}
+.sky-lab{font-family:'Noto Sans Thai',sans-serif;fill:rgba(255,255,255,.38);text-anchor:end;pointer-events:none;font-weight:600;font-size:7.5px}
 
 /* รายเขต table — scroll แยกในกรอบตัวเอง (ไม่ดันทั้งหน้า) */
 #dtable-host{max-height:min(640px,76vh);overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
@@ -275,7 +279,7 @@ body.section-totals #totals{max-height:none;overflow:visible;padding-right:0}
       </div>
       <div id="dtable-host"></div>
       <div class="legend" id="legend"></div>
-      <div class="cap"><b>ขนาดวงโดนัท</b> ตามจำนวนผู้มีสิทธิ์เลือกตั้งในเขต · <b>สัดส่วนสีส่วนโค้ง</b> แสดงคะแนนผู้สมัครแต่ละคน · คลิกวงใดก็ได้เพื่อดูผลละเอียด · โหมด <b>ผู้ชนะ (แผนที่)</b> แสดงรูปร่างเขตจริง</div>
+      <div class="cap">โหมด <b>สกายไลน์</b> — แต่ละกลุ่มบาร์คือ 1 เขต ความสูงบาร์ = คะแนนของ top-4 ผู้สมัคร · เลื่อนซ้าย/ขวาดูครบ 50 เขต · คลิกเพื่อดูผลละเอียด · โหมด <b>ผู้ชนะ (แผนที่)</b> แสดงรูปร่างเขตจริง</div>
     </section>
 
     <aside class="modes" id="modes"></aside>
@@ -497,12 +501,17 @@ function renderMap(){
   $('dtable-host').innerHTML='';
   const map=$('map');
   zoomReset();
-  const ctl=$('zoomCtl'); if(ctl) ctl.style.display=(MODE==='list')?'none':'flex';
-  const mw=$('mapWrap'); if(mw) mw.style.display=(MODE==='list')?'none':'block';
+  const ctl=$('zoomCtl'); if(ctl) ctl.style.display=(MODE==='list'||MODE==='prop')?'none':'flex';
+  const mw=$('mapWrap');
+  if(mw){
+    mw.style.display=(MODE==='list')?'none':'block';
+    mw.style.overflow=(MODE==='prop')?'visible':'hidden';
+    mw.style.touchAction=(MODE==='prop')?'auto':'none';
+  }
   if(MODE==='list'){map.style.display='none';renderList();return;}
   map.style.display='block';
   if(MODE==='map'){renderGeoMap();bindBoxes();return;}
-  if(MODE==='prop'){renderDonutMap();bindBoxes();return;}
+  if(MODE==='prop'){renderSkylineMap();bindBoxes();return;}
   // MODE === 'grid' (winner solid colour)
   map.style.transformOrigin='top left';
   map.style.width=MAP_W+'px';
@@ -517,78 +526,63 @@ function renderMap(){
   bindBoxes();fitMap();
 }
 
-/* ── DONUT CARTOGRAM (MODE==='prop') ── */
-function renderDonutMap(){
+/* ── SKYLINE BAR CHART (MODE==='prop') ── */
+function renderSkylineMap(){
   const map=$('map');
-  map.style.transform='none';
-  map.style.width='100%';
-  map.style.height='auto';
-  const SVG_W=(COLS+1)*CELL_W, SVG_H=ROWS*CELL_H+30;
-  const vMin=Math.min(...DISTRICTS.map(d=>d.voters));
-  const vMax=Math.max(...DISTRICTS.map(d=>d.voters));
-  const R_MIN=12, R_MAX=21;
+  map.style.transform='none';map.style.width='100%';map.style.height='auto';
+  // Top 4 candidates by total votes
+  const N_C=Math.min(4,CANDS.length);
+  const topC=[...CANDS].sort((a,b)=>b.votes-a.votes).slice(0,N_C);
+  // Dimensions
+  const BAR_W=9,BAR_GAP=1.5,GRP_GAP=12,PAD=8;
+  const GRP_W=N_C*(BAR_W+BAR_GAP)-BAR_GAP;
+  const SLOT=GRP_W+GRP_GAP;
+  const CH=160,PT=18,LH=42;
+  const SVG_H=PT+CH+LH;
+  const SVG_W=DISTRICTS.length*SLOT+GRP_GAP+PAD*2;
+  const BY=PT+CH; // baseline Y
+  // Max votes for scaling
+  const maxV=Math.max(1,...DISTRICTS.filter(d=>d.counted).flatMap(d=>
+    topC.map(c=>d.votes[CANDS.indexOf(c)]||0)
+  ));
   let s='';
+  // Subtle horizontal gridlines (25% 50% 75% 100%)
+  [.25,.5,.75,1].forEach(f=>{
+    const gy=(BY-f*CH).toFixed(1);
+    s+=`<line x1="${PAD}" y1="${gy}" x2="${(SVG_W-PAD).toFixed(1)}" y2="${gy}" stroke="#1d1f21" stroke-width="1"/>`;
+  });
+  // Baseline
+  s+=`<line x1="${PAD}" y1="${BY}" x2="${(SVG_W-PAD).toFixed(1)}" y2="${BY}" stroke="#2c2e30" stroke-width="1.5"/>`;
   DISTRICTS.forEach((d,i)=>{
-    const cx=(d.col*CELL_W+CELL_W/2).toFixed(1);
-    const cy=(d.row*CELL_H+CELL_H/2+13).toFixed(1);
-    const t=(d.voters-vMin)/((vMax-vMin)||1);
-    const R=R_MIN+t*(R_MAX-R_MIN);
-    const mr=(R*0.73).toFixed(2);   // mid-ring radius
-    const sw=(R*0.54).toFixed(2);   // stroke-width = ring thickness
-    const circ=(2*Math.PI*parseFloat(mr)).toFixed(2);
-    const innerR=(R*0.46).toFixed(2);
-    const delay=Math.round((d.row*3+d.col*0.4)*12);
-    const fz=R<15?4.8:R<18?5.6:6.4;
-    const lbl=d.name.length>4?d.name.slice(0,4):d.name;
-    const wc=(d.counted&&d.win!=null)?CANDS[d.win]:null;
-    // outer glow ring (winner colour)
-    const glow=wc?`<circle cx="${cx}" cy="${cy}" r="${(R+3.5).toFixed(1)}" fill="none" stroke="${wc.color}" stroke-width="1.8" opacity=".22"/>`:'';
-    // dark background disc
-    const bg=`<circle cx="${cx}" cy="${cy}" r="${R.toFixed(1)}" fill="#15171a"/>`;
-    // arcs or uncounted dashed ring
-    let arcs='';
-    if(d.counted&&d.cast>0){
-      const sorted=[...d.votes.map((v,ci)=>({v,ci}))].sort((a,b)=>b.v-a.v);
-      let cum=0;
-      sorted.forEach(({v,ci})=>{
-        if(!CANDS[ci])return;
-        const pct=v/d.cast; if(pct<0.008)return;
-        const len=Math.max(pct*parseFloat(circ)-1.8,0.1).toFixed(2);
-        const off=(-(cum*parseFloat(circ))).toFixed(2);
-        // start-dasharray="0 circ" → animates to "len circ" via JS transition
-        arcs+=`<circle cx="${cx}" cy="${cy}" r="${mr}" fill="none" stroke="${CANDS[ci].color}" stroke-width="${sw}" transform="rotate(-90 ${cx} ${cy})" stroke-dasharray="0 ${circ}" stroke-dashoffset="${off}" class="donut-cir" data-target="${len} ${circ}" data-delay="${delay}"/>`;
-        cum+=pct;
-      });
-    }else{
-      arcs=`<circle cx="${cx}" cy="${cy}" r="${mr}" fill="none" stroke="#2b2d2f" stroke-width="${sw}" stroke-dasharray="2.2 4.8"/>`;
-    }
-    // inner hole (slight winner colour tint)
-    const holeFill=wc?wc.color+'1a':'#15171a';
-    const hole=`<circle cx="${cx}" cy="${cy}" r="${innerR}" fill="${holeFill}"/>`;
-    // district name label
-    const lbl_el=`<text class="donut-name" x="${cx}" y="${cy}" style="font-size:${fz.toFixed(1)}px">${lbl}</text>`;
-    // invisible click/hover target
-    const hit=`<circle cx="${cx}" cy="${cy}" r="${R.toFixed(1)}" fill="transparent" data-i="${i}" class="donut-hit"/>`;
-    // counted districts get entrance animation; uncounted just dim static
-    const grpStyle=d.counted
-      ?`transform-box:fill-box;transform-origin:center;animation:donutIn .5s ${delay}ms both`
-      :`opacity:.25`;
-    s+=`<g style="${grpStyle}">${glow}${bg}${arcs}${hole}${lbl_el}${hit}</g>`;
-  });
-  map.innerHTML=`<svg viewBox="0 0 ${SVG_W} ${SVG_H}" style="width:100%;height:auto;display:block;overflow:visible">${s}</svg>`;
-  // Animate arcs: lock CSS value at 0 first, then transition to target
-  requestAnimationFrame(()=>{
-    document.querySelectorAll('#map .donut-cir').forEach(el=>{
-      const c=el.dataset.target.split(' ')[1];
-      el.style.strokeDasharray=`0 ${c}`;
+    const gx=PAD+GRP_GAP/2+i*SLOT;
+    const delay=i*13;
+    const opa=d.counted?1:0.18;
+    // Bars: one per top candidate
+    topC.forEach((c,j)=>{
+      const ci=CANDS.indexOf(c);
+      const v=d.counted?(d.votes[ci]||0):0;
+      const h=Math.max(v/maxV*CH,0);
+      if(h<1)return;
+      const bx=(gx+j*(BAR_W+BAR_GAP)).toFixed(1);
+      const by=(BY-h).toFixed(1);
+      // Winner gets a subtle top-cap glow rect
+      const isWin=d.win===ci;
+      const capGlow=isWin&&h>4?`<rect x="${bx}" y="${by}" width="${BAR_W}" height="3" rx="1.5" fill="${c.color}" opacity="${(opa*.7).toFixed(2)}" style="filter:blur(2px)"/>`:'';
+      s+=capGlow;
+      s+=`<rect x="${bx}" y="${by}" width="${BAR_W}" height="${h.toFixed(1)}" rx="2" fill="${c.color}" opacity="${opa}" class="sky-bar" style="transform-box:fill-box;transform-origin:center bottom;transform:scaleY(0);transition:transform .85s ${delay}ms cubic-bezier(.2,.8,.2,1)"/>`;
     });
-    requestAnimationFrame(()=>{
-      document.querySelectorAll('#map .donut-cir').forEach(el=>{
-        el.style.transition=`stroke-dasharray 1.15s ${el.dataset.delay}ms cubic-bezier(.2,.8,.2,1)`;
-        el.style.strokeDasharray=el.dataset.target;
-      });
-    });
+    // District label (rotated)
+    const lx=(gx+GRP_W/2).toFixed(1);
+    const ly=(BY+9).toFixed(1);
+    s+=`<text class="sky-lab" x="${lx}" y="${ly}" transform="rotate(-42 ${lx} ${ly})">${d.name.slice(0,4)}</text>`;
+    // Click/hover target (covers bars + label area)
+    s+=`<rect x="${gx.toFixed(1)}" y="${PT}" width="${GRP_W.toFixed(1)}" height="${CH+LH}" fill="transparent" class="sky-hit" data-i="${i}"/>`;
   });
+  map.innerHTML=`<div class="sky-scroll"><svg viewBox="0 0 ${SVG_W} ${SVG_H}" style="width:${SVG_W}px;height:${SVG_H}px;min-width:100%;display:block">${s}</svg></div>`;
+  // Animate bars growing upward
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    document.querySelectorAll('#map .sky-bar').forEach(el=>el.style.transform='scaleY(1)');
+  }));
 }
 
 function renderGeoMap(){
@@ -706,7 +700,7 @@ let mapPanMoved=false;
 /* ════════════ TOOLTIP ════════════ */
 function bindBoxes(){
   const tip=$('tip');
-  document.querySelectorAll('#map .box, #map .geop, #map .donut-hit').forEach(el=>{
+  document.querySelectorAll('#map .box, #map .geop, #map .sky-hit').forEach(el=>{
     const i=+el.dataset.i;if(i<0)return;
     el.addEventListener('mouseenter',()=>{
       const d=DISTRICTS[i];if(!d)return;
@@ -800,30 +794,13 @@ function openSkgParty(pname){
 /* ════════════ VIEW MODES ════════════ */
 function gridIcon(prop){let s='';for(let r=0;r<5;r++)for(let c=0;c<8;c++){const x=4+c*7,y=2+r*9;if(prop){s+=`<rect x="${x}" y="${y}" width="5" height="7" rx="1" fill="#2a2b2d"/><rect x="${x}" y="${y+3.5}" width="5" height="3.5" rx="1" fill="#9fd60c"/>`}else{const col=['#9fd60c','#2f80ed','#e8590c','#3c6e71','#b8a45c'][(r+c)%5];s+=`<rect x="${x}" y="${y}" width="5" height="7" rx="1" fill="${col}"/>`}}return s}
 const ICONS={
-  prop:`<svg viewBox="0 0 60 48">${(()=>{
-    let s='';
-    const pts=[[12,13,10],[37,9,7],[51,18,6],[11,32,9],[35,34,10],[51,38,5]];
-    const pals=[[.52,.28,.20],[.38,.35,.27],[.62,.20,.18],[.45,.32,.23],[.58,.22,.20],[.50,.30,.20]];
-    const col=['#9fd60c','#2f80ed','#e8590c'];
-    pts.forEach(([cx,cy,R],k)=>{
-      const mr=(R*.73).toFixed(1),sw=(R*.54).toFixed(1),c=(2*Math.PI*+mr).toFixed(1);
-      s+=`<circle cx="${cx}" cy="${cy}" r="${R}" fill="#1c1d1f"/>`;
-      let cum=0;
-      pals[k].forEach((p,j)=>{
-        const len=Math.max(p*+c-1,.1).toFixed(1),off=(-(cum*+c)).toFixed(1);
-        s+=`<circle cx="${cx}" cy="${cy}" r="${mr}" fill="none" stroke="${col[j]}" stroke-width="${sw}" transform="rotate(-90 ${cx} ${cy})" stroke-dasharray="${len} ${c}" stroke-dashoffset="${off}"/>`;
-        cum+=p;
-      });
-      s+=`<circle cx="${cx}" cy="${cy}" r="${(R*.45).toFixed(1)}" fill="#0c0d0e"/>`;
-    });
-    return s;
-  })()}</svg>`,
+  prop:`<svg viewBox="0 0 60 48"><line x1="2" y1="42" x2="58" y2="42" stroke="#2a2b2d" stroke-width="1"/><rect x="3" y="22" width="4.5" height="20" rx="1.5" fill="#9fd60c"/><rect x="8.5" y="30" width="4.5" height="12" rx="1.5" fill="#2f80ed"/><rect x="14" y="36" width="4.5" height="6" rx="1.5" fill="#e8590c"/><rect x="21" y="9" width="4.5" height="33" rx="1.5" fill="#9fd60c"/><rect x="26.5" y="22" width="4.5" height="20" rx="1.5" fill="#2f80ed"/><rect x="32" y="30" width="4.5" height="12" rx="1.5" fill="#e8590c"/><rect x="39" y="16" width="4.5" height="26" rx="1.5" fill="#9fd60c"/><rect x="44.5" y="26" width="4.5" height="16" rx="1.5" fill="#2f80ed"/><rect x="50" y="34" width="4.5" height="8" rx="1.5" fill="#e8590c"/></svg>`,
   grid:`<svg viewBox="0 0 60 48">${gridIcon(false)}</svg>`,
   map:`<svg viewBox="0 0 60 48"><path d="M10 8 L26 5 L34 9 L48 6 L52 20 L44 38 L30 42 L16 36 L8 22 Z" fill="#13a872" opacity=".3" stroke="#13a872" stroke-width="1.5"/><path d="M26 5 L26 42 M34 9 L30 42 M8 22 L52 20" stroke="#13a872" stroke-width="1" opacity=".5"/></svg>`,
   list:`<svg viewBox="0 0 60 48">${[0,1,2,3,4].map(i=>`<rect x="6" y="${6+i*8}" width="48" height="3.5" rx="1.5" fill="${i===0?'#fff':'#3a3b3d'}"/>`).join('')}</svg>`,
 };
 function renderModes(){
-  const items=[['prop','สัดส่วนคะแนน'],['grid','ผู้ชนะ (กริด)'],['map','ผู้ชนะ (แผนที่)'],['list','รายเขต']];
+  const items=[['prop','สกายไลน์'],['grid','ผู้ชนะ (กริด)'],['map','ผู้ชนะ (แผนที่)'],['list','รายเขต']];
   $('modes').innerHTML=items.map(([k,l])=>`<div class="mode${k===MODE?' on':''}" onclick="setMode('${k}')"><div class="ic">${ICONS[k]}</div><div class="lb">${l}</div></div>`).join('');
 }
 function setMode(m){MODE=m;renderModes();renderMap();postHeight();}
