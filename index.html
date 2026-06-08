@@ -119,6 +119,11 @@ body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opa
 .geop:hover{filter:brightness(1.25) saturate(1.2);stroke:#fff;stroke-width:1.4}
 .geolab{font-size:5px;fill:rgba(0,0,0,.55);font-weight:700;pointer-events:none;text-anchor:middle;font-family:'Noto Sans Thai',sans-serif}
 
+/* ── DONUT CARTOGRAM ── */
+@keyframes donutIn{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
+.donut-hit{cursor:pointer}
+.donut-name{font-family:'Noto Sans Thai',sans-serif;fill:rgba(255,255,255,.75);text-anchor:middle;dominant-baseline:middle;pointer-events:none;font-weight:700;letter-spacing:-.2px}
+
 /* รายเขต table — scroll แยกในกรอบตัวเอง (ไม่ดันทั้งหน้า) */
 #dtable-host{max-height:min(640px,76vh);overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
 #dtable-host::-webkit-scrollbar{width:7px}
@@ -270,7 +275,7 @@ body.section-totals #totals{max-height:none;overflow:visible;padding-right:0}
       </div>
       <div id="dtable-host"></div>
       <div class="legend" id="legend"></div>
-      <div class="cap"><b>ขนาดกล่อง</b> ตามจำนวนผู้มีสิทธิ์เลือกตั้งในเขตนั้น · <b>สัดส่วนสี</b> ในแต่ละกล่องตามสัดส่วนคะแนนของผู้สมัคร · โหมด <b>ผู้ชนะ (แผนที่)</b> แสดงรูปร่างเขตจริง</div>
+      <div class="cap"><b>ขนาดวงโดนัท</b> ตามจำนวนผู้มีสิทธิ์เลือกตั้งในเขต · <b>สัดส่วนสีส่วนโค้ง</b> แสดงคะแนนผู้สมัครแต่ละคน · คลิกวงใดก็ได้เพื่อดูผลละเอียด · โหมด <b>ผู้ชนะ (แผนที่)</b> แสดงรูปร่างเขตจริง</div>
     </section>
 
     <aside class="modes" id="modes"></aside>
@@ -491,35 +496,99 @@ const MAP_W=(COLS+1)*CELL_W, MAP_H=ROWS*CELL_H;
 function renderMap(){
   $('dtable-host').innerHTML='';
   const map=$('map');
-  zoomReset(); // เริ่มที่ขนาดพอดีทุกครั้งที่เปลี่ยนโหมด/ข้อมูล
+  zoomReset();
   const ctl=$('zoomCtl'); if(ctl) ctl.style.display=(MODE==='list')?'none':'flex';
   const mw=$('mapWrap'); if(mw) mw.style.display=(MODE==='list')?'none':'block';
   if(MODE==='list'){map.style.display='none';renderList();return;}
   map.style.display='block';
   if(MODE==='map'){renderGeoMap();bindBoxes();return;}
-
+  if(MODE==='prop'){renderDonutMap();bindBoxes();return;}
+  // MODE === 'grid' (winner solid colour)
   map.style.transformOrigin='top left';
   map.style.width=MAP_W+'px';
-  map.style.height=(MODE==='prop'?MAP_H+20:MAP_H)+'px';
-  const vMin=Math.min(...DISTRICTS.map(d=>d.voters)),vMax=Math.max(...DISTRICTS.map(d=>d.voters));
+  map.style.height=MAP_H+'px';
   map.innerHTML=DISTRICTS.map((d,i)=>{
     const x=d.col*CELL_W,y=d.row*CELL_H;
     const delay=(d.row*3+d.col*0.4)*16;
-    if(!d.counted){
-      return `<div class="box unc" data-i="${i}" style="left:${x}px;top:${y+14}px;width:${CELL_W-GAP}px;height:${CELL_H-GAP-14}px;animation-delay:${delay}ms"><span class="blab">${d.name}</span></div>`;
-    }
-    const sorted=[...d.votes.map((v,ci)=>({v,ci}))].sort((a,b)=>b.v-a.v);
-    if(MODE==='prop'){
-      const t=(d.voters-vMin)/((vMax-vMin)||1);
-      const w=CELL_W-GAP,h=34+Math.round(t*22);
-      const segs=sorted.map(o=>{const hp=d.cast?(d.votes[o.ci]/d.cast*100):0;return `<span class="seg" data-h="${hp}" style="background:${CANDS[o.ci].color};height:0"></span>`}).join('');
-      return `<div class="box" data-i="${i}" style="left:${x}px;top:${y+14}px;width:${w}px;height:${h}px;animation-delay:${delay}ms"><span class="blab">${d.name}</span>${segs}</div>`;
-    }
+    if(!d.counted)return `<div class="box unc" data-i="${i}" style="left:${x}px;top:${y+14}px;width:${CELL_W-GAP}px;height:${CELL_H-GAP-14}px;animation-delay:${delay}ms"><span class="blab">${d.name}</span></div>`;
     const c=CANDS[d.win];
     return `<div class="box solid" data-i="${i}" style="left:${x}px;top:${y+14}px;width:${CELL_W-GAP}px;height:${CELL_H-GAP-2}px;background:${c?c.color:'#222'};animation-delay:${delay}ms"></div>`;
   }).join('');
-  if(MODE==='prop')requestAnimationFrame(()=>requestAnimationFrame(()=>document.querySelectorAll('#map .seg').forEach(s=>s.style.height=s.dataset.h+'%')));
   bindBoxes();fitMap();
+}
+
+/* ── DONUT CARTOGRAM (MODE==='prop') ── */
+function renderDonutMap(){
+  const map=$('map');
+  map.style.transform='none';
+  map.style.width='100%';
+  map.style.height='auto';
+  const SVG_W=(COLS+1)*CELL_W, SVG_H=ROWS*CELL_H+30;
+  const vMin=Math.min(...DISTRICTS.map(d=>d.voters));
+  const vMax=Math.max(...DISTRICTS.map(d=>d.voters));
+  const R_MIN=12, R_MAX=21;
+  let s='';
+  DISTRICTS.forEach((d,i)=>{
+    const cx=(d.col*CELL_W+CELL_W/2).toFixed(1);
+    const cy=(d.row*CELL_H+CELL_H/2+13).toFixed(1);
+    const t=(d.voters-vMin)/((vMax-vMin)||1);
+    const R=R_MIN+t*(R_MAX-R_MIN);
+    const mr=(R*0.73).toFixed(2);   // mid-ring radius
+    const sw=(R*0.54).toFixed(2);   // stroke-width = ring thickness
+    const circ=(2*Math.PI*parseFloat(mr)).toFixed(2);
+    const innerR=(R*0.46).toFixed(2);
+    const delay=Math.round((d.row*3+d.col*0.4)*12);
+    const fz=R<15?4.8:R<18?5.6:6.4;
+    const lbl=d.name.length>4?d.name.slice(0,4):d.name;
+    const wc=(d.counted&&d.win!=null)?CANDS[d.win]:null;
+    // outer glow ring (winner colour)
+    const glow=wc?`<circle cx="${cx}" cy="${cy}" r="${(R+3.5).toFixed(1)}" fill="none" stroke="${wc.color}" stroke-width="1.8" opacity=".22"/>`:'';
+    // dark background disc
+    const bg=`<circle cx="${cx}" cy="${cy}" r="${R.toFixed(1)}" fill="#15171a"/>`;
+    // arcs or uncounted dashed ring
+    let arcs='';
+    if(d.counted&&d.cast>0){
+      const sorted=[...d.votes.map((v,ci)=>({v,ci}))].sort((a,b)=>b.v-a.v);
+      let cum=0;
+      sorted.forEach(({v,ci})=>{
+        if(!CANDS[ci])return;
+        const pct=v/d.cast; if(pct<0.008)return;
+        const len=Math.max(pct*parseFloat(circ)-1.8,0.1).toFixed(2);
+        const off=(-(cum*parseFloat(circ))).toFixed(2);
+        // start-dasharray="0 circ" → animates to "len circ" via JS transition
+        arcs+=`<circle cx="${cx}" cy="${cy}" r="${mr}" fill="none" stroke="${CANDS[ci].color}" stroke-width="${sw}" transform="rotate(-90 ${cx} ${cy})" stroke-dasharray="0 ${circ}" stroke-dashoffset="${off}" class="donut-cir" data-target="${len} ${circ}" data-delay="${delay}"/>`;
+        cum+=pct;
+      });
+    }else{
+      arcs=`<circle cx="${cx}" cy="${cy}" r="${mr}" fill="none" stroke="#2b2d2f" stroke-width="${sw}" stroke-dasharray="2.2 4.8"/>`;
+    }
+    // inner hole (slight winner colour tint)
+    const holeFill=wc?wc.color+'1a':'#15171a';
+    const hole=`<circle cx="${cx}" cy="${cy}" r="${innerR}" fill="${holeFill}"/>`;
+    // district name label
+    const lbl_el=`<text class="donut-name" x="${cx}" y="${cy}" style="font-size:${fz.toFixed(1)}px">${lbl}</text>`;
+    // invisible click/hover target
+    const hit=`<circle cx="${cx}" cy="${cy}" r="${R.toFixed(1)}" fill="transparent" data-i="${i}" class="donut-hit"/>`;
+    // counted districts get entrance animation; uncounted just dim static
+    const grpStyle=d.counted
+      ?`transform-box:fill-box;transform-origin:center;animation:donutIn .5s ${delay}ms both`
+      :`opacity:.25`;
+    s+=`<g style="${grpStyle}">${glow}${bg}${arcs}${hole}${lbl_el}${hit}</g>`;
+  });
+  map.innerHTML=`<svg viewBox="0 0 ${SVG_W} ${SVG_H}" style="width:100%;height:auto;display:block;overflow:visible">${s}</svg>`;
+  // Animate arcs: lock CSS value at 0 first, then transition to target
+  requestAnimationFrame(()=>{
+    document.querySelectorAll('#map .donut-cir').forEach(el=>{
+      const c=el.dataset.target.split(' ')[1];
+      el.style.strokeDasharray=`0 ${c}`;
+    });
+    requestAnimationFrame(()=>{
+      document.querySelectorAll('#map .donut-cir').forEach(el=>{
+        el.style.transition=`stroke-dasharray 1.15s ${el.dataset.delay}ms cubic-bezier(.2,.8,.2,1)`;
+        el.style.strokeDasharray=el.dataset.target;
+      });
+    });
+  });
 }
 
 function renderGeoMap(){
@@ -560,11 +629,11 @@ function renderList(){
 }
 
 function fitMap(){
-  if(MODE==='list'||MODE==='map')return;
+  if(MODE==='list'||MODE==='map'||MODE==='prop')return;
   const wrap=document.querySelector('.map-wrap'),map=$('map');
   const scale=Math.min(wrap.clientWidth/MAP_W,1.35);
   map.style.transform=`scale(${scale})`;
-  wrap.style.height=((MODE==='prop'?MAP_H+20:MAP_H)*scale)+'px';
+  wrap.style.height=(MAP_H*scale)+'px';
 }
 
 /* ════════════ ZOOM / PAN (แผนที่ทุกโหมด) ════════════ */
@@ -637,7 +706,7 @@ let mapPanMoved=false;
 /* ════════════ TOOLTIP ════════════ */
 function bindBoxes(){
   const tip=$('tip');
-  document.querySelectorAll('#map .box, #map .geop').forEach(el=>{
+  document.querySelectorAll('#map .box, #map .geop, #map .donut-hit').forEach(el=>{
     const i=+el.dataset.i;if(i<0)return;
     el.addEventListener('mouseenter',()=>{
       const d=DISTRICTS[i];if(!d)return;
@@ -731,7 +800,24 @@ function openSkgParty(pname){
 /* ════════════ VIEW MODES ════════════ */
 function gridIcon(prop){let s='';for(let r=0;r<5;r++)for(let c=0;c<8;c++){const x=4+c*7,y=2+r*9;if(prop){s+=`<rect x="${x}" y="${y}" width="5" height="7" rx="1" fill="#2a2b2d"/><rect x="${x}" y="${y+3.5}" width="5" height="3.5" rx="1" fill="#9fd60c"/>`}else{const col=['#9fd60c','#2f80ed','#e8590c','#3c6e71','#b8a45c'][(r+c)%5];s+=`<rect x="${x}" y="${y}" width="5" height="7" rx="1" fill="${col}"/>`}}return s}
 const ICONS={
-  prop:`<svg viewBox="0 0 60 48">${gridIcon(true)}</svg>`,
+  prop:`<svg viewBox="0 0 60 48">${(()=>{
+    let s='';
+    const pts=[[12,13,10],[37,9,7],[51,18,6],[11,32,9],[35,34,10],[51,38,5]];
+    const pals=[[.52,.28,.20],[.38,.35,.27],[.62,.20,.18],[.45,.32,.23],[.58,.22,.20],[.50,.30,.20]];
+    const col=['#9fd60c','#2f80ed','#e8590c'];
+    pts.forEach(([cx,cy,R],k)=>{
+      const mr=(R*.73).toFixed(1),sw=(R*.54).toFixed(1),c=(2*Math.PI*+mr).toFixed(1);
+      s+=`<circle cx="${cx}" cy="${cy}" r="${R}" fill="#1c1d1f"/>`;
+      let cum=0;
+      pals[k].forEach((p,j)=>{
+        const len=Math.max(p*+c-1,.1).toFixed(1),off=(-(cum*+c)).toFixed(1);
+        s+=`<circle cx="${cx}" cy="${cy}" r="${mr}" fill="none" stroke="${col[j]}" stroke-width="${sw}" transform="rotate(-90 ${cx} ${cy})" stroke-dasharray="${len} ${c}" stroke-dashoffset="${off}"/>`;
+        cum+=p;
+      });
+      s+=`<circle cx="${cx}" cy="${cy}" r="${(R*.45).toFixed(1)}" fill="#0c0d0e"/>`;
+    });
+    return s;
+  })()}</svg>`,
   grid:`<svg viewBox="0 0 60 48">${gridIcon(false)}</svg>`,
   map:`<svg viewBox="0 0 60 48"><path d="M10 8 L26 5 L34 9 L48 6 L52 20 L44 38 L30 42 L16 36 L8 22 Z" fill="#13a872" opacity=".3" stroke="#13a872" stroke-width="1.5"/><path d="M26 5 L26 42 M34 9 L30 42 M8 22 L52 20" stroke="#13a872" stroke-width="1" opacity=".5"/></svg>`,
   list:`<svg viewBox="0 0 60 48">${[0,1,2,3,4].map(i=>`<rect x="6" y="${6+i*8}" width="48" height="3.5" rx="1.5" fill="${i===0?'#fff':'#3a3b3d'}"/>`).join('')}</svg>`,
