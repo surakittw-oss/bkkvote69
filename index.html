@@ -130,6 +130,8 @@ body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opa
 /* ── RADIAL DISTRICT CHART ── */
 .rad-hit{cursor:pointer}
 .rad-lab{font-family:'Noto Sans Thai',sans-serif;fill:rgba(255,255,255,.45);pointer-events:none;font-weight:700;font-size:5.8px}
+/* ── BUBBLE MAP ── */
+.bub-hit{cursor:pointer}
 
 /* รายเขต table — scroll แยกในกรอบตัวเอง (ไม่ดันทั้งหน้า) */
 #dtable-host{max-height:min(640px,76vh);overflow-y:auto;overflow-x:hidden;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
@@ -282,7 +284,7 @@ body.section-totals #totals{max-height:none;overflow:visible;padding-right:0}
       </div>
       <div id="dtable-host"></div>
       <div class="legend" id="legend"></div>
-      <div class="cap">โหมด <b>แผนรัศมี</b> — แต่ละลำแสง = 1 เขต ความยาว = turnout ผู้มาใช้สิทธิ์ · สีนอก = ผู้ชนะ · แถบในบาง = รองแชมป์ · คลิกเพื่อดูผลละเอียด · โหมด <b>ผู้ชนะ (แผนที่)</b> แสดงรูปร่างเขตจริง</div>
+      <div class="cap">โหมด <b>บับเบิล</b> — แต่ละวงกลม = 1 เขต วางตามตำแหน่งภูมิศาสตร์ · ขนาด = turnout ผู้มาใช้สิทธิ์ · สีพื้น = ผู้ชนะ · วงขอบบาง = รองแชมป์ · คลิกเพื่อดูผลละเอียด · โหมด <b>ผู้ชนะ (แผนที่)</b> แสดงรูปร่างเขตจริง</div>
     </section>
 
     <aside class="modes" id="modes"></aside>
@@ -514,7 +516,7 @@ function renderMap(){
   if(MODE==='list'){map.style.display='none';renderList();return;}
   map.style.display='block';
   if(MODE==='map'){renderGeoMap();bindBoxes();return;}
-  if(MODE==='prop'){renderRadialMap();bindBoxes();return;}
+  if(MODE==='prop'){renderBubbleMap();bindBoxes();return;}
   // MODE === 'grid' (winner solid colour)
   map.style.transformOrigin='top left';
   map.style.width=MAP_W+'px';
@@ -529,78 +531,88 @@ function renderMap(){
   bindBoxes();fitMap();
 }
 
-/* ── RADIAL DISTRICT CHART (MODE==='prop') ── */
+/* ── BUBBLE MAP (MODE==='prop') — วาง bubble ตามตำแหน่งภูมิศาสตร์ DLAYOUT grid ── */
+function renderBubbleMap(){
+  const map=$('map');
+  map.style.transform='none'; map.style.width='100%'; map.style.height='auto';
+  const mw=document.querySelector('.map-wrap');
+  if(mw){mw.style.overflow='hidden'; mw.style.touchAction='none';}
+
+  const CELL=44, PAD=14;
+  const W=12*CELL+PAD*2, H=8*CELL+PAD*2;  // 556 × 360
+  const maxCast=Math.max(1,...DISTRICTS.filter(d=>d.counted&&d.cast>0).map(d=>d.cast));
+  const RMAX=18, RMIN=4.5;
+  const TF=(delay)=>`transform-box:view-box;transform-origin:50% 50%;transform:scale(0);transition:transform .65s ${delay}ms cubic-bezier(.2,.8,.2,1)`;
+
+  let s='';
+  // Subtle grid guides
+  for(let c=0;c<=12;c++){const x=(PAD+c*CELL).toFixed(1);s+=`<line x1="${x}" y1="${PAD}" x2="${x}" y2="${H-PAD}" stroke="#131517" stroke-width="0.5"/>`;}
+  for(let r=0;r<=8;r++){const y=(PAD+r*CELL).toFixed(1);s+=`<line x1="${PAD}" y1="${y}" x2="${W-PAD}" y2="${y}" stroke="#131517" stroke-width="0.5"/>`;}
+
+  DISTRICTS.forEach((d,i)=>{
+    const layout=DLAYOUT[i]; if(!layout) return;
+    const [,dcol,drow]=layout;
+    const cx=PAD+dcol*CELL+CELL/2;
+    const cy=PAD+drow*CELL+CELL/2;
+    const wc=d.counted&&d.win!=null?CANDS[d.win]:null;
+    const bubcol=wc?wc.color:'#1e2124';
+    const t=d.counted&&d.cast>0?d.cast/maxCast:0;
+    const r=RMIN+(RMAX-RMIN)*Math.sqrt(t);
+    const delay=(drow*13+dcol)*6;
+    const opa=d.counted?1:0.2;
+
+    // Glow halo
+    if(wc&&t>0.15) s+=`<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${(r+6).toFixed(1)}" fill="${bubcol}" opacity="0.18" class="bub-anim" style="${TF(delay)}"/>`;
+    // Main bubble
+    s+=`<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r.toFixed(1)}" fill="${bubcol}" opacity="${opa}" class="bub-anim" style="${TF(delay)}"/>`;
+    // Runner-up stroke ring
+    if(d.counted&&d.cast>0){
+      const r2o=[...d.votes.map((v,ci)=>({v,ci}))].sort((a,b)=>b.v-a.v)[1];
+      if(r2o&&CANDS[r2o.ci]) s+=`<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r.toFixed(1)}" fill="none" stroke="${CANDS[r2o.ci].color}" stroke-width="2" opacity="0.5" class="bub-anim" style="${TF(delay)}"/>`;
+    }
+    // Label inside bubble
+    if(r>=11) s+=`<text x="${cx.toFixed(1)}" y="${(cy+2.5).toFixed(1)}" text-anchor="middle" style="font-family:'Noto Sans Thai',sans-serif;fill:rgba(255,255,255,.82);font-size:6.5px;font-weight:700;pointer-events:none">${d.name.slice(0,3)}</text>`;
+    else if(r>=7.5) s+=`<text x="${cx.toFixed(1)}" y="${(cy+2).toFixed(1)}" text-anchor="middle" style="font-family:'Noto Sans Thai',sans-serif;fill:rgba(255,255,255,.7);font-size:5px;font-weight:700;pointer-events:none">${d.name.slice(0,2)}</text>`;
+    // Transparent hit rect (full cell)
+    s+=`<rect x="${(PAD+dcol*CELL+1).toFixed(1)}" y="${(PAD+drow*CELL+1).toFixed(1)}" width="${CELL-2}" height="${CELL-2}" fill="transparent" class="bub-hit" data-i="${i}"/>`;
+  });
+
+  map.innerHTML=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:${W}px;height:auto;display:block;margin:0 auto">
+    <rect width="${W}" height="${H}" fill="#0d0e10" rx="6"/>
+    ${s}</svg>`;
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    document.querySelectorAll('#map .bub-anim').forEach(el=>el.style.transform='scale(1)');
+  }));
+}
+/* ── RADIAL DISTRICT CHART (ไว้เป็น backup) ── */
 function renderRadialMap(){
   const map=$('map');
   map.style.transform='none';map.style.width='100%';map.style.height='auto';
   const mw=document.querySelector('.map-wrap');
   if(mw){mw.style.overflow='hidden';mw.style.touchAction='none';}
-  const SZ=520,CX=260,CY=260;
-  const R0=72,RMAX=218;
-  const N=DISTRICTS.length;       // 50
-  const ANG=2*Math.PI/N;
-  const GAP=0.032;                // radian gap between spokes
+  const SZ=520,CX=260,CY=260,R0=72,RMAX=218,N=DISTRICTS.length,ANG=2*Math.PI/N,GAP=0.032;
   const maxCast=Math.max(1,...DISTRICTS.filter(d=>d.counted&&d.cast>0).map(d=>d.cast));
-  // Arc path helper (annular sector from r1 to r2, angle sa→ea)
-  const arc=(r1,r2,sa,ea)=>{
-    const la=ea-sa>Math.PI?1:0;
-    const p=(r,a)=>`${(CX+r*Math.cos(a)).toFixed(2)},${(CY+r*Math.sin(a)).toFixed(2)}`;
-    return `M${p(r1,sa)}L${p(r2,sa)}A${r2.toFixed(1)},${r2.toFixed(1)} 0 ${la} 1 ${p(r2,ea)}L${p(r1,ea)}A${r1.toFixed(1)},${r1.toFixed(1)} 0 ${la} 0 ${p(r1,sa)}Z`;
-  };
-  // transform-box:view-box so 50%/50% = center of SVG viewBox (260,260)
+  const arc=(r1,r2,sa,ea)=>{const la=ea-sa>Math.PI?1:0;const p=(r,a)=>`${(CX+r*Math.cos(a)).toFixed(2)},${(CY+r*Math.sin(a)).toFixed(2)}`;return `M${p(r1,sa)}L${p(r2,sa)}A${r2.toFixed(1)},${r2.toFixed(1)} 0 ${la} 1 ${p(r2,ea)}L${p(r1,ea)}A${r1.toFixed(1)},${r1.toFixed(1)} 0 ${la} 0 ${p(r1,sa)}Z`;};
   const TF=(delay)=>`transform-box:view-box;transform-origin:50% 50%;transform:scale(0);transition:transform .78s ${delay}ms cubic-bezier(.2,.8,.2,1)`;
   let s='';
-  // Faint guide rings at 33%/67%/100%
-  [.33,.67,1].forEach(f=>{
-    const gr=(R0+(RMAX-R0)*f).toFixed(1);
-    s+=`<circle cx="${CX}" cy="${CY}" r="${gr}" fill="none" stroke="#1b1d1f" stroke-width="1" ${f<1?'stroke-dasharray="3 5"':''}/>`;
-  });
-  // Spokes
+  [.33,.67,1].forEach(f=>{const gr=(R0+(RMAX-R0)*f).toFixed(1);s+=`<circle cx="${CX}" cy="${CY}" r="${gr}" fill="none" stroke="#1b1d1f" stroke-width="1" ${f<1?'stroke-dasharray="3 5"':''}/>`;});
   DISTRICTS.forEach((d,i)=>{
-    const sa=i*ANG-Math.PI/2+GAP/2;
-    const ea=sa+ANG-GAP;
-    const ma=(sa+ea)/2;
+    const sa=i*ANG-Math.PI/2+GAP/2,ea=sa+ANG-GAP,ma=(sa+ea)/2;
     const wc=d.counted&&d.win!=null?CANDS[d.win]:null;
     const col=wc?wc.color:'#1d1f21';
     const t=d.counted&&d.cast>0?d.cast/maxCast:0;
     const R1=Math.max(R0+6,R0+t*(RMAX-R0));
-    const delay=i*10;
-    const opa=d.counted?1:0.12;
-    // Main spoke wedge
+    const delay=i*10,opa=d.counted?1:0.12;
     s+=`<path d="${arc(R0,R1,sa,ea)}" fill="${col}" opacity="${opa}" class="rad-spoke" data-i="${i}" style="${TF(delay)}"/>`;
-    // Thin runner-up inner ring
-    if(d.counted&&d.cast>0){
-      const r2o=[...d.votes.map((v,ci)=>({v,ci}))].sort((a,b)=>b.v-a.v)[1];
-      if(r2o&&CANDS[r2o.ci]){
-        s+=`<path d="${arc(R0,R0+11,sa,ea)}" fill="${CANDS[r2o.ci].color}" opacity="${(opa*.5).toFixed(2)}" class="rad-spoke" data-i="${i}" style="${TF(delay)}"/>`;
-      }
-    }
-    // Label at outer tip (only for counted districts with non-trivial size)
-    if(t>0.07){
-      const isLeft=Math.cos(ma)<-0.07;
-      const lR=R1+10;
-      const lx=(CX+lR*Math.cos(ma)).toFixed(1);
-      const ly=(CY+lR*Math.sin(ma)).toFixed(1);
-      const rot=(ma*180/Math.PI+(isLeft?270:90)).toFixed(1);
-      const anc=isLeft?'end':Math.cos(ma)>0.07?'start':'middle';
-      s+=`<text class="rad-lab" x="${lx}" y="${ly}" transform="rotate(${rot} ${lx} ${ly})" text-anchor="${anc}">${d.name.slice(0,3)}</text>`;
-    }
-    // Invisible click/hover target (full RMAX sweep)
+    if(d.counted&&d.cast>0){const r2o=[...d.votes.map((v,ci)=>({v,ci}))].sort((a,b)=>b.v-a.v)[1];if(r2o&&CANDS[r2o.ci])s+=`<path d="${arc(R0,R0+11,sa,ea)}" fill="${CANDS[r2o.ci].color}" opacity="${(opa*.5).toFixed(2)}" class="rad-spoke" data-i="${i}" style="${TF(delay)}"/>`;}
+    if(t>0.07){const isLeft=Math.cos(ma)<-0.07,lR=R1+10,lx=(CX+lR*Math.cos(ma)).toFixed(1),ly=(CY+lR*Math.sin(ma)).toFixed(1),rot=(ma*180/Math.PI+(isLeft?270:90)).toFixed(1),anc=isLeft?'end':Math.cos(ma)>0.07?'start':'middle';s+=`<text class="rad-lab" x="${lx}" y="${ly}" transform="rotate(${rot} ${lx} ${ly})" text-anchor="${anc}">${d.name.slice(0,3)}</text>`;}
     s+=`<path d="${arc(R0,RMAX,sa,ea)}" fill="transparent" class="rad-hit" data-i="${i}"/>`;
   });
-  // Center cap
-  s+=`<circle cx="${CX}" cy="${CY}" r="${R0-2}" fill="#0d0e10"/>`;
-  s+=`<circle cx="${CX}" cy="${CY}" r="${R0-2}" fill="none" stroke="#272a2d" stroke-width="1.5"/>`;
+  s+=`<circle cx="${CX}" cy="${CY}" r="${R0-2}" fill="#0d0e10"/><circle cx="${CX}" cy="${CY}" r="${R0-2}" fill="none" stroke="#272a2d" stroke-width="1.5"/>`;
   s+=`<text x="${CX}" y="${CY-5}" text-anchor="middle" style="font-family:'Noto Sans Thai',sans-serif;fill:#fff;font-size:13px;font-weight:900">กทม. 69</text>`;
   s+=`<text x="${CX}" y="${CY+11}" text-anchor="middle" style="font-family:'Noto Sans Thai',sans-serif;fill:rgba(255,255,255,.32);font-size:8px">50 เขต</text>`;
-  map.innerHTML=`<svg viewBox="0 0 ${SZ} ${SZ}" style="width:100%;max-width:${SZ}px;height:auto;display:block;margin:0 auto">
-    <defs><radialGradient id="rbg"><stop offset="0%" stop-color="#181a1c"/><stop offset="100%" stop-color="#0c0d0e"/></radialGradient></defs>
-    <circle cx="${CX}" cy="${CY}" r="${SZ/2-1}" fill="url(#rbg)"/>
-    ${s}</svg>`;
-  // Animate: bloom from centre outward
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{
-    document.querySelectorAll('#map .rad-spoke').forEach(el=>el.style.transform='scale(1)');
-  }));
+  map.innerHTML=`<svg viewBox="0 0 ${SZ} ${SZ}" style="width:100%;max-width:${SZ}px;height:auto;display:block;margin:0 auto"><defs><radialGradient id="rbg"><stop offset="0%" stop-color="#181a1c"/><stop offset="100%" stop-color="#0c0d0e"/></radialGradient></defs><circle cx="${CX}" cy="${CY}" r="${SZ/2-1}" fill="url(#rbg)"/>${s}</svg>`;
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{document.querySelectorAll('#map .rad-spoke').forEach(el=>el.style.transform='scale(1)');}));
 }
 /* ── SKYLINE BAR CHART (ไว้เป็น backup) ── */
 function renderSkylineMap(){
@@ -751,7 +763,7 @@ let mapPanMoved=false;
 /* ════════════ TOOLTIP ════════════ */
 function bindBoxes(){
   const tip=$('tip');
-  document.querySelectorAll('#map .box, #map .geop, #map .sky-hit, #map .rad-hit').forEach(el=>{
+  document.querySelectorAll('#map .box, #map .geop, #map .sky-hit, #map .rad-hit, #map .bub-hit').forEach(el=>{
     const i=+el.dataset.i;if(i<0)return;
     el.addEventListener('mouseenter',()=>{
       const d=DISTRICTS[i];if(!d)return;
@@ -846,26 +858,17 @@ function openSkgParty(pname){
 function gridIcon(prop){let s='';for(let r=0;r<5;r++)for(let c=0;c<8;c++){const x=4+c*7,y=2+r*9;if(prop){s+=`<rect x="${x}" y="${y}" width="5" height="7" rx="1" fill="#2a2b2d"/><rect x="${x}" y="${y+3.5}" width="5" height="3.5" rx="1" fill="#9fd60c"/>`}else{const col=['#9fd60c','#2f80ed','#e8590c','#3c6e71','#b8a45c'][(r+c)%5];s+=`<rect x="${x}" y="${y}" width="5" height="7" rx="1" fill="${col}"/>`}}return s}
 const ICONS={
   prop:`<svg viewBox="0 0 60 48">${(()=>{
-    const cx=30,cy=24,R0=7,cols=['#9fd60c','#2f80ed','#e8590c','#3c6e71'];
-    let s='';const N=20;
-    for(let i=0;i<N;i++){
-      const a=i*2*Math.PI/N-Math.PI/2,gap=0.12;
-      const sa=a-Math.PI/N+gap/2,ea=a+Math.PI/N-gap/2;
-      const heights=[.45,.9,.6,.35,.75,.5,.85,.4,.65,.8,.55,.7,.38,.9,.5,.6,.75,.45,.85,.55];
-      const r=R0+(20-R0)*heights[i];
-      const col=cols[i%4];
-      const p=(rr,ang)=>`${(cx+rr*Math.cos(ang)).toFixed(1)},${(cy+rr*Math.sin(ang)).toFixed(1)}`;
-      s+=`<path d="M${p(R0,sa)}L${p(r,sa)}A${r.toFixed(1)},${r.toFixed(1)} 0 0 1 ${p(r,ea)}L${p(R0,ea)}A${R0},${R0} 0 0 0 ${p(R0,sa)}Z" fill="${col}"/>`;
-    }
-    s+=`<circle cx="${cx}" cy="${cy}" r="${R0-1.5}" fill="#0c0d0e"/>`;
-    return s;
+    // Mini bubble grid icon (4×3 grid, varying circle sizes)
+    const cols=['#9fd60c','#2f80ed','#e8590c','#3c6e71'];
+    const pts=[[10,10,6],[22,10,4],[34,10,7],[46,10,3],[10,24,3],[22,24,7],[34,24,5],[46,24,6],[10,38,5],[22,38,3],[34,38,6],[46,38,4]];
+    return pts.map(([x,y,r],i)=>`<circle cx="${x}" cy="${y}" r="${r}" fill="${cols[i%4]}" opacity="0.9"/>`).join('');
   })()}</svg>`,
   grid:`<svg viewBox="0 0 60 48">${gridIcon(false)}</svg>`,
   map:`<svg viewBox="0 0 60 48"><path d="M10 8 L26 5 L34 9 L48 6 L52 20 L44 38 L30 42 L16 36 L8 22 Z" fill="#13a872" opacity=".3" stroke="#13a872" stroke-width="1.5"/><path d="M26 5 L26 42 M34 9 L30 42 M8 22 L52 20" stroke="#13a872" stroke-width="1" opacity=".5"/></svg>`,
   list:`<svg viewBox="0 0 60 48">${[0,1,2,3,4].map(i=>`<rect x="6" y="${6+i*8}" width="48" height="3.5" rx="1.5" fill="${i===0?'#fff':'#3a3b3d'}"/>`).join('')}</svg>`,
 };
 function renderModes(){
-  const items=[['prop','แผนรัศมี'],['grid','ผู้ชนะ (กริด)'],['map','ผู้ชนะ (แผนที่)'],['list','รายเขต']];
+  const items=[['prop','บับเบิล'],['grid','ผู้ชนะ (กริด)'],['map','ผู้ชนะ (แผนที่)'],['list','รายเขต']];
   $('modes').innerHTML=items.map(([k,l])=>`<div class="mode${k===MODE?' on':''}" onclick="setMode('${k}')"><div class="ic">${ICONS[k]}</div><div class="lb">${l}</div></div>`).join('');
 }
 function setMode(m){MODE=m;renderModes();renderMap();postHeight();}
