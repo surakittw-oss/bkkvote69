@@ -340,7 +340,28 @@ body.section-totals #totals{max-height:none;overflow:visible;padding-right:0}
 <div id="srcModal" class="srcmodal">
   <!-- Auth gate — แสดงก่อนถ้ายังไม่ login -->
   <div id="srcAuthGate" class="src-auth-gate">
-    <div class="src-auth-ico">🔐</div>
+    <div class="src-auth-ico"><svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <!-- หีบเลือกตั้ง: ฝาบน -->
+      <rect x="6" y="20" width="52" height="8" rx="4" fill="#00a84f"/>
+      <!-- ช่องหย่อนบัตร -->
+      <rect x="24" y="22.5" width="16" height="3" rx="1.5" fill="#052b1a"/>
+      <!-- หีบเลือกตั้ง: ตัวกล่อง -->
+      <rect x="9" y="28" width="46" height="30" rx="5" fill="#141517" stroke="#2a2b2d" stroke-width="1.5"/>
+      <!-- แถบสีบนกล่อง (ธง) -->
+      <rect x="9" y="28" width="46" height="4" rx="0" fill="#1c1d1f"/>
+      <!-- บัตรเลือกตั้งกำลังหย่อน -->
+      <rect x="27" y="7" width="10" height="16" rx="2" fill="#fff" opacity="0.95"/>
+      <line x1="30" y1="11" x2="34" y2="11" stroke="#c9cace" stroke-width="1" stroke-linecap="round"/>
+      <line x1="30" y1="14" x2="34" y2="14" stroke="#c9cace" stroke-width="1" stroke-linecap="round"/>
+      <line x1="30" y1="17" x2="34" y2="17" stroke="#c9cace" stroke-width="1" stroke-linecap="round"/>
+      <!-- กุญแจ: บ่วง (shackle) -->
+      <path d="M24 39v-4.5a8 8 0 0 1 16 0V39" stroke="#FFD600" stroke-width="2.8" stroke-linecap="round" fill="none"/>
+      <!-- กุญแจ: ตัวล็อก -->
+      <rect x="21" y="39" width="22" height="15" rx="4" fill="#FFD600"/>
+      <!-- กุญแจ: รูกุญแจ -->
+      <circle cx="32" cy="45" r="3" fill="#141517"/>
+      <rect x="30.5" y="46" width="3" height="4" rx="1.5" fill="#141517"/>
+    </svg></div>
     <div class="src-auth-title">ตั้งค่าแหล่งข้อมูล</div>
     <div class="src-auth-sub">เข้าสู่ระบบด้วยบัญชี<br><strong>@thestandard.co</strong> เท่านั้น</div>
     <div id="g_signin_btn"></div>
