@@ -8,6 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 /* ════════════ TOKENS ════════════ */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -204,9 +205,21 @@ body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opa
 /* SOURCE MODAL */
 .srcmodal{position:fixed;inset:0;z-index:400;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:16px}
 .srcmodal.on{display:flex}
-.srcbox{background:var(--bg1);border:1px solid var(--line);border-radius:14px;width:100%;max-width:540px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;animation:fadeUp .25s both}
-.srchd{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;font-size:14px;font-weight:800;color:#fff}
-.srchd button{background:none;border:none;color:var(--t3);font-size:16px;cursor:pointer}
+.src-auth-gate{display:none;flex-direction:column;align-items:center;gap:18px;background:var(--bg1);border:1px solid var(--line);border-radius:14px;padding:40px 36px 28px;text-align:center;min-width:300px;animation:fadeUp .25s both}
+.src-auth-gate .src-auth-ico{font-size:38px;line-height:1}
+.src-auth-gate .src-auth-title{font-size:16px;font-weight:800;color:#fff}
+.src-auth-gate .src-auth-sub{font-size:13px;color:var(--t3);line-height:1.6}
+.src-auth-gate .src-auth-sub strong{color:var(--t1)}
+.src-auth-gate .src-auth-cancel{background:none;border:none;color:var(--t4);font-size:12px;cursor:pointer;font-family:inherit;padding:4px 8px;margin-top:2px}
+.src-auth-gate .src-auth-cancel:hover{color:var(--t3)}
+.srcbox{background:var(--bg1);border:1px solid var(--line);border-radius:14px;width:100%;max-width:540px;max-height:90vh;overflow:hidden;display:none;flex-direction:column;animation:fadeUp .25s both}
+.srchd{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;font-size:14px;font-weight:800;color:#fff}
+.srchd .srchd-title{flex:1}
+.srchd .srchd-user{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:400;color:var(--t3)}
+.srchd .srchd-user img{width:22px;height:22px;border-radius:50%}
+.srchd .srchd-signout{font-size:10px;color:var(--t4);background:none;border:1px solid var(--line);cursor:pointer;padding:2px 7px;border-radius:4px;font-family:inherit;transition:.15s}
+.srchd .srchd-signout:hover{border-color:var(--t3);color:var(--t2)}
+.srchd .srchd-close{background:none;border:none;color:var(--t3);font-size:16px;cursor:pointer}
 .srctabs{display:flex;gap:2px;padding:10px 14px 0}
 .stab{flex:1;padding:8px;border:none;background:transparent;color:var(--t3);font-size:12px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent;transition:.15s}
 .stab.on{color:var(--brand-l);border-bottom-color:var(--brand-l)}
@@ -325,8 +338,21 @@ body.section-totals #totals{max-height:none;overflow:visible;padding-right:0}
 
 <!-- SOURCE MODAL -->
 <div id="srcModal" class="srcmodal">
-  <div class="srcbox">
-    <div class="srchd">เชื่อมต่อแหล่งข้อมูล <button onclick="closeSrc()">✕</button></div>
+  <!-- Auth gate — แสดงก่อนถ้ายังไม่ login -->
+  <div id="srcAuthGate" class="src-auth-gate">
+    <div class="src-auth-ico">🔐</div>
+    <div class="src-auth-title">ตั้งค่าแหล่งข้อมูล</div>
+    <div class="src-auth-sub">เข้าสู่ระบบด้วยบัญชี<br><strong>@thestandard.co</strong> เท่านั้น</div>
+    <div id="g_signin_btn"></div>
+    <button class="src-auth-cancel" onclick="closeSrc()">ยกเลิก</button>
+  </div>
+  <!-- Main panel — แสดงหลัง login สำเร็จ -->
+  <div class="srcbox" id="srcBox">
+    <div class="srchd">
+      <span class="srchd-title">เชื่อมต่อแหล่งข้อมูล</span>
+      <span class="srchd-user" id="srcUserBadge"></span>
+      <button class="srchd-close" onclick="closeSrc()">✕</button>
+    </div>
     <div class="srctabs">
       <button class="stab on" onclick="srcTab('sample',this)">ตัวอย่าง</button>
       <button class="stab" onclick="srcTab('firebase',this)">Firebase</button>
@@ -984,8 +1010,51 @@ function buildDistrictsFromCands(){
 function setDataset(v){autoFirebase=false;currentSource='sample';buildSample(+v/100);$('srclabel').textContent='ข้อมูลตัวอย่าง';renderAll();}
 function useSample(){closeSrc();setDataset(100);setSrcDot('');}
 
+/* ════════════ GOOGLE AUTH ════════════ */
+const GAUTH_CID='854069548103-4eunku0blt0po8nqe4diu8p0v0uubdn8.apps.googleusercontent.com';
+let gUser=null;
+try{const s=sessionStorage.getItem('bkk69_gauth');if(s)gUser=JSON.parse(s);}catch(e){}
+function gDecodeJWT(t){try{return JSON.parse(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));}catch(e){return null;}}
+function gHandleCredential(resp){
+  const p=gDecodeJWT(resp.credential);
+  if(!p){alert('ไม่สามารถยืนยันตัวตนได้');return;}
+  if(p.hd!=='thestandard.co'&&!(p.email||'').endsWith('@thestandard.co')){
+    alert('⛔ ไม่มีสิทธิ์เข้าถึง\n\n'+p.email+'\nเฉพาะ @thestandard.co เท่านั้น');
+    return;
+  }
+  gUser={name:p.name,email:p.email,picture:p.picture||''};
+  try{sessionStorage.setItem('bkk69_gauth',JSON.stringify(gUser));}catch(e){}
+  showSrcBox();
+}
+function showSrcBox(){
+  $('srcAuthGate').style.display='none';
+  $('srcBox').style.display='flex';
+  if(gUser){
+    const pic=gUser.picture?`<img src="${gUser.picture}" onerror="this.style.display='none'">`:'';
+    $('srcUserBadge').innerHTML=`${pic}<span>${gUser.name}</span><button class="srchd-signout" onclick="gSignOut()">ออกจากระบบ</button>`;
+  }
+}
+function gSignOut(){
+  gUser=null;
+  try{sessionStorage.removeItem('bkk69_gauth');}catch(e){}
+  closeSrc();
+}
+function gRenderBtn(){
+  if(!window.google||!google.accounts)return false;
+  google.accounts.id.initialize({client_id:GAUTH_CID,callback:gHandleCredential,ux_mode:'popup'});
+  google.accounts.id.renderButton($('g_signin_btn'),{type:'standard',shape:'pill',theme:'filled_black',size:'large',text:'signin_with',locale:'th'});
+  return true;
+}
+
 /* ════════════ SOURCE MODAL ════════════ */
-function openSrc(){$('srcModal').classList.add('on')}
+function openSrc(){
+  $('srcModal').classList.add('on');
+  if(gUser){showSrcBox();return;}
+  $('srcAuthGate').style.display='flex';
+  $('srcBox').style.display='none';
+  $('g_signin_btn').innerHTML='';
+  if(!gRenderBtn())setTimeout(()=>gRenderBtn(),600);
+}
 function closeSrc(){$('srcModal').classList.remove('on')}
 function srcTab(k,btn){document.querySelectorAll('.srcpane').forEach(p=>p.classList.remove('on'));document.querySelectorAll('.stab').forEach(b=>b.classList.remove('on'));$('pane-'+k).classList.add('on');if(btn)btn.classList.add('on');if(k==='firebase')ensureFirebase();}
 function setSrcDot(state){const d=$('srcdot');d.className='dot'+(state?' '+state:'')}
