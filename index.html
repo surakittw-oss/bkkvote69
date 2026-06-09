@@ -17,8 +17,8 @@
   --t1:#fff; --t2:#c9cace; --t3:#8a8b90; --t4:#5b5c61;
   --c-chadchart:#9fd60c; --c-suchatvee:#2f80ed; --c-wiroj:#e8590c;
   --c-sakoltee:#3c6e71; --c-aswin:#b8a45c; --c-sita:#27408b; --c-rosana:#9b59b6;
-  /* CI กรุงเทพมหานคร — สี accent เมนูหลัก */
-  --brand:#00744B; --brand-l:#13a872; --brand-rgb:0,116,75;
+  /* CI The Standard BKK Election — สี accent เมนูหลัก */
+  --brand:#00a84f; --brand-l:#00e676; --brand-rgb:0,168,79;
   --r:10px; --r-sm:6px;
 }
 html{scroll-behavior:smooth}
@@ -39,7 +39,7 @@ body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opa
 .hd .kicker{display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--brand-l);padding:4px 12px;border:1px solid rgba(var(--brand-rgb),.45);border-radius:30px;background:rgba(var(--brand-rgb),.12);margin-bottom:16px;animation:fadeDown .6s cubic-bezier(.2,.7,.2,1) both}
 .hd .kicker .pulse{width:7px;height:7px;border-radius:50%;background:var(--brand-l);box-shadow:0 0 0 0 rgba(var(--brand-rgb),.6);animation:pulse 1.8s infinite}
 .hd h1{font-size:clamp(26px,4.4vw,46px);font-weight:900;letter-spacing:-.5px;line-height:1.35;padding:.12em .04em .18em;animation:fadeDown .6s .05s cubic-bezier(.2,.7,.2,1) both;
-  background:linear-gradient(180deg,#fff 30%,#9cd0b8 130%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  background:linear-gradient(180deg,#fff 30%,#7affc2 130%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .hd .sub{margin-top:14px;font-size:14px;color:var(--t3);display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;animation:fadeDown .6s .12s cubic-bezier(.2,.7,.2,1) both}
 .dataset{position:relative;display:inline-flex;align-items:center;gap:6px;padding:5px 12px;border:1px solid var(--line);border-radius:7px;background:var(--bg2);color:var(--t2);font-size:13px;font-weight:600;cursor:pointer;transition:border-color .2s,background .2s}
 .dataset:hover{border-color:var(--t3);background:var(--bg3)}
@@ -474,8 +474,16 @@ function renderTotals(){
     // รูปผู้สมัครทุกเบอร์: ใช้รูปจริงถ้ามี ไม่งั้นวงกลมอักษรย่อสีประจำตัว
     const av=c.avatar?`<img src="${c.avatar}" onerror="this.parentNode.style.background='${c.color}';this.parentNode.style.color='${inkOn(c.color)}';this.parentNode.textContent='${init}'">`:init;
     const cavGlow=isWin?`;box-shadow:0 0 18px ${c.color}80`:'';
+    const medalSvg=`<svg width="22" height="26" viewBox="0 0 22 26" fill="none" style="display:block;margin:0 auto">
+      <path d="M8.5 0L6 11H9.5L11 4Z" fill="#FFCA28"/>
+      <path d="M13.5 0L16 11H12.5L11 4Z" fill="#FF8F00"/>
+      <circle cx="11" cy="19" r="7" fill="#FFD600" opacity=".25"/>
+      <circle cx="11" cy="19" r="6.5" fill="#FFD600"/>
+      <circle cx="11" cy="19" r="5" fill="#FFF3B0"/>
+      <path d="M11 14.2l1.5 3 3.3.5-2.4 2.3.57 3.3L11 21.8l-3 1.5.57-3.3-2.4-2.3 3.3-.5Z" fill="#E65100"/>
+    </svg>`;
     return `<div class="trow${isWin?' win':''}" style="animation-delay:${i*55}ms">
-      <span class="no">${c.no||i+1}</span>
+      <span class="no" style="${isWin?'display:flex;align-items:center;justify-content:center':''}">${isWin?medalSvg:(c.no||i+1)}</span>
       <span class="cav" style="background:${c.avatar?'var(--bg3)':c.color};color:${inkOn(c.color)};border-color:${isWin?c.color:'rgba(255,255,255,.12)'}${cavGlow}">${av}</span>
       <span class="who"><span class="nm">${c.name}</span><span class="pty">${c.party||''}</span></span>
       <span class="sc"><span class="vt" data-cv="${c.votes}">0</span><span class="pc">${pct.toFixed(1)}%</span></span>
