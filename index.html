@@ -361,6 +361,11 @@ body.ov-bottombar #ov-bar{display:flex}
 .ovb-pc-seatlbl{font-size:10px;color:var(--t3);font-weight:600}
 .ovb-pc-votes{font-size:10px;color:var(--t4);font-family:'IBM Plex Mono',monospace}
 .ovb-empty{flex:1;display:grid;place-items:center;color:var(--t4);font-size:13px}
+.ovb-ctl{position:absolute;right:14px;bottom:12px;display:flex;align-items:center;gap:5px;padding:5px 7px;background:rgba(0,0,0,.8);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.14);border-radius:30px;z-index:30;opacity:0;transition:opacity .3s;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.5)}
+#ov-bar:hover .ovb-ctl,#ov-bar.show-ctl .ovb-ctl{opacity:1;pointer-events:auto}
+.ovb-ctl button{width:28px;height:28px;border-radius:50%;border:none;background:rgba(255,255,255,.08);color:#fff;display:grid;place-items:center;cursor:pointer;transition:background .15s;flex-shrink:0}
+.ovb-ctl button:hover{background:var(--brand)}
+.ovb-ctl button svg{width:14px;height:14px}
 
 /* ════════════ OVERLAY · SIDE PANEL (576×1080) ════════════ */
 #ov-side{display:none;position:fixed;top:0;right:0;width:min(576px,100vw);height:100vh;max-height:1080px;flex-direction:column;overflow:hidden;background:linear-gradient(160deg,rgba(10,12,15,.98),rgba(6,7,9,.99));border-left:3px solid var(--brand);box-shadow:-8px 0 32px rgba(0,0,0,.5)}
@@ -1175,7 +1180,12 @@ function ovPhoto(cls,fbcls,avatar,init,color){
 }
 
 /* ── BOTTOM BAR (1264×209): % + turnout + rotate[ Top5 ผู้ว่าฯ ↔ ส.ก.ตามพรรค ] ── */
-let ovBarTimer=null, ovBarView=0;
+let ovBarTimer=null, ovBarView=0, ovBarPaused=false, ovBarCtlT=null, ovBarWired=false, ovBarHasSkg=false;
+const OV_BAR_MS=8000;
+function ovBarStartTimer(){if(ovBarTimer){clearInterval(ovBarTimer);ovBarTimer=null;}if(!ovBarPaused&&ovBarHasSkg)ovBarTimer=setInterval(()=>{ovBarView=(ovBarView+1)%2;ovBarApply();},OV_BAR_MS);}
+function ovBarGo(d){if(!ovBarHasSkg)return;ovBarView=((ovBarView+d)%2+2)%2;ovBarApply();ovBarStartTimer();ovBarFlash();}
+function ovBarTogglePlay(){if(!ovBarHasSkg)return;ovBarPaused=!ovBarPaused;ovBarStartTimer();ovBarApply();ovBarFlash();}
+function ovBarFlash(){const el=$('ov-bar');if(!el)return;el.classList.add('show-ctl');if(ovBarCtlT)clearTimeout(ovBarCtlT);ovBarCtlT=setTimeout(()=>el.classList.remove('show-ctl'),2800);}
 function renderBottomBar(){
   const el=$('ov-bar'); if(!el)return;
   const counted=countedDistricts||0;
@@ -1223,16 +1233,33 @@ function renderBottomBar(){
     <div class="ovb-stage">
       <div class="ovb-view ovb-gov" id="ovb-view-gov">${govCards}</div>
       <div class="ovb-view ovb-skg" id="ovb-view-skg">${skgCards}</div>
-    </div>`;
+    </div>
+    ${hasSkg?`<div class="ovb-ctl">
+      <button title="ก่อนหน้า (←)" onclick="ovBarGo(-1)">${OV_ICO_PREV}</button>
+      <button id="ovb-pp" title="หยุด/เล่น (Space)" onclick="ovBarTogglePlay()">${OV_ICO_PAUSE}</button>
+      <button title="ถัดไป (→)" onclick="ovBarGo(1)">${OV_ICO_NEXT}</button>
+    </div>`:''}`;
   // timer คงที่ ไม่ reset ตอน live refresh — แค่อัปเดตเนื้อหา + คง view ปัจจุบัน
+  ovBarHasSkg=hasSkg;
   if(!hasSkg){ovBarView=0;if(ovBarTimer){clearInterval(ovBarTimer);ovBarTimer=null;}}
   ovBarApply();
-  if(hasSkg&&!ovBarTimer)ovBarTimer=setInterval(()=>{ovBarView=(ovBarView+1)%2;ovBarApply();},8000);
+  if(hasSkg&&!ovBarTimer&&!ovBarPaused)ovBarTimer=setInterval(()=>{ovBarView=(ovBarView+1)%2;ovBarApply();},OV_BAR_MS);
+  if(!ovBarWired){
+    ovBarWired=true;
+    el.addEventListener('mousemove',ovBarFlash);
+    document.addEventListener('keydown',e=>{
+      if(OVERLAY!=='bottombar')return;
+      if(e.key==='ArrowLeft'){e.preventDefault();ovBarGo(-1);}
+      else if(e.key==='ArrowRight'){e.preventDefault();ovBarGo(1);}
+      else if(e.key===' '||e.code==='Space'){e.preventDefault();ovBarTogglePlay();}
+    });
+  }
 }
 function ovBarApply(){
   const gv=$('ovb-view-gov'),sv=$('ovb-view-skg'),t=$('ovb-title');if(!gv)return;
   gv.classList.toggle('on',ovBarView===0);if(sv)sv.classList.toggle('on',ovBarView===1);
   if(t)t.textContent=ovBarView===0?'ผลการเลือกตั้งผู้ว่าฯ กทม.':'ผลการเลือกตั้ง ส.ก. · ที่นั่งตามพรรค';
+  const pp=$('ovb-pp');if(pp)pp.innerHTML=ovBarPaused?OV_ICO_PLAY:OV_ICO_PAUSE;
 }
 
 /* ── SIDE PANEL (576×1080): rotate[ View A ส.ก.รายเขต ↔ View B แผนที่ผู้ว่าฯ ] ── */
