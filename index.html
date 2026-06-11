@@ -51,6 +51,8 @@ body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opa
 .src-btn .dot{width:7px;height:7px;border-radius:50%;background:var(--t4);transition:.3s}
 .src-btn .dot.on{background:var(--brand-l);box-shadow:0 0 7px var(--brand-l)}
 .src-btn .dot.saving{background:#fbbf24;animation:blink .8s infinite}
+#top-actions{position:fixed;top:14px;right:18px;z-index:900;display:flex;align-items:center;gap:8px}
+body.ov #top-actions{display:none}
 .hr{height:1px;background:linear-gradient(90deg,transparent,var(--line) 12%,var(--line) 88%,transparent);margin:26px 0 30px}
 
 .col-head{font-size:clamp(20px,2.6vw,30px);font-weight:900;color:#fff;letter-spacing:-.4px;margin-bottom:22px;display:flex;align-items:center;gap:12px}
@@ -317,13 +319,14 @@ body.ov-lower3 #ov-lower3{display:flex}
 <body>
 <div class="wrap">
 
+  <div id="top-actions">
+    <button class="src-btn" onclick="openSrc()"><span class="dot" id="srcdot"></span><span id="srclabel">แหล่งข้อมูล</span></button>
+    <button class="src-btn" onclick="openEmbed()" title="คัดลอกโค้ดฝังเว็บ"><span style="font-family:'IBM Plex Mono',monospace;font-weight:600">&lt;/&gt;</span> ฝังเว็บ</button>
+  </div>
+
   <header class="hd">
     <div class="kicker"><span class="pulse"></span> BKK Vote · Live Dashboard</div>
     <h1>ผลการนับคะแนนเลือกตั้งผู้ว่าฯ กทม. 69</h1>
-    <div class="sub">
-      <button class="src-btn" onclick="openSrc()"><span class="dot" id="srcdot"></span><span id="srclabel">แหล่งข้อมูล</span></button>
-      <button class="src-btn" onclick="openEmbed()" title="คัดลอกโค้ดฝังเว็บ"><span style="font-family:'IBM Plex Mono',monospace;font-weight:600">&lt;/&gt;</span> ฝังเว็บ</button>
-    </div>
   </header>
   <div class="hr"></div>
 
