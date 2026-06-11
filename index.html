@@ -1010,9 +1010,12 @@ function renderLower3(){
     const init=(c.short||c.name||'?').trim().slice(0,1);
     const pct=(c.votes/base*100).toFixed(1);
     const v=c.votes.toLocaleString();
+    const av=c.avatar
+      ?`<img src="${c.avatar}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" onerror="this.style.display='none';this.insertAdjacentText('beforebegin','${init}')">`
+      :init;
     return `<div class="ov-l3-card rank${i+1}">
       <span class="ov-l3-rank">${i+1}</span>
-      <span class="ov-l3-av" style="background:${c.color};color:${inkOn(c.color)};border-color:${c.color}">${init}</span>
+      <span class="ov-l3-av" style="background:${c.avatar?'#1c1d1f':c.color};color:${inkOn(c.color)};border-color:${c.color}">${av}</span>
       <span class="ov-l3-info"><span class="ov-l3-name">${c.name}</span><span class="ov-l3-party">${c.party||''}</span></span>
       <span class="ov-l3-score"><span class="ov-l3-votes">${v}</span><span class="ov-l3-pct">${pct}%</span></span>
     </div>`;
