@@ -51,7 +51,7 @@ body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opa
 .src-btn .dot{width:7px;height:7px;border-radius:50%;background:var(--t4);transition:.3s}
 .src-btn .dot.on{background:var(--brand-l);box-shadow:0 0 7px var(--brand-l)}
 .src-btn .dot.saving{background:#fbbf24;animation:blink .8s infinite}
-#top-actions{position:fixed;top:14px;right:18px;z-index:900;display:flex;align-items:center;gap:8px}
+#top-actions{position:absolute;top:18px;right:0;z-index:10;display:flex;align-items:center;gap:8px}
 body.ov #top-actions{display:none}
 .hr{height:1px;background:linear-gradient(90deg,transparent,var(--line) 12%,var(--line) 88%,transparent);margin:26px 0 30px}
 
@@ -260,8 +260,8 @@ body.ov #top-actions{display:none}
 @media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
 
 @media(max-width:1080px){.grid{grid-template-columns:1fr;gap:34px}.modes{flex-direction:row;flex-wrap:wrap;justify-content:center}.mode{width:120px}}
-@media(max-width:768px){#top-actions{top:10px;right:14px;gap:6px}.src-btn{padding:4px 9px;font-size:11px}}
-@media(max-width:560px){.wrap{padding:22px 14px 30px}.trow .nm{white-space:normal}.mode{width:46%}#top-actions{top:10px;right:12px;gap:5px}.src-btn{padding:3px 8px;font-size:11px}.hd{padding-top:50px}}
+@media(max-width:768px){#top-actions{top:14px;right:0;gap:6px}.src-btn{padding:4px 9px;font-size:11px}}
+@media(max-width:560px){.wrap{padding:22px 14px 30px}.trow .nm{white-space:normal}.mode{width:46%}#top-actions{top:12px;right:0;gap:5px}.src-btn{padding:3px 8px;font-size:11px}.hd{padding-top:50px}}
 body.embed .wrap{padding:14px}
 /* ฝังเฉพาะส่วน totals → แสดงครบ ไม่ต้อง scroll (ให้ iframe ปรับความสูงเอง) */
 body.section-totals #totals{max-height:none;overflow:visible;padding-right:0}
