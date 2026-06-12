@@ -99,6 +99,11 @@ body.ov #top-actions{display:none}
 .count-pill b{color:var(--brand-l)}
 .prog{flex:1;min-width:120px;height:5px;border-radius:3px;background:var(--bg3);overflow:hidden}
 .prog > i{display:block;height:100%;background:linear-gradient(90deg,var(--brand),var(--brand-l));width:0;transition:width 1.2s cubic-bezier(.2,.8,.2,1)}
+/* สลับเลเยอร์แผนที่: ผู้ว่าฯ / ส.ก. */
+.map-layer{display:none;border:1px solid var(--line);border-radius:7px;overflow:hidden;flex-shrink:0}
+.ml-btn{padding:4px 13px;background:var(--bg2);border:none;color:var(--t3);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:.15s}
+.ml-btn:hover{color:var(--t1)}
+.ml-btn.on{background:var(--brand);color:#fff}
 
 .map-wrap{width:100%;overflow:hidden;position:relative;touch-action:none}
 .map-wrap.zoomed{cursor:grab}
@@ -122,7 +127,7 @@ body.ov #top-actions{display:none}
 #geosvg{width:100%;height:auto;display:block}
 .geop{cursor:pointer;stroke:#0a0a0a;stroke-width:.6;opacity:0;animation:geoIn .5s ease forwards;transition:filter .15s,stroke .15s,stroke-width .15s}
 .geop:hover{filter:brightness(1.25) saturate(1.2);stroke:#fff;stroke-width:1.4}
-.geolab{font-size:5px;fill:rgba(255,255,255,.75);font-weight:700;pointer-events:none;text-anchor:middle;font-family:'Noto Sans Thai',sans-serif}
+.geolab{font-size:6.5px;fill:rgba(255,255,255,.92);font-weight:700;pointer-events:none;text-anchor:middle;font-family:'Noto Sans Thai',sans-serif;text-rendering:optimizeLegibility;paint-order:stroke fill;stroke:rgba(0,0,0,.6);stroke-width:1.4px;stroke-linejoin:round}
 
 /* ── SKYLINE BAR CHART ── */
 .sky-scroll{overflow-x:auto;overflow-y:hidden;width:100%;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
@@ -442,6 +447,10 @@ body.ov-side #ov-side{display:flex}
       <div class="map-bar">
         <span class="count-pill">นับแล้ว <b id="counted">50</b>/50 เขต</span>
         <span class="prog"><i id="prog"></i></span>
+        <span class="map-layer" id="mapLayer">
+          <button class="ml-btn on" data-l="gov" onclick="setGeoLayer('gov')">ผู้ว่าฯ</button>
+          <button class="ml-btn" data-l="skg" onclick="setGeoLayer('skg')">ส.ก. (พรรค)</button>
+        </span>
       </div>
       <div class="map-wrap" id="mapWrap">
         <div id="mapZoom"><div class="map-inner" id="map"></div></div>
@@ -453,7 +462,7 @@ body.ov-side #ov-side{display:flex}
       </div>
       <div id="dtable-host"></div>
       <div class="legend" id="legend"></div>
-      <div class="cap">โหมด <b>บับเบิล</b> — แต่ละวงกลม = 1 เขต วางตามตำแหน่งภูมิศาสตร์ · ขนาด = turnout ผู้มาใช้สิทธิ์ · สีพื้น = ผู้ชนะ · วงขอบบาง = รองแชมป์ · คลิกเพื่อดูผลละเอียด · โหมด <b>ผู้ชนะ (แผนที่)</b> แสดงรูปร่างเขตจริง</div>
+      <div class="cap">โหมด <b>บับเบิล</b> — แต่ละวงกลม = 1 เขต วางตามตำแหน่งภูมิศาสตร์ · ขนาด = turnout ผู้มาใช้สิทธิ์ · สีพื้น = ผู้ชนะ · วงขอบบาง = รองแชมป์ · คลิกเพื่อดูผลละเอียด · โหมด <b>ผู้ชนะ (แผนที่)</b> แสดงรูปร่างเขตจริง สลับเลเยอร์ <b>ผู้ว่าฯ / ส.ก. (พรรค)</b> ได้ที่ปุ่มขวาบน — เลเยอร์ ส.ก. ระบายสีตามพรรคที่ชนะ ส.ก. ของแต่ละเขต</div>
     </section>
 
     <aside class="modes" id="modes"></aside>
@@ -704,6 +713,12 @@ function renderTotals(){
   }));
 }
 function renderLegend(){
+  // โหมดแผนที่ + เลเยอร์ ส.ก. — แสดงพรรคพร้อมจำนวนเขตที่ชนะ
+  if(MODE==='map'&&geoLayer==='skg'){
+    const ps=skgSeatLegend();
+    $('legend').innerHTML=ps.map(p=>`<span class="lg"><span class="sw" style="background:${p.color}"></span>${p.name} <b style="color:var(--t2)">${p.n}</b></span>`).join('')||'<span class="lg" style="color:var(--t4)">ยังไม่มีข้อมูล ส.ก.</span>';
+    return;
+  }
   // สร้างคำอธิบายสีจากผู้สมัครจริงทุกคนที่โหลดมา (เรียงตามคะแนน) — ครบทุกเบอร์
   const sorted=[...CANDS].sort((a,b)=>b.votes-a.votes);
   $('legend').innerHTML=sorted.map(c=>{
@@ -713,6 +728,12 @@ function renderLegend(){
 }
 
 /* ════════════ CARTOGRAM + GEO MAP ════════════ */
+let geoLayer='gov'; // 'gov' = ผู้ชนะผู้ว่าฯ | 'skg' = พรรคที่ชนะ ส.ก. รายเขต
+function setGeoLayer(l){
+  geoLayer=l;
+  document.querySelectorAll('#mapLayer .ml-btn').forEach(b=>b.classList.toggle('on',b.dataset.l===l));
+  renderMap();renderLegend();
+}
 const CELL_W=48,CELL_H=60,GAP=5,COLS=12,ROWS=8;
 const MAP_W=(COLS+1)*CELL_W, MAP_H=ROWS*CELL_H;
 
@@ -721,6 +742,7 @@ function renderMap(){
   const map=$('map');
   zoomReset();
   const ctl=$('zoomCtl'); if(ctl) ctl.style.display=(MODE==='list')?'none':'flex';
+  const ml=$('mapLayer'); if(ml) ml.style.display=(MODE==='map'&&Object.keys(skgData||{}).length)?'inline-flex':'none';
   const mw=$('mapWrap');
   if(mw){
     mw.style.display=(MODE==='list')?'none':'block';
@@ -900,8 +922,14 @@ function renderGeoMap(){
   for(const n in BKK_GEO){
     const d=dByName[normName(n)];
     const idx=d?DISTRICTS.indexOf(d):-1;
-    const c=(d&&d.counted&&d.win!=null)?CANDS[d.win]:null;
-    const fill=c?c.color:(d&&!d.counted?'#26282a':'#1c1d1f');
+    let fill;
+    if(geoLayer==='skg'){
+      const w=skgWin(n);
+      fill=w?(w.color||'#3a3c3f'):'#1c1d1f';
+    }else{
+      const c=(d&&d.counted&&d.win!=null)?CANDS[d.win]:null;
+      fill=c?c.color:(d&&!d.counted?'#26282a':'#1c1d1f');
+    }
     const dstr=BKK_GEO[n].map(ring=>'M'+ring.map(p=>{const q=proj(p[0],p[1]);return q[0]+','+q[1]}).join('L')+'Z').join(' ');
     paths+=`<path d="${dstr}" fill="${fill}" data-i="${idx}" class="geop" style="animation-delay:${(k++)*10}ms"/>`;
     // centroid label
@@ -1005,6 +1033,15 @@ function bindBoxes(){
     const i=+el.dataset.i;if(i<0)return;
     el.addEventListener('mouseenter',()=>{
       const d=DISTRICTS[i];if(!d)return;
+      // เลเยอร์ ส.ก. — tooltip แสดงผู้สมัคร ส.ก. ของเขตแทน
+      if(MODE==='map'&&geoLayer==='skg'){
+        const sk=skgList(d.name);
+        if(!sk.length){tip.innerHTML=`<div class="tt">ส.ก. เขต${d.name}</div><div class="tf">ยังไม่มีข้อมูล ส.ก.</div>`;tip.classList.add('on');return;}
+        const sorted=[...sk].sort((a,b)=>(parseInt(b.votes)||0)-(parseInt(a.votes)||0)).slice(0,4);
+        const rows=sorted.map((c,idx)=>`<div class="tr"><span class="d" style="background:${c.color||PALETTE[idx%PALETTE.length]}"></span><span class="n">${c.name} · ${c.party||'อิสระ'}</span><span class="v">${fmt(parseInt(c.votes)||0)}</span></div>`).join('');
+        tip.innerHTML=`<div class="tt">ส.ก. เขต${d.name}</div>${rows}<div class="tf">คลิกดูผลทั้งหมด</div>`;
+        tip.classList.add('on');return;
+      }
       if(!d.counted){tip.innerHTML=`<div class="tt">เขต${d.name}</div><div class="tf">ยังไม่นับคะแนน</div>`;tip.classList.add('on');return;}
       const rows=[...d.votes.map((v,ci)=>({v,ci}))].sort((a,b)=>b.v-a.v).slice(0,4).map(o=>{const c=CANDS[o.ci];const p=d.cast?(o.v/d.cast*100).toFixed(1):0;return `<div class="tr"><span class="d" style="background:${c.color}"></span><span class="n">${c.short}</span><span class="v">${p}%</span></div>`}).join('');
       const hasSkg=!!(skgData&&skgData[d.name]&&skgData[d.name].length);
@@ -1019,6 +1056,22 @@ function bindBoxes(){
 
 /* ════════════ ส.ก. — ภาพรวมรายพรรค + รายเขต ════════════ */
 function skgList(distName){const arr=skgData&&(skgData[distName]||skgData[normName(distName)]);return Array.isArray(arr)?arr:[];}
+// ผู้ชนะ ส.ก. ของเขต (elected ก่อน ถ้าไม่มี flag ใช้คะแนนสูงสุด)
+function skgWin(distName){
+  const arr=skgList(distName); if(!arr.length)return null;
+  return arr.find(c=>c.elected)||[...arr].sort((a,b)=>(parseInt(b.votes)||0)-(parseInt(a.votes)||0))[0];
+}
+// legend โหมด ส.ก. — นับที่นั่ง (เขตที่ชนะ) ต่อพรรค
+function skgSeatLegend(){
+  const pm={};
+  Object.keys(skgData||{}).forEach(dn=>{
+    const w=skgWin(dn); if(!w)return;
+    const p=w.party||'อิสระ';
+    if(!pm[p])pm[p]={name:p,color:w.color||PALETTE[Object.keys(pm).length%PALETTE.length],n:0};
+    pm[p].n++;
+  });
+  return Object.values(pm).sort((a,b)=>b.n-a.n);
+}
 function renderSkgOverview(){
   const card=$('skgCard');
   const districts=Object.keys(skgData||{}).filter(k=>Array.isArray(skgData[k])&&skgData[k].length);
