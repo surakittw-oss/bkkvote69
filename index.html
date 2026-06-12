@@ -462,7 +462,7 @@ body.ov-side #ov-side{display:flex}
       </div>
       <div id="dtable-host"></div>
       <div class="legend" id="legend"></div>
-      <div class="cap">โหมด <b>บับเบิล</b> — แต่ละวงกลม = 1 เขต วางตามตำแหน่งภูมิศาสตร์ · ขนาด = turnout ผู้มาใช้สิทธิ์ · สีพื้น = ผู้ชนะ · วงขอบบาง = รองแชมป์ · คลิกเพื่อดูผลละเอียด · โหมด <b>ผู้ชนะ (แผนที่)</b> แสดงรูปร่างเขตจริง สลับเลเยอร์ <b>ผู้ว่าฯ / ส.ก. (พรรค)</b> ได้ที่ปุ่มขวาบน — เลเยอร์ ส.ก. ระบายสีตามพรรคที่ชนะ ส.ก. ของแต่ละเขต</div>
+      <div class="cap">โหมด <b>บับเบิล</b> — แต่ละวงกลม = 1 เขต วางตามตำแหน่งภูมิศาสตร์ · ขนาด = turnout ผู้มาใช้สิทธิ์ · สีพื้น = ผู้ชนะ · วงขอบบาง = รองแชมป์ · คลิกเพื่อดูผลละเอียด · โหมด <b>ผู้ชนะ (แผนที่)</b> แสดงรูปร่างเขตจริง · สลับเลเยอร์ <b>ผู้ว่าฯ / ส.ก. (พรรค)</b> ได้ที่ปุ่มขวาบน ใช้ได้ทุกโหมด — เลเยอร์ ส.ก. ระบายสีตามพรรคที่ชนะ ส.ก. ของแต่ละเขต</div>
     </section>
 
     <aside class="modes" id="modes"></aside>
@@ -713,8 +713,8 @@ function renderTotals(){
   }));
 }
 function renderLegend(){
-  // โหมดแผนที่ + เลเยอร์ ส.ก. — แสดงพรรคพร้อมจำนวนเขตที่ชนะ
-  if(MODE==='map'&&geoLayer==='skg'){
+  // เลเยอร์ ส.ก. — แสดงพรรคพร้อมจำนวนเขตที่ชนะ (ทุกโหมด)
+  if(geoLayer==='skg'&&Object.keys(skgData||{}).length){
     const ps=skgSeatLegend();
     $('legend').innerHTML=ps.map(p=>`<span class="lg"><span class="sw" style="background:${p.color}"></span>${p.name} <b style="color:var(--t2)">${p.n}</b></span>`).join('')||'<span class="lg" style="color:var(--t4)">ยังไม่มีข้อมูล ส.ก.</span>';
     return;
@@ -742,7 +742,7 @@ function renderMap(){
   const map=$('map');
   zoomReset();
   const ctl=$('zoomCtl'); if(ctl) ctl.style.display=(MODE==='list')?'none':'flex';
-  const ml=$('mapLayer'); if(ml) ml.style.display=(MODE==='map'&&Object.keys(skgData||{}).length)?'inline-flex':'none';
+  const ml=$('mapLayer'); if(ml) ml.style.display=Object.keys(skgData||{}).length?'inline-flex':'none';
   const mw=$('mapWrap');
   if(mw){
     mw.style.display=(MODE==='list')?'none':'block';
@@ -760,9 +760,11 @@ function renderMap(){
   map.innerHTML=DISTRICTS.map((d,i)=>{
     const x=d.col*CELL_W,y=d.row*CELL_H;
     const delay=(d.row*3+d.col*0.4)*16;
-    if(!d.counted)return `<div class="box unc" data-i="${i}" style="left:${x}px;top:${y+14}px;width:${CELL_W-GAP}px;height:${CELL_H-GAP-14}px;animation-delay:${delay}ms"><span class="blab">${d.name}</span></div>`;
-    const c=CANDS[d.win];
-    return `<div class="box solid" data-i="${i}" style="left:${x}px;top:${y+14}px;width:${CELL_W-GAP}px;height:${CELL_H-GAP-2}px;background:${c?c.color:'#222'};animation-delay:${delay}ms"></div>`;
+    let fill=null;
+    if(geoLayer==='skg'){const w=skgWin(d.name);fill=w?(w.color||'#3a3c3f'):null;}
+    else if(d.counted){const c=CANDS[d.win];fill=c?c.color:'#222';}
+    if(!fill)return `<div class="box unc" data-i="${i}" style="left:${x}px;top:${y+14}px;width:${CELL_W-GAP}px;height:${CELL_H-GAP-14}px;animation-delay:${delay}ms"><span class="blab">${d.name}</span></div>`;
+    return `<div class="box solid" data-i="${i}" style="left:${x}px;top:${y+14}px;width:${CELL_W-GAP}px;height:${CELL_H-GAP-2}px;background:${fill};animation-delay:${delay}ms"></div>`;
   }).join('');
   bindBoxes();fitMap();
 }
@@ -801,19 +803,26 @@ function renderBubbleMap(){
     const [,dcol,drow]=layout;
     const cx=PAD+dcol*CELL+CELL/2;
     const cy=PAD+drow*CELL+CELL/2;
-    const wc=d.counted&&d.win!=null?CANDS[d.win]:null;
+    // เลเยอร์ ส.ก. — สี bubble = พรรคที่ชนะ ส.ก. · วงแหวน = พรรคอันดับ 2 ของเขต
+    const skgMode=geoLayer==='skg';
+    const skSorted=skgMode?[...skgList(d.name)].sort((a,b)=>(parseInt(b.votes)||0)-(parseInt(a.votes)||0)):null;
+    const skw=skgMode?skgWin(d.name):null;
+    const wc=skgMode?(skw?{color:skw.color||'#3a3c3f'}:null):(d.counted&&d.win!=null?CANDS[d.win]:null);
     const bubcol=wc?wc.color:'#1e2124';
     const t=d.counted&&d.cast>0?d.cast/maxCast:0;
     const r=RMIN+(RMAX-RMIN)*Math.sqrt(t);
     const delay=(drow*13+dcol)*6;
-    const opa=d.counted?1:0.2;
+    const opa=(skgMode?!!skw:d.counted)?1:0.2;
 
     // Glow halo
     if(wc&&t>0.15) s+=`<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${(r+7).toFixed(1)}" fill="${bubcol}" opacity="0.18" class="bub-anim" style="${TF(delay)}"/>`;
     // Main bubble
     s+=`<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r.toFixed(1)}" fill="${bubcol}" opacity="${opa}" class="bub-anim" style="${TF(delay)}"/>`;
     // Runner-up stroke ring
-    if(d.counted&&d.cast>0){
+    if(skgMode){
+      const r2=skSorted&&skSorted[1];
+      if(skw&&r2&&r2.color) s+=`<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r.toFixed(1)}" fill="none" stroke="${r2.color}" stroke-width="2.5" opacity="0.55" class="bub-anim" style="${TF(delay)}"/>`;
+    }else if(d.counted&&d.cast>0){
       const r2o=[...d.votes.map((v,ci)=>({v,ci}))].sort((a,b)=>b.v-a.v)[1];
       if(r2o&&CANDS[r2o.ci]) s+=`<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r.toFixed(1)}" fill="none" stroke="${CANDS[r2o.ci].color}" stroke-width="2.5" opacity="0.55" class="bub-anim" style="${TF(delay)}"/>`;
     }
@@ -824,7 +833,7 @@ function renderBubbleMap(){
       const fs=Math.min(10,(r*1.75)/(maxLen*0.65));
       if(fs>=3.2){
         const sw=(fs*0.22).toFixed(1);
-        const lstyle=`font-family:'Noto Sans Thai',sans-serif;fill:rgba(255,255,255,${d.counted?'.95':'.35'});font-size:${fs.toFixed(1)}px;font-weight:700;pointer-events:none;text-anchor:middle;text-rendering:optimizeLegibility;paint-order:stroke fill;stroke:rgba(0,0,0,.65);stroke-width:${sw}px;stroke-linejoin:round`;
+        const lstyle=`font-family:'Noto Sans Thai',sans-serif;fill:rgba(255,255,255,${(skgMode?!!skw:d.counted)?'.95':'.35'});font-size:${fs.toFixed(1)}px;font-weight:700;pointer-events:none;text-anchor:middle;text-rendering:optimizeLegibility;paint-order:stroke fill;stroke:rgba(0,0,0,.65);stroke-width:${sw}px;stroke-linejoin:round`;
         if(lines.length===1){
           s+=`<text x="${cx.toFixed(1)}" y="${(cy+fs*0.38).toFixed(1)}" style="${lstyle}">${lines[0]}</text>`;
         } else {
@@ -941,6 +950,22 @@ function renderGeoMap(){
 }
 
 function renderList(){
+  // เลเยอร์ ส.ก. — ตารางผู้ชนะ ส.ก. รายเขต
+  if(geoLayer==='skg'&&Object.keys(skgData||{}).length){
+    const rows=DISTRICTS.map(d=>{
+      const sk=[...skgList(d.name)].sort((a,b)=>(parseInt(b.votes)||0)-(parseInt(a.votes)||0));
+      const w=sk.length?(skgList(d.name).find(c=>c.elected)||sk[0]):null;
+      const tot=sk.reduce((s,c)=>s+(parseInt(c.votes)||0),0);
+      return {d,w,tot};
+    }).sort((a,b)=>b.tot-a.tot);
+    $('dtable-host').innerHTML=`<table class="dtable"><thead><tr>
+      <th>เขต</th><th>ผู้ชนะ ส.ก.</th><th>พรรค</th><th class="r">คะแนนผู้ชนะ</th><th class="r">รวมคะแนน ส.ก.</th>
+    </tr></thead><tbody>${rows.map(({d,w,tot})=>{
+      if(!w)return `<tr><td>${d.name}</td><td style="color:var(--t4)">ยังไม่มีข้อมูล</td><td>—</td><td class="r">—</td><td class="r">—</td></tr>`;
+      return `<tr><td>${d.name}</td><td><span class="wdot" style="background:${w.color||'#888'}"></span>${w.name}</td><td>${w.party||'อิสระ'}</td><td class="r mono">${fmt(parseInt(w.votes)||0)}</td><td class="r mono">${fmt(tot)}</td></tr>`;
+    }).join('')}</tbody></table>`;
+    return;
+  }
   const sorted=[...DISTRICTS].sort((a,b)=>b.cast-a.cast);
   $('dtable-host').innerHTML=`<table class="dtable"><thead><tr>
     <th>เขต</th><th>ผู้ชนะ</th><th class="r">คะแนนผู้ชนะ</th><th class="r">% ในเขต</th><th class="r">ผู้มาใช้สิทธิ์</th>
@@ -1034,7 +1059,7 @@ function bindBoxes(){
     el.addEventListener('mouseenter',()=>{
       const d=DISTRICTS[i];if(!d)return;
       // เลเยอร์ ส.ก. — tooltip แสดงผู้สมัคร ส.ก. ของเขตแทน
-      if(MODE==='map'&&geoLayer==='skg'){
+      if(geoLayer==='skg'){
         const sk=skgList(d.name);
         if(!sk.length){tip.innerHTML=`<div class="tt">ส.ก. เขต${d.name}</div><div class="tf">ยังไม่มีข้อมูล ส.ก.</div>`;tip.classList.add('on');return;}
         const sorted=[...sk].sort((a,b)=>(parseInt(b.votes)||0)-(parseInt(a.votes)||0)).slice(0,4);
