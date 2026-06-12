@@ -57,6 +57,16 @@ body.ov #top-actions{display:none}
 
 .col-head{font-size:clamp(20px,2.6vw,30px);font-weight:900;color:#fff;letter-spacing:-.4px;margin-bottom:22px;display:flex;align-items:center;gap:12px}
 .col-head::before{content:"";width:5px;height:1em;border-radius:3px;background:linear-gradient(180deg,var(--brand-l),var(--brand));box-shadow:0 0 12px rgba(var(--brand-rgb),.5);flex-shrink:0}
+/* แบนเนอร์หัวข้อทรงสี่เหลี่ยมด้านขนาน — ขอบล่างเรืองแสงเขียว CI */
+.col-head.banner{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:0;font-size:clamp(17px,2.3vw,25px);letter-spacing:.5px;padding:12px 38px;isolation:isolate;
+  background:linear-gradient(180deg,rgba(var(--brand-rgb),.22) 0%,rgba(var(--brand-rgb),.5) 55%,var(--brand-l) 100%);
+  clip-path:polygon(22px 0,100% 0,calc(100% - 22px) 100%,0 100%);
+  filter:drop-shadow(0 4px 13px rgba(var(--brand-rgb),.4));
+  text-shadow:0 1px 3px rgba(0,0,0,.45)}
+.col-head.banner::before{content:"";position:absolute;inset:2px;width:auto;height:auto;border-radius:0;box-shadow:none;flex-shrink:1;z-index:-1;
+  background:linear-gradient(165deg,#0d5230 0%,#0a3a22 50%,#04190e 100%);
+  clip-path:polygon(22px 0,100% 0,calc(100% - 22px) 100%,0 100%)}
+.col-head.banner #skgMeta{text-shadow:none}
 .grid{display:grid;grid-template-columns:minmax(330px,400px) 1fr auto;gap:30px;align-items:start}
 
 /* TOTALS */
@@ -437,13 +447,13 @@ body.ov-side #ov-side{display:flex}
 
   <div class="grid">
     <section id="totals-col">
-      <h2 class="col-head">คะแนนรวมทั้ง กทม.</h2>
+      <h2 class="col-head banner">คะแนนรวมทั้ง กทม.</h2>
       <div class="tot-head"><span>เบอร์</span><span></span><span>ชื่อผู้สมัคร</span><span class="r">คะแนนเสียง · %</span></div>
       <div id="totals"></div>
     </section>
 
     <section class="map-card">
-      <h2 class="col-head">คะแนนรายเขต</h2>
+      <h2 class="col-head banner">คะแนนรายเขต</h2>
       <div class="map-bar">
         <span class="count-pill">นับแล้ว <b id="counted">50</b>/50 เขต</span>
         <span class="prog"><i id="prog"></i></span>
