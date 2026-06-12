@@ -799,14 +799,16 @@ function renderBubbleMap(){
     if(r>=7){
       const lines=labLines(d.name);
       const maxLen=Math.max(...lines.map(l=>l.length));
-      // avail = ความกว้างที่ใช้ได้ใน bubble, charW = สัดส่วนความกว้าง/ขนาด font ของ Noto Sans Thai
-      const fs=Math.min(7.5,(r*1.65)/(maxLen*0.65));
-      const lstyle=`font-family:'Noto Sans Thai',sans-serif;fill:rgba(255,255,255,${d.counted?'.9':'.35'});font-size:${fs.toFixed(1)}px;font-weight:700;pointer-events:none;text-anchor:middle`;
-      if(lines.length===1){
-        s+=`<text x="${cx.toFixed(1)}" y="${(cy+fs*0.38).toFixed(1)}" style="${lstyle}">${lines[0]}</text>`;
-      } else {
-        const lh=fs*1.3;
-        s+=`<text style="${lstyle}"><tspan x="${cx.toFixed(1)}" y="${(cy-lh*0.5+fs*0.38).toFixed(1)}">${lines[0]}</tspan><tspan x="${cx.toFixed(1)}" dy="${lh.toFixed(1)}">${lines[1]}</tspan></text>`;
+      const fs=Math.min(10,(r*1.75)/(maxLen*0.65));
+      if(fs>=3.2){
+        const sw=(fs*0.22).toFixed(1);
+        const lstyle=`font-family:'Noto Sans Thai',sans-serif;fill:rgba(255,255,255,${d.counted?'.95':'.35'});font-size:${fs.toFixed(1)}px;font-weight:700;pointer-events:none;text-anchor:middle;text-rendering:optimizeLegibility;paint-order:stroke fill;stroke:rgba(0,0,0,.65);stroke-width:${sw}px;stroke-linejoin:round`;
+        if(lines.length===1){
+          s+=`<text x="${cx.toFixed(1)}" y="${(cy+fs*0.38).toFixed(1)}" style="${lstyle}">${lines[0]}</text>`;
+        } else {
+          const lh=fs*1.45;
+          s+=`<text style="${lstyle}"><tspan x="${cx.toFixed(1)}" y="${(cy-lh*0.5+fs*0.38).toFixed(1)}">${lines[0]}</tspan><tspan x="${cx.toFixed(1)}" dy="${lh.toFixed(1)}">${lines[1]}</tspan></text>`;
+        }
       }
     }
     // Transparent hit rect (full cell)
