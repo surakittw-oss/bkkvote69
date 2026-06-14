@@ -450,10 +450,10 @@ body.ov-side #ov-side{display:flex}
 <div class="wrap">
 
   <div id="top-logo">
-    <img id="logo-img" src="" alt="โลโกแคมเปญ" onclick="document.getElementById('logo-file-input').click()" title="คลิกเพื่อเปลี่ยนโลโก">
+    <img id="logo-img" src="" alt="Campaign logo" onclick="document.getElementById('logo-file-input').click()" title="Click to change logo">
     <button id="logo-upload-btn" onclick="document.getElementById('logo-file-input').click()">
       <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 2v9M4 6l4-4 4 4M2 14h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      อัปโหลดโลโก
+      Upload Logo
     </button>
     <input type="file" id="logo-file-input" accept="image/*">
   </div>
@@ -1245,7 +1245,7 @@ function logoUpdateAuth(){
   const isAdmin=!!(gUser&&(gUser.email||'').endsWith('@thestandard.co'));
   btn.style.display=isAdmin&&!img.classList.contains('has-logo')?'inline-flex':'none';
   img.style.cursor=isAdmin?'pointer':'default';
-  img.title=isAdmin?'คลิกเพื่อเปลี่ยนโลโก':'';
+  img.title=isAdmin?'Click to change logo':'';
 }
 function logoSetupFbListener(){
   if(!fbDb)return;
@@ -1265,7 +1265,7 @@ function logoSetupFbListener(){
     if(!(gUser&&(gUser.email||'').endsWith('@thestandard.co')))return;
     const f=inp.files[0];if(!f)return;
     inp.value='';
-    btn.textContent='กำลังอัปโหลด…';btn.disabled=true;
+    btn.textContent='Uploading…';btn.disabled=true;
     try{
       if(!fbReady)await ensureFirebase();
       const ref=fbStorage.ref('campaign/logo');
@@ -1273,7 +1273,7 @@ function logoSetupFbListener(){
       const url=await ref.getDownloadURL();
       await fbDb.ref('election/meta/logoUrl').set(url);
     }catch(ex){alert('อัปโหลดไม่สำเร็จ: '+ex.message);}
-    btn.innerHTML='<svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 2v9M4 6l4-4 4 4M2 14h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>อัปโหลดโลโก';
+    btn.innerHTML='<svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 2v9M4 6l4-4 4 4M2 14h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Upload Logo';
     btn.disabled=false;
   });
   img.addEventListener('click',()=>{
@@ -1282,7 +1282,7 @@ function logoSetupFbListener(){
   img.addEventListener('contextmenu',async e=>{
     e.preventDefault();
     if(!(gUser&&(gUser.email||'').endsWith('@thestandard.co')))return;
-    if(!confirm('ลบโลโกออก?'))return;
+    if(!confirm('Remove logo?'))return;
     try{
       if(!fbReady)await ensureFirebase();
       await fbDb.ref('election/meta/logoUrl').remove();
