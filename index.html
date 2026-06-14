@@ -1260,6 +1260,7 @@ function logoSetupFbListener(){
 (function initLogo(){
   const img=$('logo-img'),btn=$('logo-upload-btn'),inp=$('logo-file-input');
   if(!img||!btn||!inp)return;
+  img.src='logo-bkk-election-2569.webp';img.classList.add('has-logo');
   logoUpdateAuth();
   inp.addEventListener('change',()=>{
     if(!(gUser&&(gUser.email||'').endsWith('@thestandard.co')))return;
