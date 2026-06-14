@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNyIgZmlsbD0iIzBjMGQwZSIvPjxwYXRoIGQ9Ik01IDE1aDIydjlhMiAyIDAgMCAxLTIgMkg3YTIgMiAwIDAgMS0yLTJaIiBmaWxsPSIjMDA3NDRCIi8+PHJlY3QgeD0iMTEiIHk9IjE4LjQiIHdpZHRoPSIxMCIgaGVpZ2h0PSIyLjIiIHJ4PSIxLjEiIGZpbGw9IiMwNTI4MWIiLz48ZyB0cmFuc2Zvcm09InJvdGF0ZSgtMTEgMTYgMTEpIj48cmVjdCB4PSIxMC41IiB5PSI0LjUiIHdpZHRoPSIxMSIgaGVpZ2h0PSIxMSIgcng9IjEuNCIgZmlsbD0iI2ZmZiIvPjxwYXRoIGQ9Ik0xMi42IDEwLjJsMi4yIDIuMiA0LTQuNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDA3NDRCIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvZz48L3N2Zz4K">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800;900&family=Kanit:wght@700;800;900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 /* ════════════ TOKENS ════════════ */
@@ -53,12 +53,22 @@ body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opa
 .src-btn .dot.saving{background:#fbbf24;animation:blink .8s infinite}
 #top-actions{position:absolute;top:18px;right:0;z-index:10;display:flex;align-items:center;gap:8px}
 body.ov #top-actions{display:none}
+/* โลโกแคมเปญมุมซ้ายบน */
+#top-logo{position:absolute;top:14px;left:0;z-index:10;display:flex;align-items:center;gap:0}
+body.ov #top-logo{display:none}
+#logo-img{max-height:48px;max-width:160px;width:auto;display:none;border-radius:6px;object-fit:contain;cursor:pointer;transition:opacity .2s}
+#logo-img:hover{opacity:.75}
+#logo-img.has-logo{display:block}
+#logo-upload-btn{display:flex;align-items:center;gap:5px;padding:5px 11px;border:1px dashed var(--line);border-radius:7px;background:transparent;color:var(--t4);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s}
+#logo-upload-btn:hover{border-color:var(--t3);color:var(--t2)}
+#logo-upload-btn.has-logo{display:none}
+#logo-file-input{display:none}
 .hr{height:1px;background:linear-gradient(90deg,transparent,var(--line) 12%,var(--line) 88%,transparent);margin:26px 0 30px}
 
 .col-head{font-size:clamp(20px,2.6vw,30px);font-weight:900;color:#fff;letter-spacing:-.4px;margin-bottom:22px;display:flex;align-items:center;gap:12px}
 .col-head::before{content:"";width:5px;height:1em;border-radius:3px;background:linear-gradient(180deg,var(--brand-l),var(--brand));box-shadow:0 0 12px rgba(var(--brand-rgb),.5);flex-shrink:0}
 /* แบนเนอร์หัวข้อทรงสี่เหลี่ยมด้านขนาน — ขอบล่างเรืองแสงเขียว CI */
-.col-head.banner{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:0;font-size:clamp(17px,2.3vw,25px);letter-spacing:.5px;padding:12px 38px;isolation:isolate;
+.col-head.banner{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:0;font-size:clamp(17px,2.3vw,25px);font-family:'Kanit','Noto Sans Thai',sans-serif;font-weight:900;letter-spacing:.8px;padding:12px 38px;isolation:isolate;
   background:linear-gradient(180deg,rgba(var(--brand-rgb),.22) 0%,rgba(var(--brand-rgb),.5) 55%,var(--brand-l) 100%);
   clip-path:polygon(22px 0,100% 0,calc(100% - 22px) 100%,0 100%);
   filter:drop-shadow(0 4px 13px rgba(var(--brand-rgb),.4));
@@ -439,6 +449,15 @@ body.ov-side #ov-side{display:flex}
 </head>
 <body>
 <div class="wrap">
+
+  <div id="top-logo">
+    <img id="logo-img" src="" alt="โลโกแคมเปญ" onclick="document.getElementById('logo-file-input').click()" title="คลิกเพื่อเปลี่ยนโลโก">
+    <button id="logo-upload-btn" onclick="document.getElementById('logo-file-input').click()">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 2v9M4 6l4-4 4 4M2 14h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      อัปโหลดโลโก
+    </button>
+    <input type="file" id="logo-file-input" accept="image/*">
+  </div>
 
   <div id="top-actions">
     <button class="src-btn" onclick="openSrc()"><span class="dot" id="srcdot"></span><span id="srclabel">แหล่งข้อมูล</span></button>
@@ -1216,6 +1235,25 @@ function renderAll(){
   postHeight();setTimeout(postHeight,900);
 }
 
+/* ════════════ CAMPAIGN LOGO ════════════ */
+(function initLogo(){
+  const img=$('logo-img'),btn=$('logo-upload-btn'),inp=$('logo-file-input');
+  if(!img||!btn||!inp)return;
+  const saved=localStorage.getItem('bkk69_logo');
+  if(saved){img.src=saved;img.classList.add('has-logo');btn.classList.add('has-logo');}
+  inp.addEventListener('change',()=>{
+    const f=inp.files[0];if(!f)return;
+    const r=new FileReader();
+    r.onload=e=>{
+      const d=e.target.result;
+      img.src=d;img.classList.add('has-logo');btn.classList.add('has-logo');
+      try{localStorage.setItem('bkk69_logo',d);}catch(ex){}
+    };
+    r.readAsDataURL(f);inp.value='';
+  });
+  // คลิกขวาที่รูปเพื่อลบโลโก
+  img.addEventListener('contextmenu',e=>{e.preventDefault();if(!confirm('ลบโลโกออก?'))return;img.src='';img.classList.remove('has-logo');btn.classList.remove('has-logo');localStorage.removeItem('bkk69_logo');});
+})();
 /* ════════════ OVERLAY ════════════ */
 const OVERLAY=(new URLSearchParams(location.search)).get('overlay')||'';
 (function initOverlay(){
