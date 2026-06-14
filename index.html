@@ -1249,10 +1249,10 @@ function logoUpdateAuth(){
 }
 function logoSetupFbListener(){
   if(!fbDb)return;
-  fbDb.ref('election/meta/logoUrl').on('value',snap=>{
-    const url=snap.val();
+  fbDb.ref('campaign/logo').on('value',snap=>{
+    const data=snap.val();
     const img=$('logo-img');if(!img)return;
-    if(url){img.src=url;img.classList.add('has-logo');}
+    if(data){img.src=data;img.classList.add('has-logo');}
     else{img.src='';img.classList.remove('has-logo');}
     logoUpdateAuth();
   });
@@ -1261,20 +1261,27 @@ function logoSetupFbListener(){
   const img=$('logo-img'),btn=$('logo-upload-btn'),inp=$('logo-file-input');
   if(!img||!btn||!inp)return;
   logoUpdateAuth();
-  inp.addEventListener('change',async()=>{
+  inp.addEventListener('change',()=>{
     if(!(gUser&&(gUser.email||'').endsWith('@thestandard.co')))return;
     const f=inp.files[0];if(!f)return;
     inp.value='';
     btn.textContent='Uploading…';btn.disabled=true;
-    try{
-      if(!fbReady)await ensureFirebase();
-      const ref=fbStorage.ref('campaign/logo');
-      await ref.put(f,{contentType:f.type});
-      const url=await ref.getDownloadURL();
-      await fbDb.ref('election/meta/logoUrl').set(url);
-    }catch(ex){alert('อัปโหลดไม่สำเร็จ: '+ex.message);}
-    btn.innerHTML='<svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 2v9M4 6l4-4 4 4M2 14h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Upload Logo';
-    btn.disabled=false;
+    const reader=new FileReader();
+    reader.onerror=()=>{
+      alert('Upload failed: could not read file.');
+      btn.innerHTML='<svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 2v9M4 6l4-4 4 4M2 14h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Upload Logo';
+      btn.disabled=false;
+    };
+    reader.onload=async e=>{
+      const data=e.target.result;
+      try{
+        if(!fbReady)await ensureFirebase();
+        await fbDb.ref('campaign/logo').set(data);
+      }catch(ex){alert('Upload failed: '+ex.message);}
+      btn.innerHTML='<svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 2v9M4 6l4-4 4 4M2 14h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Upload Logo';
+      btn.disabled=false;
+    };
+    reader.readAsDataURL(f);
   });
   img.addEventListener('click',()=>{
     if(gUser&&(gUser.email||'').endsWith('@thestandard.co'))inp.click();
@@ -1285,8 +1292,8 @@ function logoSetupFbListener(){
     if(!confirm('Remove logo?'))return;
     try{
       if(!fbReady)await ensureFirebase();
-      await fbDb.ref('election/meta/logoUrl').remove();
-    }catch(ex){alert('ลบไม่สำเร็จ: '+ex.message);}
+      await fbDb.ref('campaign/logo').remove();
+    }catch(ex){alert('Remove failed: '+ex.message);}
   });
 })();
 /* ════════════ OVERLAY ════════════ */
