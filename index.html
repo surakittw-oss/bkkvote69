@@ -1234,6 +1234,9 @@ function renderAll(){
   postHeight();setTimeout(postHeight,900);
 }
 
+/* gUser ต้องประกาศก่อน CAMPAIGN LOGO IIFE เพื่อป้องกัน temporal dead zone */
+let gUser=null;
+try{const s=sessionStorage.getItem('bkk69_gauth');if(s)gUser=JSON.parse(s);}catch(e){}
 /* ════════════ CAMPAIGN LOGO ════════════ */
 function logoUpdateAuth(){
   // แสดงปุ่มอัปโหลด + คลิกรูปเพื่อเปลี่ยน เฉพาะ admin @thestandard.co เท่านั้น
@@ -1606,8 +1609,6 @@ function useSample(){closeSrc();setDataset(100);setSrcDot('');}
 
 /* ════════════ GOOGLE AUTH ════════════ */
 const GAUTH_CID='854069548103-4eunku0blt0po8nqe4diu8p0v0uubdn8.apps.googleusercontent.com';
-let gUser=null;
-try{const s=sessionStorage.getItem('bkk69_gauth');if(s)gUser=JSON.parse(s);}catch(e){}
 function gDecodeJWT(t){try{return JSON.parse(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));}catch(e){return null;}}
 function gHandleCredential(resp){
   const p=gDecodeJWT(resp.credential);
