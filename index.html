@@ -67,6 +67,12 @@ body.ov #top-actions{display:none}
   background:linear-gradient(165deg,#0d5230 0%,#0a3a22 50%,#04190e 100%);
   clip-path:polygon(22px 0,100% 0,calc(100% - 22px) 100%,0 100%)}
 .col-head.banner #skgMeta{text-shadow:none}
+/* แสงสะท้อนวิ่งกวาดผ่านแบนเนอร์เป็นจังหวะ (ถูก clip ตามทรงอัตโนมัติ) */
+.col-head.banner::after{content:"";position:absolute;top:0;bottom:0;left:0;width:55%;z-index:-1;pointer-events:none;
+  background:linear-gradient(105deg,transparent 0%,rgba(255,255,255,.05) 35%,rgba(180,255,210,.45) 50%,rgba(255,255,255,.05) 65%,transparent 100%);
+  transform:translateX(-180%);animation:bannerShine 4.5s cubic-bezier(.5,0,.5,1) infinite}
+@keyframes bannerShine{0%,18%{transform:translateX(-180%)}55%,100%{transform:translateX(320%)}}
+@media(prefers-reduced-motion:reduce){.col-head.banner::after{animation:none;opacity:0}}
 .grid{display:grid;grid-template-columns:minmax(330px,400px) 1fr auto;gap:30px;align-items:start}
 
 /* TOTALS */
