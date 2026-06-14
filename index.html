@@ -56,8 +56,7 @@ body.ov #top-actions{display:none}
 /* โลโกแคมเปญมุมซ้ายบน */
 #top-logo{position:absolute;top:14px;left:0;z-index:10;display:flex;align-items:center;gap:0}
 body.ov #top-logo{display:none}
-#logo-img{max-height:48px;max-width:160px;width:auto;display:none;border-radius:6px;object-fit:contain;cursor:pointer;transition:opacity .2s}
-#logo-img:hover{opacity:.75}
+#logo-img{max-height:72px;max-width:220px;width:auto;display:none;border-radius:6px;object-fit:contain;cursor:default;transition:opacity .2s}
 #logo-img.has-logo{display:block}
 #logo-upload-btn{display:none;align-items:center;gap:5px;padding:5px 11px;border:1px dashed var(--line);border-radius:7px;background:transparent;color:var(--t4);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s}
 #logo-upload-btn:hover{border-color:var(--t3);color:var(--t2)}
@@ -450,7 +449,7 @@ body.ov-side #ov-side{display:flex}
 <div class="wrap">
 
   <div id="top-logo">
-    <img id="logo-img" src="" alt="Campaign logo" onclick="document.getElementById('logo-file-input').click()" title="Click to change logo">
+    <img id="logo-img" src="" alt="Campaign logo">
     <button id="logo-upload-btn" onclick="document.getElementById('logo-file-input').click()">
       <svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 2v9M4 6l4-4 4 4M2 14h12" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Upload Logo
