@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNyIgZmlsbD0iIzBjMGQwZSIvPjxwYXRoIGQ9Ik01IDE1aDIydjlhMiAyIDAgMCAxLTIgMkg3YTIgMiAwIDAgMS0yLTJaIiBmaWxsPSIjMDA3NDRCIi8+PHJlY3QgeD0iMTEiIHk9IjE4LjQiIHdpZHRoPSIxMCIgaGVpZ2h0PSIyLjIiIHJ4PSIxLjEiIGZpbGw9IiMwNTI4MWIiLz48ZyB0cmFuc2Zvcm09InJvdGF0ZSgtMTEgMTYgMTEpIj48cmVjdCB4PSIxMC41IiB5PSI0LjUiIHdpZHRoPSIxMSIgaGVpZ2h0PSIxMSIgcng9IjEuNCIgZmlsbD0iI2ZmZiIvPjxwYXRoIGQ9Ik0xMi42IDEwLjJsMi4yIDIuMiA0LTQuNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDA3NDRCIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvZz48L3N2Zz4K">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600;700;800;900&family=Kanit:wght@700;800;900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <style>
 /* ════════════ TOKENS ════════════ */
@@ -23,7 +23,7 @@
   --r:10px; --r-sm:6px;
 }
 html{scroll-behavior:smooth}
-body{font-family:'Noto Sans Thai',system-ui,sans-serif;background:var(--bg);color:var(--t2);font-size:13px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden;position:relative}
+body{font-family:'Kanit',system-ui,sans-serif;background:var(--bg);color:var(--t2);font-size:13px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden;position:relative}
 /* ambient: green glow + faint dotted grid (CSS only, no perf cost) */
 body::before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;background:
   radial-gradient(820px 460px at 50% -8%,rgba(var(--brand-rgb),.20),transparent 70%),
@@ -59,16 +59,15 @@ body.ov #top-logo{display:none}
 #logo-img{max-height:48px;max-width:160px;width:auto;display:none;border-radius:6px;object-fit:contain;cursor:pointer;transition:opacity .2s}
 #logo-img:hover{opacity:.75}
 #logo-img.has-logo{display:block}
-#logo-upload-btn{display:flex;align-items:center;gap:5px;padding:5px 11px;border:1px dashed var(--line);border-radius:7px;background:transparent;color:var(--t4);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s}
+#logo-upload-btn{display:none;align-items:center;gap:5px;padding:5px 11px;border:1px dashed var(--line);border-radius:7px;background:transparent;color:var(--t4);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s}
 #logo-upload-btn:hover{border-color:var(--t3);color:var(--t2)}
-#logo-upload-btn.has-logo{display:none}
 #logo-file-input{display:none}
 .hr{height:1px;background:linear-gradient(90deg,transparent,var(--line) 12%,var(--line) 88%,transparent);margin:26px 0 30px}
 
 .col-head{font-size:clamp(20px,2.6vw,30px);font-weight:900;color:#fff;letter-spacing:-.4px;margin-bottom:22px;display:flex;align-items:center;gap:12px}
 .col-head::before{content:"";width:5px;height:1em;border-radius:3px;background:linear-gradient(180deg,var(--brand-l),var(--brand));box-shadow:0 0 12px rgba(var(--brand-rgb),.5);flex-shrink:0}
 /* แบนเนอร์หัวข้อทรงสี่เหลี่ยมด้านขนาน — ขอบล่างเรืองแสงเขียว CI */
-.col-head.banner{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:0;font-size:clamp(17px,2.3vw,25px);font-family:'Kanit','Noto Sans Thai',sans-serif;font-weight:900;letter-spacing:.8px;padding:12px 38px;isolation:isolate;
+.col-head.banner{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:0;font-size:clamp(17px,2.3vw,25px);font-family:'Kanit',sans-serif;font-weight:900;letter-spacing:.8px;padding:12px 38px;isolation:isolate;
   background:linear-gradient(180deg,rgba(var(--brand-rgb),.22) 0%,rgba(var(--brand-rgb),.5) 55%,var(--brand-l) 100%);
   clip-path:polygon(22px 0,100% 0,calc(100% - 22px) 100%,0 100%);
   filter:drop-shadow(0 4px 13px rgba(var(--brand-rgb),.4));
@@ -153,7 +152,7 @@ body.ov #top-logo{display:none}
 #geosvg{width:100%;height:auto;display:block}
 .geop{cursor:pointer;stroke:#0a0a0a;stroke-width:.6;opacity:0;animation:geoIn .5s ease forwards;transition:filter .15s,stroke .15s,stroke-width .15s}
 .geop:hover{filter:brightness(1.25) saturate(1.2);stroke:#fff;stroke-width:1.4}
-.geolab{font-size:6.5px;fill:rgba(255,255,255,.92);font-weight:700;pointer-events:none;text-anchor:middle;font-family:'Noto Sans Thai',sans-serif;text-rendering:optimizeLegibility;paint-order:stroke fill;stroke:rgba(0,0,0,.6);stroke-width:1.4px;stroke-linejoin:round}
+.geolab{font-size:6.5px;fill:rgba(255,255,255,.92);font-weight:700;pointer-events:none;text-anchor:middle;font-family:'Kanit',sans-serif;text-rendering:optimizeLegibility;paint-order:stroke fill;stroke:rgba(0,0,0,.6);stroke-width:1.4px;stroke-linejoin:round}
 
 /* ── SKYLINE BAR CHART ── */
 .sky-scroll{overflow-x:auto;overflow-y:hidden;width:100%;scrollbar-width:thin;scrollbar-color:var(--line) transparent}
@@ -162,10 +161,10 @@ body.ov #top-logo{display:none}
 .sky-scroll::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
 .sky-scroll::-webkit-scrollbar-thumb:hover{background:var(--brand-l)}
 .sky-hit{cursor:pointer}
-.sky-lab{font-family:'Noto Sans Thai',sans-serif;fill:rgba(255,255,255,.38);text-anchor:end;pointer-events:none;font-weight:600;font-size:7.5px}
+.sky-lab{font-family:'Kanit',sans-serif;fill:rgba(255,255,255,.38);text-anchor:end;pointer-events:none;font-weight:600;font-size:7.5px}
 /* ── RADIAL DISTRICT CHART ── */
 .rad-hit{cursor:pointer}
-.rad-lab{font-family:'Noto Sans Thai',sans-serif;fill:rgba(255,255,255,.45);pointer-events:none;font-weight:700;font-size:5.8px}
+.rad-lab{font-family:'Kanit',sans-serif;fill:rgba(255,255,255,.45);pointer-events:none;font-weight:700;font-size:5.8px}
 /* ── BUBBLE MAP ── */
 .bub-hit{cursor:pointer}
 
@@ -868,7 +867,7 @@ function renderBubbleMap(){
       const fs=Math.min(10,(r*1.75)/(maxLen*0.65));
       if(fs>=3.2){
         const sw=(fs*0.22).toFixed(1);
-        const lstyle=`font-family:'Noto Sans Thai',sans-serif;fill:rgba(255,255,255,${(skgMode?!!skw:d.counted)?'.95':'.35'});font-size:${fs.toFixed(1)}px;font-weight:700;pointer-events:none;text-anchor:middle;text-rendering:optimizeLegibility;paint-order:stroke fill;stroke:rgba(0,0,0,.65);stroke-width:${sw}px;stroke-linejoin:round`;
+        const lstyle=`font-family:'Kanit',sans-serif;fill:rgba(255,255,255,${(skgMode?!!skw:d.counted)?'.95':'.35'});font-size:${fs.toFixed(1)}px;font-weight:700;pointer-events:none;text-anchor:middle;text-rendering:optimizeLegibility;paint-order:stroke fill;stroke:rgba(0,0,0,.65);stroke-width:${sw}px;stroke-linejoin:round`;
         if(lines.length===1){
           s+=`<text x="${cx.toFixed(1)}" y="${(cy+fs*0.38).toFixed(1)}" style="${lstyle}">${lines[0]}</text>`;
         } else {
@@ -913,8 +912,8 @@ function renderRadialMap(){
     s+=`<path d="${arc(R0,RMAX,sa,ea)}" fill="transparent" class="rad-hit" data-i="${i}"/>`;
   });
   s+=`<circle cx="${CX}" cy="${CY}" r="${R0-2}" fill="#0d0e10"/><circle cx="${CX}" cy="${CY}" r="${R0-2}" fill="none" stroke="#272a2d" stroke-width="1.5"/>`;
-  s+=`<text x="${CX}" y="${CY-5}" text-anchor="middle" style="font-family:'Noto Sans Thai',sans-serif;fill:#fff;font-size:13px;font-weight:900">กทม. 69</text>`;
-  s+=`<text x="${CX}" y="${CY+11}" text-anchor="middle" style="font-family:'Noto Sans Thai',sans-serif;fill:rgba(255,255,255,.32);font-size:8px">50 เขต</text>`;
+  s+=`<text x="${CX}" y="${CY-5}" text-anchor="middle" style="font-family:'Kanit',sans-serif;fill:#fff;font-size:13px;font-weight:900">กทม. 69</text>`;
+  s+=`<text x="${CX}" y="${CY+11}" text-anchor="middle" style="font-family:'Kanit',sans-serif;fill:rgba(255,255,255,.32);font-size:8px">50 เขต</text>`;
   map.innerHTML=`<svg viewBox="0 0 ${SZ} ${SZ}" style="width:100%;max-width:${SZ}px;height:auto;display:block;margin:0 auto"><defs><radialGradient id="rbg"><stop offset="0%" stop-color="#181a1c"/><stop offset="100%" stop-color="#0c0d0e"/></radialGradient></defs><circle cx="${CX}" cy="${CY}" r="${SZ/2-1}" fill="url(#rbg)"/>${s}</svg>`;
   requestAnimationFrame(()=>requestAnimationFrame(()=>{document.querySelectorAll('#map .rad-spoke').forEach(el=>el.style.transform='scale(1)');}));
 }
@@ -1236,23 +1235,46 @@ function renderAll(){
 }
 
 /* ════════════ CAMPAIGN LOGO ════════════ */
+function logoUpdateAuth(){
+  // แสดงปุ่มอัปโหลด + คลิกรูปเพื่อเปลี่ยน เฉพาะ admin @thestandard.co เท่านั้น
+  const img=$('logo-img'),btn=$('logo-upload-btn');
+  if(!img||!btn)return;
+  const isAdmin=!!(gUser&&(gUser.email||'').endsWith('@thestandard.co'));
+  btn.style.display=isAdmin&&!img.classList.contains('has-logo')?'':'none';
+  img.style.cursor=isAdmin?'pointer':'default';
+  img.title=isAdmin?'คลิกเพื่อเปลี่ยนโลโก':'';
+}
 (function initLogo(){
   const img=$('logo-img'),btn=$('logo-upload-btn'),inp=$('logo-file-input');
   if(!img||!btn||!inp)return;
+  // โหลดโลโกที่บันทึกไว้ (ทุกคนเห็น แต่เปลี่ยนได้เฉพาะ admin)
   const saved=localStorage.getItem('bkk69_logo');
-  if(saved){img.src=saved;img.classList.add('has-logo');btn.classList.add('has-logo');}
+  if(saved){img.src=saved;img.classList.add('has-logo');}
+  logoUpdateAuth();
   inp.addEventListener('change',()=>{
+    if(!(gUser&&(gUser.email||'').endsWith('@thestandard.co')))return;
     const f=inp.files[0];if(!f)return;
     const r=new FileReader();
     r.onload=e=>{
       const d=e.target.result;
-      img.src=d;img.classList.add('has-logo');btn.classList.add('has-logo');
+      img.src=d;img.classList.add('has-logo');
       try{localStorage.setItem('bkk69_logo',d);}catch(ex){}
+      logoUpdateAuth();
     };
     r.readAsDataURL(f);inp.value='';
   });
-  // คลิกขวาที่รูปเพื่อลบโลโก
-  img.addEventListener('contextmenu',e=>{e.preventDefault();if(!confirm('ลบโลโกออก?'))return;img.src='';img.classList.remove('has-logo');btn.classList.remove('has-logo');localStorage.removeItem('bkk69_logo');});
+  img.addEventListener('click',()=>{
+    if(gUser&&(gUser.email||'').endsWith('@thestandard.co'))inp.click();
+  });
+  // คลิกขวาที่รูปเพื่อลบโลโก (admin เท่านั้น)
+  img.addEventListener('contextmenu',e=>{
+    e.preventDefault();
+    if(!(gUser&&(gUser.email||'').endsWith('@thestandard.co')))return;
+    if(!confirm('ลบโลโกออก?'))return;
+    img.src='';img.classList.remove('has-logo');
+    localStorage.removeItem('bkk69_logo');
+    logoUpdateAuth();
+  });
 })();
 /* ════════════ OVERLAY ════════════ */
 const OVERLAY=(new URLSearchParams(location.search)).get('overlay')||'';
@@ -1494,7 +1516,7 @@ function ovSideMap(){
     const fill=win?win.color:'#191b1e';
     const ink=win?inkOn(win.color):'#5a5c5f';
     const nm=(d.name||'').slice(0,4);
-    cells+=`<g><rect x="${x}" y="${y}" width="${cw}" height="${ch}" rx="6" fill="${fill}" stroke="rgba(255,255,255,.06)"/><text x="${x+cw/2}" y="${y+ch/2+3}" text-anchor="middle" style="font-family:'Noto Sans Thai',sans-serif;font-size:8px;font-weight:700;fill:${ink}">${nm}</text></g>`;
+    cells+=`<g><rect x="${x}" y="${y}" width="${cw}" height="${ch}" rx="6" fill="${fill}" stroke="rgba(255,255,255,.06)"/><text x="${x+cw/2}" y="${y+ch/2+3}" text-anchor="middle" style="font-family:'Kanit',sans-serif;font-size:8px;font-weight:700;fill:${ink}">${nm}</text></g>`;
   });
   // legend: leading candidates by district wins
   const winCount={};
@@ -1596,6 +1618,7 @@ function gHandleCredential(resp){
   }
   gUser={name:p.name,email:p.email,picture:p.picture||''};
   try{sessionStorage.setItem('bkk69_gauth',JSON.stringify(gUser));}catch(e){}
+  logoUpdateAuth();
   showSrcBox();
 }
 function showSrcBox(){
@@ -1609,6 +1632,7 @@ function showSrcBox(){
 function gSignOut(){
   gUser=null;
   try{sessionStorage.removeItem('bkk69_gauth');}catch(e){}
+  logoUpdateAuth();
   closeSrc();
 }
 function gRenderBtn(){
