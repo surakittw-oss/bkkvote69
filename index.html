@@ -1243,7 +1243,7 @@ function logoUpdateAuth(){
   const img=$('logo-img'),btn=$('logo-upload-btn');
   if(!img||!btn)return;
   const isAdmin=!!(gUser&&(gUser.email||'').endsWith('@thestandard.co'));
-  btn.style.display=isAdmin&&!img.classList.contains('has-logo')?'':'none';
+  btn.style.display=isAdmin&&!img.classList.contains('has-logo')?'inline-flex':'none';
   img.style.cursor=isAdmin?'pointer':'default';
   img.title=isAdmin?'คลิกเพื่อเปลี่ยนโลโก':'';
 }
