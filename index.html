@@ -58,6 +58,10 @@ body.ov #top-actions{display:none}
 body.ov #top-logo{display:none}
 #logo-img{max-height:72px;max-width:220px;width:auto;display:none;border-radius:6px;object-fit:contain;cursor:default;transition:opacity .2s}
 #logo-img.has-logo{display:block}
+@media(max-width:640px){
+  #top-logo{position:static;justify-content:center;padding:12px 0 0;margin-bottom:-8px}
+  #logo-img{max-height:60px;max-width:180px}
+}
 #logo-upload-btn{display:none;align-items:center;gap:5px;padding:5px 11px;border:1px dashed var(--line);border-radius:7px;background:transparent;color:var(--t4);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s}
 #logo-upload-btn:hover{border-color:var(--t3);color:var(--t2)}
 #logo-file-input{display:none}
