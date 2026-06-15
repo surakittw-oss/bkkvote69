@@ -489,6 +489,9 @@ body.ctrl #ctrl-panel{display:block}
 .cp-hint{font-size:12px;color:var(--t4);line-height:1.7;margin-top:20px;padding:13px 16px;border-radius:10px;background:rgba(255,255,255,.03);border:1px dashed var(--line)}
 .cp-hint code{background:rgba(var(--brand-rgb),.16);color:var(--brand-l);padding:2px 7px;border-radius:5px;font-family:'IBM Plex Mono',monospace;font-size:11px}
 .cp-hint b{color:var(--t2)}
+.cp-preview-wrap{position:relative;width:100%;overflow:hidden;border-radius:10px;border:1px solid var(--line);background:#000;margin-bottom:22px}
+.cp-preview-wrap iframe{border:none;display:block;transform-origin:top left;pointer-events:none}
+.cp-preview-badge{position:absolute;top:8px;left:10px;font-size:10px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:.8px;text-transform:uppercase;pointer-events:none;z-index:2;background:rgba(0,0,0,.5);padding:3px 8px;border-radius:5px}
 </style>
 </head>
 <body>
@@ -2134,6 +2137,17 @@ function renderLiveScene(){
   else if(sc==='side'){renderSidePanel();ovSideStartTimer();}
 }
 /* ── controller panel UI ── */
+function cpScalePreview(){
+  const wrap=document.getElementById('cp-preview-wrap');
+  const frame=document.getElementById('cp-preview-frame');
+  if(!wrap||!frame)return;
+  const W=1280,H=720;
+  const scale=wrap.offsetWidth/W;
+  frame.style.width=W+'px';
+  frame.style.height=H+'px';
+  frame.style.transform='scale('+scale+')';
+  wrap.style.height=(H*scale)+'px';
+}
 function renderControlPanel(){
   const el=$('ctrl-panel');if(!el)return;
   const isAdmin=!!(gUser&&(gUser.email||'').endsWith('@thestandard.co'));
@@ -2168,6 +2182,7 @@ function renderControlPanel(){
       </div></div>`;
   }
   const conn=fbReady?'● เชื่อมต่อแล้ว':'○ กำลังเชื่อมต่อ…';
+  const previewSrc=location.origin+location.pathname+'?overlay=live';
   el.innerHTML=`
     <div class="cp-head">
       <img class="cp-logo" src="logo-bkk-election-2569.webp" onerror="this.style.display='none'">
@@ -2179,9 +2194,17 @@ function renderControlPanel(){
       <div class="cp-onair-txt">${live?'ON AIR':'OFF AIR'}<small>${live?'กำลังแสดง: '+sceneName:'ไม่มีอะไรออกอากาศ'}</small></div>
       <span class="cp-conn">${conn}</span>
     </div>
+    <div class="cp-sec">
+      <div class="cp-sec-lbl">Live Preview</div>
+      <div class="cp-preview-wrap" id="cp-preview-wrap">
+        <span class="cp-preview-badge">LIVE</span>
+        <iframe id="cp-preview-frame" src="${previewSrc}" scrolling="no" allowtransparency="true"></iframe>
+      </div>
+    </div>
     <div class="cp-sec"><div class="cp-sec-lbl">เลือก Scene</div><div class="cp-scenes">${sceneBtns}</div></div>
     ${sub}
     <div class="cp-hint">เปิดหน้า overlay ใน OBS / vMix ที่ <code>?overlay=live</code> — หน้านี้จะสั่งงานแบบเรียลไทม์ข้ามเครื่อง · ปุ่ม <b>ปิด (OFF AIR)</b> ซ่อนทุกอย่างจากจอทันที</div>`;
+  cpScalePreview();
 }
 function cpRenderSignin(){
   if(!window.google||!google.accounts){setTimeout(cpRenderSignin,400);return;}
@@ -2197,7 +2220,7 @@ function init(){
   setTimeout(()=>{ensureFirebase()},400);
   setTimeout(postHeight,1600);
 }
-let _rt;addEventListener('resize',()=>{clearTimeout(_rt);_rt=setTimeout(()=>{fitMap();postHeight()},120)});
+let _rt;addEventListener('resize',()=>{clearTimeout(_rt);_rt=setTimeout(()=>{fitMap();postHeight();cpScalePreview()},120)});
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{if(MODE!=='map')fitMap()});
 init();
 </script>
