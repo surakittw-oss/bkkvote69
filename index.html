@@ -1681,6 +1681,7 @@ function useSample(){closeSrc();setDataset(100);setSrcDot('');}
 /* ════════════ GOOGLE AUTH ════════════ */
 const GAUTH_CID='854069548103-4eunku0blt0po8nqe4diu8p0v0uubdn8.apps.googleusercontent.com';
 function gDecodeJWT(t){try{return JSON.parse(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));}catch(e){return null;}}
+let gPendingIdToken=null;
 function gHandleCredential(resp){
   const p=gDecodeJWT(resp.credential);
   if(!p){alert('ไม่สามารถยืนยันตัวตนได้');return;}
@@ -1690,8 +1691,23 @@ function gHandleCredential(resp){
   }
   gUser={name:p.name,email:p.email,picture:p.picture||''};
   try{sessionStorage.setItem('bkk69_gauth',JSON.stringify(gUser));}catch(e){}
+  gFirebaseSignIn(resp.credential);
   logoUpdateAuth();
   showSrcBox();
+}
+// เอา Google ID token ไปยืนยันกับ Firebase Auth → ปลดล็อกสิทธิ์ write ตาม rules
+async function gFirebaseSignIn(idToken){
+  gPendingIdToken=idToken;
+  try{
+    if(!fbReady)await ensureFirebase();
+    if(!fbAuth)return; // Firebase ยังโหลดไม่เสร็จ → ตัว ensureFirebase จะ retry ผ่าน gPendingIdToken
+    const cred=firebase.auth.GoogleAuthProvider.credential(idToken);
+    await fbAuth.signInWithCredential(cred);
+    gPendingIdToken=null;
+  }catch(e){
+    console.error('Firebase auth failed:',e);
+    alert('เชื่อมต่อสิทธิ์ Firebase ไม่สำเร็จ\n'+e.code+': '+e.message+'\n\n(ตรวจสอบ Whitelist Client ID ใน Firebase Console)');
+  }
 }
 function showSrcBox(){
   $('srcAuthGate').style.display='none';
@@ -1702,8 +1718,9 @@ function showSrcBox(){
   }
 }
 function gSignOut(){
-  gUser=null;
+  gUser=null;gPendingIdToken=null;
   try{sessionStorage.removeItem('bkk69_gauth');}catch(e){}
+  try{if(fbAuth)fbAuth.signOut();}catch(e){}
   logoUpdateAuth();
   closeSrc();
 }
@@ -1789,7 +1806,7 @@ async function loadSheets(){
 
 /* ════════════ FIREBASE ════════════ */
 const firebaseConfig={apiKey:"AIzaSyBZrGgrbCSycCe46TZyXtG1boJMYWcAN-o",authDomain:"bkk-election-vote.firebaseapp.com",databaseURL:"https://bkk-election-vote-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"bkk-election-vote",storageBucket:"bkk-election-vote.firebasestorage.app",messagingSenderId:"1020264986175",appId:"1:1020264986175:web:3ee5c3cd1d93f16c882a8a"};
-let fbApp=null,fbDb=null,fbStorage=null,fbReady=false,fbLoading=false;
+let fbApp=null,fbDb=null,fbStorage=null,fbAuth=null,fbUser=null,fbReady=false,fbLoading=false;
 function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s)})}
 async function ensureFirebase(){
   if(fbReady||fbLoading)return fbReady;
@@ -1801,11 +1818,16 @@ async function ensureFirebase(){
       await loadScript('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
       await loadScript('https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js');
       await loadScript('https://www.gstatic.com/firebasejs/10.12.0/firebase-storage-compat.js');
+      await loadScript('https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js');
     }
     fbApp=firebase.initializeApp(firebaseConfig);
     fbDb=firebase.database();
     fbStorage=firebase.storage();
+    fbAuth=firebase.auth();
+    fbAuth.onAuthStateChanged(u=>{fbUser=u;});
     fbReady=true;
+    // ถ้า login Google ไว้ก่อนหน้า Firebase โหลด → เชื่อมสิทธิ์ย้อนหลัง
+    if(gPendingIdToken)gFirebaseSignIn(gPendingIdToken);
     fbDb.ref('.info/connected').on('value',s=>{
       const c=s.val()===true;setSrcDot(c?'on':'');
       if($('fb-status'))$('fb-status').textContent=c?'● เชื่อมต่อแล้ว':'○ ออฟไลน์';
