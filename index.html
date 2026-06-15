@@ -448,23 +448,25 @@ body.ov-side #ov-side{display:flex}
 .ovs-ctl button svg{width:16px;height:16px}
 .ovs-ctl-label{font-size:12px;font-weight:600;color:#fff;padding:0 10px;white-space:nowrap;min-width:120px;text-align:center;font-variant-numeric:tabular-nums}
 /* ════════════ STAT OVERLAY (?overlay=stat) ════════════ */
-#ov-stat{display:none;position:fixed;bottom:36px;left:36px;flex-direction:column;gap:0;overflow:hidden;background:rgba(8,9,11,.93);border-top:3px solid var(--brand);border-radius:0 0 12px 12px;backdrop-filter:blur(10px);box-shadow:0 8px 32px rgba(0,0,0,.55);min-width:380px}
+#ov-stat{display:none;position:fixed;inset:0;flex-direction:column;overflow:hidden;background:rgba(6,7,9,.96);backdrop-filter:blur(12px)}
 body.ov-stat{background:transparent!important}
 body.ov-stat::before,body.ov-stat::after{display:none!important}
 body.ov-stat .wrap{display:none}
 body.ov-stat #ov-stat{display:flex}
-.ovst-hd{display:flex;align-items:center;gap:8px;padding:7px 16px;background:rgba(0,0,0,.45);border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0}
-.ovst-hd-ico{width:18px;height:18px;flex-shrink:0;opacity:.7}
-.ovst-hd-title{font-size:11px;font-weight:800;color:var(--t2);letter-spacing:.5px;text-transform:uppercase}
-.ovst-hd-brand{margin-left:auto;font-size:10px;font-weight:800;color:var(--brand-l);letter-spacing:.6px}
-.ovst-body{display:flex;gap:0}
-.ovst-block{flex:1;display:flex;flex-direction:column;padding:14px 20px 16px;gap:3px;position:relative}
-.ovst-block+.ovst-block{border-left:1px solid rgba(255,255,255,.07)}
-.ovst-label{font-size:11px;font-weight:700;color:var(--t3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:2px}
-.ovst-num{font-size:42px;font-weight:900;color:#fff;line-height:1;font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
-.ovst-sub{font-size:13px;font-weight:600;color:var(--brand-l)}
-.ovst-bar{position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(255,255,255,.06)}
-.ovst-bar-fill{height:100%;background:var(--brand);transition:width .6s cubic-bezier(.4,0,.2,1)}
+.ovst-hd{display:flex;align-items:center;gap:10px;padding:14px 24px;background:rgba(0,0,0,.45);border-bottom:3px solid var(--brand);flex-shrink:0}
+.ovst-hd-ico{width:24px;height:24px;flex-shrink:0;opacity:.8}
+.ovst-hd-title{font-size:15px;font-weight:800;color:#fff;letter-spacing:.3px}
+.ovst-hd-sub{font-size:12px;color:var(--t3)}
+.ovst-hd-brand{margin-left:auto;font-size:13px;font-weight:800;color:var(--brand-l);letter-spacing:.6px}
+.ovst-body{flex:1;display:flex;align-items:center;justify-content:center;gap:48px;padding:40px}
+.ovst-block{flex:1;max-width:460px;display:flex;flex-direction:column;align-items:center;padding:40px 36px;gap:8px;position:relative;background:rgba(14,16,18,.8);border:1px solid rgba(255,255,255,.08);border-radius:20px;overflow:hidden}
+.ovst-block::before{content:"";position:absolute;inset:0;border-top:3px solid var(--brand);border-radius:20px;pointer-events:none}
+.ovst-label{font-size:13px;font-weight:700;color:var(--t3);letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px}
+.ovst-num{font-size:80px;font-weight:900;color:#fff;line-height:1;font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums}
+.ovst-num span{font-size:40px;color:var(--t3)}
+.ovst-sub{font-size:18px;font-weight:700;color:var(--brand-l);margin-top:4px}
+.ovst-bar{width:100%;height:4px;background:rgba(255,255,255,.07);border-radius:2px;margin-top:16px;overflow:hidden}
+.ovst-bar-fill{height:100%;background:var(--brand);border-radius:2px;transition:width .8s cubic-bezier(.4,0,.2,1)}
 /* ════════════ BROADCAST CONTROLLER (?control=1) ════════════ */
 body.ov-off .wrap{display:none!important}
 body.ctrl{overflow:auto}
@@ -1426,20 +1428,21 @@ function renderStat(){
     <div class="ovst-hd">
       ${OV_BALLOT.replace('<svg','<svg class="ovst-hd-ico"')}
       <span class="ovst-hd-title">ผลการเลือกตั้งผู้ว่าฯ กทม.</span>
+      <span class="ovst-hd-sub">(อย่างไม่เป็นทางการ)</span>
       <span class="ovst-hd-brand">THE STANDARD</span>
     </div>
     <div class="ovst-body">
       <div class="ovst-block">
         <div class="ovst-label">นับคะแนนแล้ว</div>
-        <div class="ovst-num">${cntPct}<span style="font-size:22px;color:var(--t3)">%</span></div>
+        <div class="ovst-num">${cntPct}<span>%</span></div>
         <div class="ovst-sub">${counted} / 50 เขต</div>
         <div class="ovst-bar"><div class="ovst-bar-fill" style="width:${cntPct}%"></div></div>
       </div>
       <div class="ovst-block">
         <div class="ovst-label">ผู้มาใช้สิทธิ</div>
-        <div class="ovst-num" style="font-size:${turnout>=1000000?'32px':'42px'}">${turnout.toLocaleString()}</div>
-        <div class="ovst-sub">${turnPct !== '—' ? turnPct+'% ของผู้มีสิทธิ์' : 'ยังไม่มีข้อมูล'}</div>
-        <div class="ovst-bar"><div class="ovst-bar-fill" style="width:${turnPct !== '—' ? turnPct : 0}%"></div></div>
+        <div class="ovst-num" style="font-size:${turnout>=1000000?'56px':'80px'}">${turnout.toLocaleString()}<span> คน</span></div>
+        <div class="ovst-sub">${turnPct!=='—'?turnPct+'% ของผู้มีสิทธิ์':'ยังไม่มีข้อมูล'}</div>
+        <div class="ovst-bar"><div class="ovst-bar-fill" style="width:${turnPct!=='—'?turnPct:0}%"></div></div>
       </div>
     </div>`;
 }
@@ -2152,7 +2155,7 @@ function copyEmbed(i){
 /* ════════════ BROADCAST CONTROL CHANNEL (Firebase overlay/control) ════════════ */
 const CTRL_MODE=(new URLSearchParams(location.search)).get('control')==='1';
 const CTRL_REF='overlay/control';
-const CTRL_DEFAULT={scene:'off',barView:0,barPlaying:true,sideIdx:0,sidePlaying:true};
+const CTRL_DEFAULT={scene:'off',barView:0,barPlaying:false,sideIdx:0,sidePlaying:false};
 let ctrlState=Object.assign({},CTRL_DEFAULT);
 const CP_SCENES=[
   {k:'off',label:'ปิด (OFF AIR)',svg:'<svg viewBox="0 0 32 22" fill="none"><circle cx="16" cy="12" r="6.5" stroke="currentColor" stroke-width="2"/><path d="M16 4.5v6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'},
