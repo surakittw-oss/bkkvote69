@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Broadcast Controller · BKK Vote 69</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNyIgZmlsbD0iIzBjMGQwZSIvPjxwYXRoIGQ9Ik01IDE1aDIydjlhMiAyIDAgMCAxLTIgMkg3YTIgMiAwIDAgMS0yLTJaIiBmaWxsPSIjMDA3NDRCIi8+PHJlY3QgeD0iMTEiIHk9IjE4LjQiIHdpZHRoPSIxMCIgaGVpZ2h0PSIyLjIiIHJ4PSIxLjEiIGZpbGw9IiMwNTI4MWIiLz48ZyB0cmFuc2Zvcm09InJvdGF0ZSgtMTEgMTYgMTEpIj48cmVjdCB4PSIxMC41IiB5PSI0LjUiIHdpZHRoPSIxMSIgaGVpZ2h0PSIxMSIgcng9IjEuNCIgZmlsbD0iI2ZmZiIvPjxwYXRoIGQ9Ik0xMi42IDEwLjJsMi4yIDIuMiA0LTQuNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDA3NDRCIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPjwvZz48L3N2Zz4K">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#000; --bg1:#0c0d0e; --bg2:#141517; --bg3:#1c1d1f;
+  --line:#2a2b2d; --line2:#1d1e20;
+  --t1:#fff; --t2:#c9cace; --t3:#8a8b90; --t4:#5b5c61;
+  --brand:#00a84f; --brand-l:#00e676; --brand-rgb:0,168,79;
+  --r:10px;
+}
+html{scroll-behavior:smooth}
+body{font-family:'Kanit',system-ui,sans-serif;background:var(--bg);color:var(--t2);font-size:13px;line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden;position:relative}
+body::before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;background:
+  radial-gradient(820px 460px at 50% -8%,rgba(var(--brand-rgb),.20),transparent 70%),
+  radial-gradient(620px 420px at 90% 8%,rgba(var(--brand-rgb),.08),transparent 70%)}
+body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.5;
+  background-image:radial-gradient(rgba(255,255,255,.035) 1px,transparent 1px);background-size:26px 26px;
+  -webkit-mask-image:linear-gradient(180deg,#000,transparent 60%);mask-image:linear-gradient(180deg,#000,transparent 60%)}
+
+#ctrl-panel{min-height:100vh;padding:26px 22px 60px;max-width:860px;margin:0 auto}
+.cp-head{display:flex;align-items:center;gap:14px;margin-bottom:22px;flex-wrap:wrap}
+.cp-logo{height:42px;width:auto}
+.cp-title{font-size:20px;font-weight:800;color:#fff;letter-spacing:.3px}
+.cp-title small{display:block;font-size:12px;font-weight:600;color:var(--t3);letter-spacing:.5px;margin-top:2px}
+.cp-user{margin-left:auto;display:flex;align-items:center;gap:9px;font-size:13px;color:var(--t2)}
+.cp-user img{width:28px;height:28px;border-radius:50%}
+.cp-signout{padding:5px 12px;border:1px solid var(--line);border-radius:7px;background:transparent;color:var(--t3);font-size:12px;font-weight:600;cursor:pointer;font-family:inherit}
+.cp-signout:hover{color:#fff;border-color:var(--t2)}
+.cp-gate{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;min-height:60vh;text-align:center}
+.cp-gate h2{font-size:18px;font-weight:700;color:#fff}
+.cp-gate p{font-size:13px;color:var(--t3);max-width:320px;line-height:1.6}
+.cp-onair{display:flex;align-items:center;gap:12px;padding:14px 18px;border-radius:12px;background:var(--bg2);border:1px solid var(--line);margin-bottom:22px}
+.cp-onair-dot{width:13px;height:13px;border-radius:50%;background:#444;flex-shrink:0;transition:.2s}
+.cp-onair.live .cp-onair-dot{background:#ff3b30;box-shadow:0 0 0 0 rgba(255,59,48,.6);animation:cpPulse 1.4s infinite}
+@keyframes cpPulse{0%{box-shadow:0 0 0 0 rgba(255,59,48,.6)}70%{box-shadow:0 0 0 9px rgba(255,59,48,0)}100%{box-shadow:0 0 0 0 rgba(255,59,48,0)}}
+.cp-onair-txt{font-size:14px;font-weight:700;color:#fff}
+.cp-onair-txt small{display:block;font-size:11px;font-weight:600;color:var(--t3);margin-top:2px;letter-spacing:.3px}
+.cp-onair .cp-conn{margin-left:auto;font-size:11px;font-weight:600;color:var(--t3)}
+.cp-sec{margin-bottom:24px}
+.cp-sec-lbl{font-size:12px;font-weight:700;color:var(--t3);letter-spacing:.8px;text-transform:uppercase;margin-bottom:10px}
+.cp-scenes{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.cp-scene{display:flex;flex-direction:column;align-items:center;gap:7px;padding:16px 10px;border-radius:11px;background:var(--bg2);border:1.5px solid var(--line);color:var(--t2);cursor:pointer;transition:.15s;font-family:inherit}
+.cp-scene:hover{border-color:var(--t3);color:#fff}
+.cp-scene.on{border-color:var(--brand);background:rgba(var(--brand-rgb),.14);color:#fff}
+.cp-scene svg{width:30px;height:22px;opacity:.85}
+.cp-scene b{font-size:13px;font-weight:700}
+.cp-scene.off.on{border-color:#ff3b30;background:rgba(255,59,48,.12)}
+.cp-sub{display:flex;gap:9px;flex-wrap:wrap;align-items:center;padding:14px 16px;border-radius:11px;background:var(--bg2);border:1px solid var(--line)}
+.cp-sub-lbl{font-size:13px;font-weight:700;color:var(--t2);margin-right:4px}
+.cp-btn{padding:9px 16px;border-radius:8px;border:1.5px solid var(--line);background:transparent;color:var(--t2);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:.15s;display:inline-flex;align-items:center;gap:6px}
+.cp-btn:hover{border-color:var(--t3);color:#fff}
+.cp-btn.on{border-color:var(--brand);background:var(--brand);color:#fff}
+.cp-btn svg{width:14px;height:14px}
+.cp-hint{font-size:12px;color:var(--t4);line-height:1.7;margin-top:20px;padding:13px 16px;border-radius:10px;background:rgba(255,255,255,.03);border:1px dashed var(--line)}
+.cp-hint code{background:rgba(var(--brand-rgb),.16);color:var(--brand-l);padding:2px 7px;border-radius:5px;font-family:'IBM Plex Mono',monospace;font-size:11px}
+.cp-hint b{color:var(--t2)}
+.cp-preview-wrap{position:relative;width:100%;overflow:hidden;border-radius:10px;border:1px solid var(--line);background:#000;margin-bottom:22px}
+.cp-preview-wrap iframe{border:none;display:block;transform-origin:top left;pointer-events:none}
+.cp-preview-badge{position:absolute;top:8px;left:10px;font-size:10px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:.8px;text-transform:uppercase;pointer-events:none;z-index:2;background:rgba(0,0,0,.5);padding:3px 8px;border-radius:5px}
+</style>
+</head>
+<body>
+<div id="ctrl-panel"></div>
+<script>
+/* ── CONFIG — แก้ตรงนี้ถ้า deploy ต่าง domain ── */
+const OVERLAY_URL='https://bkkvote69.vercel.app/?overlay=live';
+
+/* ── Firebase ── */
+const firebaseConfig={apiKey:"AIzaSyBZrGgrbCSycCe46TZyXtG1boJMYWcAN-o",authDomain:"bkk-election-vote.firebaseapp.com",databaseURL:"https://bkk-election-vote-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"bkk-election-vote",storageBucket:"bkk-election-vote.firebasestorage.app",messagingSenderId:"1020264986175",appId:"1:1020264986175:web:3ee5c3cd1d93f16c882a8a"};
+let fbApp=null,fbDb=null,fbReady=false,fbLoading=false;
+function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s)})}
+async function ensureFirebase(){
+  if(fbReady||fbLoading)return fbReady;
+  fbLoading=true;
+  try{
+    if(typeof firebase==='undefined'){
+      await loadScript('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js');
+      await loadScript('https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js');
+    }
+    fbApp=firebase.initializeApp(firebaseConfig);
+    fbDb=firebase.database();
+    fbReady=true;
+    fbDb.ref('.info/connected').on('value',s=>{
+      const c=s.val()===true;
+      if(c)ctrlSetupListener();
+      renderControlPanel();
+    });
+  }catch(e){fbLoading=false;return false;}
+  fbLoading=false;return true;
+}
+
+/* ── Google Auth ── */
+const GAUTH_CID='854069548103-4eunku0blt0po8nqe4diu8p0v0uubdn8.apps.googleusercontent.com';
+let gUser=null;
+function gDecodeJWT(t){try{return JSON.parse(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/')));}catch(e){return null;}}
+function gHandleCredential(resp){
+  const p=gDecodeJWT(resp.credential);
+  if(!p){alert('ไม่สามารถยืนยันตัวตนได้');return;}
+  if(p.hd!=='thestandard.co'&&!(p.email||'').endsWith('@thestandard.co')){
+    alert('⛔ ไม่มีสิทธิ์เข้าถึง\n\n'+p.email+'\nเฉพาะ @thestandard.co เท่านั้น');
+    return;
+  }
+  gUser={name:p.name,email:p.email,picture:p.picture||''};
+  try{sessionStorage.setItem('bkk69_gauth',JSON.stringify(gUser));}catch(e){}
+  renderControlPanel();
+}
+function gSignOut(){
+  gUser=null;
+  try{sessionStorage.removeItem('bkk69_gauth');}catch(e){}
+  renderControlPanel();
+}
+
+/* ── Controller state ── */
+const CTRL_REF='overlay/control';
+const CTRL_DEFAULT={scene:'off',barView:0,barPlaying:true,sideIdx:0,sidePlaying:true};
+let ctrlState=Object.assign({},CTRL_DEFAULT);
+const CP_SCENES=[
+  {k:'off',label:'ปิด (OFF AIR)',svg:'<svg viewBox="0 0 32 22" fill="none"><circle cx="16" cy="12" r="6.5" stroke="currentColor" stroke-width="2"/><path d="M16 4.5v6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'},
+  {k:'lower3',label:'Lower Third',svg:'<svg viewBox="0 0 32 22" fill="none"><rect x="1" y="1" width="30" height="20" rx="2.5" stroke="currentColor" stroke-width="1.4" opacity=".4"/><rect x="3.5" y="14.5" width="25" height="4.5" rx="1.2" fill="currentColor"/></svg>'},
+  {k:'bottombar',label:'Bottom Bar',svg:'<svg viewBox="0 0 32 22" fill="none"><rect x="1" y="1" width="30" height="20" rx="2.5" stroke="currentColor" stroke-width="1.4" opacity=".4"/><rect x="6.5" y="14.5" width="19" height="4.5" rx="1.2" fill="currentColor"/></svg>'},
+  {k:'side',label:'Side Panel',svg:'<svg viewBox="0 0 32 22" fill="none"><rect x="1" y="1" width="30" height="20" rx="2.5" stroke="currentColor" stroke-width="1.4" opacity=".4"/><rect x="20.5" y="3.5" width="8" height="15" rx="1.2" fill="currentColor"/></svg>'},
+  {k:'totals',label:'คะแนนรวม',svg:'<svg viewBox="0 0 32 22" fill="none"><rect x="5" y="4" width="22" height="3" rx="1.5" fill="currentColor"/><rect x="5" y="10" width="22" height="3" rx="1.5" fill="currentColor" opacity=".7"/><rect x="5" y="16" width="14" height="3" rx="1.5" fill="currentColor" opacity=".5"/></svg>'},
+  {k:'map',label:'แผนที่ผู้ชนะ',svg:'<svg viewBox="0 0 32 22" fill="none"><g fill="currentColor"><rect x="5" y="4" width="6" height="6" rx="1.4"/><rect x="13" y="4" width="6" height="6" rx="1.4" opacity=".6"/><rect x="21" y="4" width="6" height="6" rx="1.4"/><rect x="5" y="12" width="6" height="6" rx="1.4" opacity=".6"/><rect x="13" y="12" width="6" height="6" rx="1.4"/><rect x="21" y="12" width="6" height="6" rx="1.4" opacity=".6"/></g></svg>'},
+  {k:'bubble',label:'บับเบิล',svg:'<svg viewBox="0 0 32 22" fill="none"><g fill="currentColor"><circle cx="9" cy="8" r="4.5"/><circle cx="20" cy="7" r="3" opacity=".6"/><circle cx="16" cy="15" r="3.5"/><circle cx="25" cy="14" r="2.5" opacity=".6"/></g></svg>'},
+];
+
+async function ctrlWrite(patch){
+  Object.assign(ctrlState,patch);
+  renderControlPanel();
+  try{if(!fbReady)await ensureFirebase();await fbDb.ref(CTRL_REF).update(patch);}
+  catch(e){alert('สั่งงานไม่สำเร็จ: '+e.message);}
+}
+function ctrlSetScene(k){ctrlWrite({scene:k});}
+function ctrlBarView(v){ctrlWrite({barView:v,barPlaying:false});}
+function ctrlBarAuto(){ctrlWrite({barPlaying:!ctrlState.barPlaying});}
+function ctrlSideStep(d){ctrlWrite({sideIdx:(ctrlState.sideIdx||0)+d,sidePlaying:false});}
+function ctrlSideAuto(){ctrlWrite({sidePlaying:!ctrlState.sidePlaying});}
+
+function ctrlSetupListener(){
+  if(!fbDb)return;
+  fbDb.ref(CTRL_REF).on('value',snap=>{
+    ctrlState=Object.assign({},CTRL_DEFAULT,snap.val()||{});
+    renderControlPanel();
+  });
+}
+
+/* ── UI ── */
+function cpScalePreview(){
+  const wrap=document.getElementById('cp-preview-wrap');
+  const frame=document.getElementById('cp-preview-frame');
+  if(!wrap||!frame)return;
+  const W=1280,H=720;
+  const scale=wrap.offsetWidth/W;
+  frame.style.width=W+'px';
+  frame.style.height=H+'px';
+  frame.style.transform='scale('+scale+')';
+  wrap.style.height=(H*scale)+'px';
+}
+
+function renderControlPanel(){
+  const el=document.getElementById('ctrl-panel');if(!el)return;
+  const isAdmin=!!(gUser&&(gUser.email||'').endsWith('@thestandard.co'));
+  if(!isAdmin){
+    el.innerHTML=`<div class="cp-gate">
+      <img class="cp-logo" src="logo-bkk-election-2569.webp" onerror="this.style.display='none'">
+      <h2>แผงควบคุมออกอากาศ</h2>
+      <p>เข้าสู่ระบบด้วยบัญชี <b>@thestandard.co</b> เพื่อสั่งงาน overlay</p>
+      <div id="cp_signin"></div>
+    </div>`;
+    cpRenderSignin();
+    return;
+  }
+  const s=ctrlState;
+  const live=s.scene&&s.scene!=='off';
+  const sceneName=(CP_SCENES.find(x=>x.k===s.scene)||{}).label||'—';
+  const sceneBtns=CP_SCENES.map(sc=>`<button class="cp-scene ${sc.k} ${s.scene===sc.k?'on':''}" onclick="ctrlSetScene('${sc.k}')">${sc.svg}<b>${sc.label}</b></button>`).join('');
+  let sub='';
+  if(s.scene==='bottombar'){
+    sub=`<div class="cp-sec"><div class="cp-sec-lbl">สลับวิว · Bottom Bar</div>
+      <div class="cp-sub"><span class="cp-sub-lbl">แสดง:</span>
+        <button class="cp-btn ${!s.barPlaying&&s.barView===0?'on':''}" onclick="ctrlBarView(0)">ผู้ว่าฯ (Top 5)</button>
+        <button class="cp-btn ${!s.barPlaying&&s.barView===1?'on':''}" onclick="ctrlBarView(1)">ส.ก. (ตามพรรค)</button>
+        <button class="cp-btn ${s.barPlaying?'on':''}" onclick="ctrlBarAuto()">${s.barPlaying?'⏸ หยุดสลับ':'▶ สลับอัตโนมัติ'}</button>
+      </div></div>`;
+  }else if(s.scene==='side'){
+    sub=`<div class="cp-sec"><div class="cp-sec-lbl">สลับวิว · Side Panel</div>
+      <div class="cp-sub"><span class="cp-sub-lbl">เลื่อน:</span>
+        <button class="cp-btn" onclick="ctrlSideStep(-1)">◀ ก่อนหน้า</button>
+        <button class="cp-btn" onclick="ctrlSideStep(1)">ถัดไป ▶</button>
+        <button class="cp-btn ${s.sidePlaying?'on':''}" onclick="ctrlSideAuto()">${s.sidePlaying?'⏸ หยุดสลับ':'▶ สลับอัตโนมัติ'}</button>
+      </div></div>`;
+  }
+  const conn=fbReady?'● เชื่อมต่อแล้ว':'○ กำลังเชื่อมต่อ…';
+  el.innerHTML=`
+    <div class="cp-head">
+      <img class="cp-logo" src="logo-bkk-election-2569.webp" onerror="this.style.display='none'">
+      <div class="cp-title">แผงควบคุมออกอากาศ<small>BKK VOTE 69 · BROADCAST CONTROLLER</small></div>
+      <div class="cp-user">${gUser.picture?`<img src="${gUser.picture}" onerror="this.style.display='none'">`:''}<span>${gUser.name}</span><button class="cp-signout" onclick="gSignOut()">ออกจากระบบ</button></div>
+    </div>
+    <div class="cp-onair ${live?'live':''}">
+      <span class="cp-onair-dot"></span>
+      <div class="cp-onair-txt">${live?'ON AIR':'OFF AIR'}<small>${live?'กำลังแสดง: '+sceneName:'ไม่มีอะไรออกอากาศ'}</small></div>
+      <span class="cp-conn">${conn}</span>
+    </div>
+    <div class="cp-sec">
+      <div class="cp-sec-lbl">Live Preview</div>
+      <div class="cp-preview-wrap" id="cp-preview-wrap">
+        <span class="cp-preview-badge">LIVE</span>
+        <iframe id="cp-preview-frame" src="${OVERLAY_URL}" scrolling="no" allowtransparency="true"></iframe>
+      </div>
+    </div>
+    <div class="cp-sec"><div class="cp-sec-lbl">เลือก Scene</div><div class="cp-scenes">${sceneBtns}</div></div>
+    ${sub}
+    <div class="cp-hint">เปิดหน้า overlay ใน OBS / vMix ที่ <code>${OVERLAY_URL}</code> — หน้านี้จะสั่งงานแบบเรียลไทม์ข้ามเครื่อง · ปุ่ม <b>ปิด (OFF AIR)</b> ซ่อนทุกอย่างจากจอทันที</div>`;
+  cpScalePreview();
+}
+
+function cpRenderSignin(){
+  if(!window.google||!google.accounts){setTimeout(cpRenderSignin,400);return;}
+  const t=document.getElementById('cp_signin');if(!t)return;
+  google.accounts.id.initialize({client_id:GAUTH_CID,callback:r=>{gHandleCredential(r);},ux_mode:'popup'});
+  google.accounts.id.renderButton(t,{type:'standard',shape:'pill',theme:'filled_black',size:'large',text:'signin_with',locale:'th'});
+}
+
+/* ── Init ── */
+try{const s=sessionStorage.getItem('bkk69_gauth');if(s)gUser=JSON.parse(s);}catch(e){}
+renderControlPanel();
+setTimeout(()=>ensureFirebase(),400);
+let _rt;addEventListener('resize',()=>{clearTimeout(_rt);_rt=setTimeout(cpScalePreview,120)});
+</script>
+</body>
+</html>
