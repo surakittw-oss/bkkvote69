@@ -303,9 +303,6 @@ body.section-totals #totals{max-height:none;overflow:visible;padding-right:0}
 body.ov{background:transparent!important}
 body.ov::before,body.ov::after{display:none!important}
 body.ov .wrap{padding:12px 16px;max-width:100%}
-/* composable layers: dashboard (.wrap) hidden by default, shown only for fullscreen layer (totals/map/bubble) */
-body.ov .wrap{display:none}
-body.ov-totals .wrap,body.ov-map .wrap{display:block}
 body.ov .hd,body.ov .hr,body.ov .modes,body.ov #skgCard,body.ov .cap,body.ov .legend,body.ov .map-bar,body.ov .tot-head{display:none!important}
 body.ov .grid{display:block;gap:0}
 body.ov .col-head{font-size:13px;margin-bottom:10px}
@@ -319,6 +316,7 @@ body.ov-map #totals-col{display:none!important}
 body.ov-map .map-card{background:transparent}
 /* Lower-third broadcast graphic */
 #ov-lower3{display:none;position:fixed;bottom:0;left:0;right:0;flex-direction:column;height:170px;overflow:hidden;background:rgba(8,9,11,.93);border-top:3px solid var(--brand);backdrop-filter:blur(8px)}
+body.ov-lower3 .wrap{display:none}
 body.ov-lower3{background:transparent!important}
 body.ov-lower3::before,body.ov-lower3::after{display:none!important}
 body.ov-lower3 #ov-lower3{display:flex}
@@ -355,6 +353,7 @@ body.ov-lower3 #ov-lower3{display:flex}
 #ov-bar{display:none;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(1264px,100vw);height:209px;flex-direction:column;overflow:hidden;background:linear-gradient(180deg,rgba(10,12,15,.97),rgba(6,7,9,.99));border-top:3px solid var(--brand);box-shadow:0 -8px 32px rgba(0,0,0,.5)}
 body.ov-bottombar{background:transparent!important}
 body.ov-bottombar::before,body.ov-bottombar::after{display:none!important}
+body.ov-bottombar .wrap{display:none}
 body.ov-bottombar #ov-bar{display:flex}
 .ovb-hd{display:flex;align-items:center;gap:10px;height:40px;flex-shrink:0;padding:0 18px;background:rgba(0,0,0,.45);border-bottom:1px solid rgba(255,255,255,.07);white-space:nowrap}
 .ovb-hd-ico{width:22px;height:22px;flex-shrink:0}
@@ -405,6 +404,7 @@ body.ov-bottombar #ov-bar{display:flex}
 #ov-side{display:none;position:fixed;top:0;right:0;width:min(576px,100vw);height:100vh;max-height:1080px;flex-direction:column;overflow:hidden;background:linear-gradient(160deg,rgba(10,12,15,.98),rgba(6,7,9,.99));border-left:3px solid var(--brand);box-shadow:-8px 0 32px rgba(0,0,0,.5)}
 body.ov-side{background:transparent!important}
 body.ov-side::before,body.ov-side::after{display:none!important}
+body.ov-side .wrap{display:none}
 body.ov-side #ov-side{display:flex}
 .ovs-hd{display:flex;align-items:center;gap:10px;flex-shrink:0;padding:14px 20px;background:rgba(0,0,0,.4);border-bottom:1px solid rgba(255,255,255,.08)}
 .ovs-hd-ico{width:26px;height:26px;flex-shrink:0}
@@ -451,6 +451,7 @@ body.ov-side #ov-side{display:flex}
 #ov-stat{display:none;position:fixed;bottom:0;left:0;right:0;flex-direction:column;height:170px;overflow:hidden;background:rgba(8,9,11,.93);border-top:3px solid var(--brand);backdrop-filter:blur(8px)}
 body.ov-stat{background:transparent!important}
 body.ov-stat::before,body.ov-stat::after{display:none!important}
+body.ov-stat .wrap{display:none}
 body.ov-stat #ov-stat{display:flex}
 .ovst-hd{display:flex;align-items:center;gap:8px;padding:5px 16px;background:rgba(0,0,0,.5);border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0;white-space:nowrap;overflow:hidden}
 .ovst-hd-ico{width:20px;height:20px;flex-shrink:0}
@@ -467,6 +468,7 @@ body.ov-stat #ov-stat{display:flex}
 .ovst-bar{position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(255,255,255,.06)}
 .ovst-bar-fill{height:100%;background:var(--brand);transition:width .8s cubic-bezier(.4,0,.2,1)}
 /* ════════════ BROADCAST CONTROLLER (?control=1) ════════════ */
+body.ov-off .wrap{display:none!important}
 body.ctrl{overflow:auto}
 body.ctrl .wrap{display:none}
 #ctrl-panel{display:none;min-height:100vh;padding:26px 22px 60px;max-width:860px;margin:0 auto}
@@ -507,48 +509,10 @@ body.ctrl #ctrl-panel{display:block}
 .cp-hint{font-size:12px;color:var(--t4);line-height:1.7;margin-top:20px;padding:13px 16px;border-radius:10px;background:rgba(255,255,255,.03);border:1px dashed var(--line)}
 .cp-hint code{background:rgba(var(--brand-rgb),.16);color:var(--brand-l);padding:2px 7px;border-radius:5px;font-family:'IBM Plex Mono',monospace;font-size:11px}
 .cp-hint b{color:var(--t2)}
-.cp-preview-wrap{position:relative;width:100%;overflow:hidden;border-radius:10px;border:1px solid var(--line);background:#000}
+.cp-preview-wrap{position:relative;width:100%;overflow:hidden;border-radius:10px;border:1px solid var(--line);background:#000;margin-bottom:22px}
 .cp-preview-wrap iframe{border:none;display:block;transform-origin:top left;pointer-events:none}
 .cp-preview-badge{position:absolute;top:8px;left:10px;font-size:10px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:.8px;text-transform:uppercase;pointer-events:none;z-index:2;background:rgba(0,0,0,.5);padding:3px 8px;border-radius:5px}
-/* ── Studio Mode: Preview / Program panes ── */
-.cp-pp{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px}
-@media(max-width:640px){.cp-pp{grid-template-columns:1fr}}
-.cp-pane{display:flex;flex-direction:column;gap:8px}
-.cp-pane-lbl{font-size:12px;font-weight:800;letter-spacing:.6px;display:flex;align-items:center;gap:7px}
-.cp-pane-lbl small{font-weight:600;color:var(--t4);letter-spacing:0}
-.cp-pane-lbl::before{content:"";width:9px;height:9px;border-radius:50%}
-.cp-pane-lbl.pvw{color:#ffd60a}.cp-pane-lbl.pvw::before{background:#ffd60a}
-.cp-pane-lbl.pgm{color:#ff3b30}.cp-pane-lbl.pgm::before{background:#ff3b30;box-shadow:0 0 0 0 rgba(255,59,48,.6);animation:cpPulse 1.4s infinite}
-.cp-pane-lbl.pvw .cp-pane-wrap{border-color:#ffd60a}
-.cp-pane .cp-preview-wrap{border-width:2px}
-.cp-pane-lbl.pvw~.cp-preview-wrap{}
-/* global actions */
-.cp-global{display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap}
-.cp-take{flex:1;min-width:160px;padding:13px 18px;border-radius:10px;border:none;background:var(--brand);color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;transition:.15s;letter-spacing:.3px}
-.cp-take:hover{background:var(--brand-l);color:#04130a}
-.cp-take.disabled{background:var(--bg3);color:var(--t4);cursor:default;border:1px solid var(--line)}
-.cp-take-all{background:#ffd60a;color:#1a1500}
-.cp-take-all:hover{background:#ffe34d}
-.cp-cut{flex:1;min-width:120px;padding:13px 18px;border-radius:10px;border:1.5px solid #ff3b30;background:transparent;color:#ff6b60;font-size:14px;font-weight:800;cursor:pointer;font-family:inherit;transition:.15s}
-.cp-cut:hover{background:#ff3b30;color:#fff}
-/* layer block */
-.cp-layer{padding:16px 16px 18px;border-radius:13px;background:var(--bg2);border:1px solid var(--line);margin-bottom:16px;transition:border-color .2s}
-.cp-layer.on{border-color:rgba(255,59,48,.45)}
-.cp-layer-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:6px}
-.cp-layer-name{font-size:14px;font-weight:800;color:#fff;letter-spacing:.2px}
-.cp-layer-pgm{font-size:11px;font-weight:700;color:var(--t4)}
-.cp-layer-pgm.air{color:#ff6b60}
-.cp-opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:9px;margin-bottom:12px}
-.cp-opt{position:relative;display:flex;flex-direction:column;align-items:center;gap:6px;padding:13px 8px;border-radius:10px;background:var(--bg);border:1.5px solid var(--line);color:var(--t2);cursor:pointer;transition:.15s;font-family:inherit}
-.cp-opt:hover{border-color:var(--t3);color:#fff}
-.cp-opt svg{width:28px;height:20px;opacity:.85}
-.cp-opt b{font-size:12px;font-weight:700}
-.cp-opt.pvw{border-color:#ffd60a;background:rgba(255,214,10,.12);color:#fff}
-.cp-opt.pgm{box-shadow:inset 0 0 0 1.5px rgba(255,59,48,.5)}
-.cp-opt-air{position:absolute;top:5px;right:5px;font-size:8px;font-weight:800;color:#fff;background:#ff3b30;padding:1px 5px;border-radius:4px;letter-spacing:.4px}
-.cp-take{margin-top:2px}
-.cp-layer .cp-take{width:100%;flex:none}
-.cp-layer .cp-sub{margin-top:12px}
+</style>
 </head>
 <body>
 <div class="wrap">
@@ -1409,7 +1373,6 @@ function logoSetupFbListener(){
 })();
 /* ════════════ OVERLAY ════════════ */
 const OVERLAY=(new URLSearchParams(location.search)).get('overlay')||'';
-const PVW_MODE=(new URLSearchParams(location.search)).get('pvw')==='1'; // preview: driven by postMessage, not Firebase
 (function initOverlay(){
   if(!OVERLAY)return;
   document.body.classList.add('ov');
@@ -1420,7 +1383,7 @@ const PVW_MODE=(new URLSearchParams(location.search)).get('pvw')==='1'; // previ
   else if(OVERLAY==='bottombar') document.body.classList.add('ov-bottombar');
   else if(OVERLAY==='side') document.body.classList.add('ov-side');
   else if(OVERLAY==='stat') document.body.classList.add('ov-stat');
-  // 'live' → ไม่ใส่ class ใด เริ่มจอเปล่า (โปร่งใส) แล้วให้ liveApplyControl ใส่เลเยอร์ตามสถานะ
+  else if(OVERLAY==='live') document.body.classList.add('ov-off');
 })();
 
 function renderLower3(){
@@ -2192,92 +2155,75 @@ function copyEmbed(i){
 /* ════════════ BROADCAST CONTROL CHANNEL (Firebase overlay/control) ════════════ */
 const CTRL_MODE=(new URLSearchParams(location.search)).get('control')==='1';
 const CTRL_REF='overlay/control';
-/* state แบบเลเยอร์: footer / side / full แยกอิสระ + sub-control (program = ออกอากาศจริง บน Firebase) */
-const CTRL_DEFAULT={footer:'off',side:'off',full:'off',barView:0,barPlaying:false,sideIdx:0,sidePlaying:false};
-let ctrlState=Object.assign({},CTRL_DEFAULT);          // program (on air)
-let pvwState={footer:'off',side:'off',full:'off'};     // preview (staged — controller เท่านั้น)
-const CP_ICONS={
-  off:'<svg viewBox="0 0 32 22" fill="none"><circle cx="16" cy="11" r="6.5" stroke="currentColor" stroke-width="2"/><path d="M16 3.5v6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
-  lower3:'<svg viewBox="0 0 32 22" fill="none"><rect x="1" y="1" width="30" height="20" rx="2.5" stroke="currentColor" stroke-width="1.4" opacity=".4"/><rect x="3.5" y="14.5" width="25" height="4.5" rx="1.2" fill="currentColor"/></svg>',
-  bottombar:'<svg viewBox="0 0 32 22" fill="none"><rect x="1" y="1" width="30" height="20" rx="2.5" stroke="currentColor" stroke-width="1.4" opacity=".4"/><rect x="6.5" y="14.5" width="19" height="4.5" rx="1.2" fill="currentColor"/></svg>',
-  on:'<svg viewBox="0 0 32 22" fill="none"><rect x="1" y="1" width="30" height="20" rx="2.5" stroke="currentColor" stroke-width="1.4" opacity=".4"/><rect x="20.5" y="3.5" width="8" height="15" rx="1.2" fill="currentColor"/></svg>',
-  totals:'<svg viewBox="0 0 32 22" fill="none"><rect x="5" y="4" width="22" height="3" rx="1.5" fill="currentColor"/><rect x="5" y="10" width="22" height="3" rx="1.5" fill="currentColor" opacity=".7"/><rect x="5" y="16" width="14" height="3" rx="1.5" fill="currentColor" opacity=".5"/></svg>',
-  map:'<svg viewBox="0 0 32 22" fill="none"><g fill="currentColor"><rect x="5" y="4" width="6" height="6" rx="1.4"/><rect x="13" y="4" width="6" height="6" rx="1.4" opacity=".6"/><rect x="21" y="4" width="6" height="6" rx="1.4"/><rect x="5" y="12" width="6" height="6" rx="1.4" opacity=".6"/><rect x="13" y="12" width="6" height="6" rx="1.4"/><rect x="21" y="12" width="6" height="6" rx="1.4" opacity=".6"/></g></svg>',
-  bubble:'<svg viewBox="0 0 32 22" fill="none"><g fill="currentColor"><circle cx="9" cy="8" r="4.5"/><circle cx="20" cy="7" r="3" opacity=".6"/><circle cx="16" cy="15" r="3.5"/><circle cx="25" cy="14" r="2.5" opacity=".6"/></g></svg>',
-  stat:'<svg viewBox="0 0 32 22" fill="none"><rect x="3" y="14" width="5" height="6" rx="1" fill="currentColor"/><rect x="10" y="9" width="5" height="11" rx="1" fill="currentColor" opacity=".8"/><rect x="17" y="5" width="5" height="15" rx="1" fill="currentColor" opacity=".6"/><rect x="24" y="2" width="5" height="18" rx="1" fill="currentColor" opacity=".4"/></svg>',
-};
-const CP_LAYERS=[
-  {key:'footer',label:'Footer · กราฟิกล่าง',options:[{k:'off',label:'ปิด'},{k:'lower3',label:'Lower Third'},{k:'bottombar',label:'Bottom Bar'},{k:'stat',label:'สถิติการนับ'}]},
-  {key:'side',label:'Side Panel · แผงข้าง',options:[{k:'off',label:'ปิด'},{k:'on',label:'เปิดแผงข้าง'}]},
-  {key:'full',label:'Fullscreen · เต็มจอ',options:[{k:'off',label:'ปิด'},{k:'totals',label:'คะแนนรวม'},{k:'map',label:'แผนที่ผู้ชนะ'},{k:'bubble',label:'บับเบิล'}]},
+const CTRL_DEFAULT={scene:'off',barView:0,barPlaying:false,sideIdx:0,sidePlaying:false};
+let ctrlState=Object.assign({},CTRL_DEFAULT);
+const CP_SCENES=[
+  {k:'off',label:'ปิด (OFF AIR)',svg:'<svg viewBox="0 0 32 22" fill="none"><circle cx="16" cy="12" r="6.5" stroke="currentColor" stroke-width="2"/><path d="M16 4.5v6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'},
+  {k:'lower3',label:'Lower Third',svg:'<svg viewBox="0 0 32 22" fill="none"><rect x="1" y="1" width="30" height="20" rx="2.5" stroke="currentColor" stroke-width="1.4" opacity=".4"/><rect x="3.5" y="14.5" width="25" height="4.5" rx="1.2" fill="currentColor"/></svg>'},
+  {k:'bottombar',label:'Bottom Bar',svg:'<svg viewBox="0 0 32 22" fill="none"><rect x="1" y="1" width="30" height="20" rx="2.5" stroke="currentColor" stroke-width="1.4" opacity=".4"/><rect x="6.5" y="14.5" width="19" height="4.5" rx="1.2" fill="currentColor"/></svg>'},
+  {k:'side',label:'Side Panel',svg:'<svg viewBox="0 0 32 22" fill="none"><rect x="1" y="1" width="30" height="20" rx="2.5" stroke="currentColor" stroke-width="1.4" opacity=".4"/><rect x="20.5" y="3.5" width="8" height="15" rx="1.2" fill="currentColor"/></svg>'},
+  {k:'totals',label:'คะแนนรวม',svg:'<svg viewBox="0 0 32 22" fill="none"><rect x="5" y="4" width="22" height="3" rx="1.5" fill="currentColor"/><rect x="5" y="10" width="22" height="3" rx="1.5" fill="currentColor" opacity=".7"/><rect x="5" y="16" width="14" height="3" rx="1.5" fill="currentColor" opacity=".5"/></svg>'},
+  {k:'map',label:'แผนที่ผู้ชนะ',svg:'<svg viewBox="0 0 32 22" fill="none"><g fill="currentColor"><rect x="5" y="4" width="6" height="6" rx="1.4"/><rect x="13" y="4" width="6" height="6" rx="1.4" opacity=".6"/><rect x="21" y="4" width="6" height="6" rx="1.4"/><rect x="5" y="12" width="6" height="6" rx="1.4" opacity=".6"/><rect x="13" y="12" width="6" height="6" rx="1.4"/><rect x="21" y="12" width="6" height="6" rx="1.4" opacity=".6"/></g></svg>'},
+  {k:'bubble',label:'บับเบิล',svg:'<svg viewBox="0 0 32 22" fill="none"><g fill="currentColor"><circle cx="9" cy="8" r="4.5"/><circle cx="20" cy="7" r="3" opacity=".6"/><circle cx="16" cy="15" r="3.5"/><circle cx="25" cy="14" r="2.5" opacity=".6"/></g></svg>'},
+  {k:'stat',label:'สถิติการนับ',svg:'<svg viewBox="0 0 32 22" fill="none"><rect x="3" y="14" width="5" height="6" rx="1" fill="currentColor"/><rect x="10" y="9" width="5" height="11" rx="1" fill="currentColor" opacity=".8"/><rect x="17" y="5" width="5" height="15" rx="1" fill="currentColor" opacity=".6"/><rect x="24" y="2" width="5" height="18" rx="1" fill="currentColor" opacity=".4"/></svg>'},
 ];
-function cpLabel(layer,val){const L=CP_LAYERS.find(x=>x.key===layer);const o=L&&L.options.find(x=>x.k===val);return o?o.label:'ปิด';}
-/* ── write side (controller สั่งงาน → program บน Firebase) ── */
+/* ── write side (controller สั่งงาน) ── */
 async function ctrlWrite(patch){
   Object.assign(ctrlState,patch);
   if(CTRL_MODE)renderControlPanel();
   try{if(!fbReady)await ensureFirebase();await fbDb.ref(CTRL_REF).update(patch);}
   catch(e){alert('สั่งงานไม่สำเร็จ: '+e.message);}
 }
-/* staging: เลือก scene → ขึ้น preview เท่านั้น (ยังไม่ออกอากาศ) */
-function cpStage(layer,val){pvwState[layer]=val;renderControlPanel();cpPushPreview();}
-/* TAKE: ยืนยัน → push เลเยอร์นั้นออกอากาศจริง */
-function cpTake(layer){ctrlWrite({[layer]:pvwState[layer]});}
-function cpTakeAll(){ctrlWrite({footer:pvwState.footer,side:pvwState.side,full:pvwState.full});}
-/* CUT: ปิดทุกเลเยอร์ทันที (panic OFF AIR) */
-function cpCutAll(){pvwState={footer:'off',side:'off',full:'off'};ctrlWrite({footer:'off',side:'off',full:'off'});}
-/* sub-control: ปรับสด บน program */
+function ctrlSetScene(k){ctrlWrite({scene:k});}
 function ctrlBarView(v){ctrlWrite({barView:v,barPlaying:false});}
 function ctrlBarAuto(){ctrlWrite({barPlaying:!ctrlState.barPlaying});}
 function ctrlSideStep(d){ctrlWrite({sideIdx:(ctrlState.sideIdx||0)+d,sidePlaying:false});}
 function ctrlSideAuto(){ctrlWrite({sidePlaying:!ctrlState.sidePlaying});}
-/* ── listen side (overlay/controller ฟังสถานะ program) ── */
+/* ── listen side (overlay/controller ฟังสถานะ) ── */
 function ctrlSetupListener(){
   if(!fbDb)return;
   fbDb.ref(CTRL_REF).on('value',snap=>{
     ctrlState=Object.assign({},CTRL_DEFAULT,snap.val()||{});
-    if(OVERLAY==='live'&&!PVW_MODE)liveApplyControl(ctrlState);
-    if(CTRL_MODE){renderControlPanel();cpPushPreview();}
+    if(OVERLAY==='live')liveApplyControl(ctrlState);
+    if(CTRL_MODE)renderControlPanel();
   });
 }
-/* ── live overlay: ประกอบ 3 เลเยอร์ตามสถานะที่รับมา ── */
+/* ── live overlay: apply สถานะที่รับมา ── */
 function liveApplyControl(s){
-  const b=document.body;
-  b.classList.remove('ov-totals','ov-map','ov-lower3','ov-bottombar','ov-side','ov-stat');
-  if(s.footer==='lower3')b.classList.add('ov-lower3');
-  else if(s.footer==='bottombar')b.classList.add('ov-bottombar');
-  else if(s.footer==='stat')b.classList.add('ov-stat');
-  if(s.side==='on')b.classList.add('ov-side');
-  if(s.full==='totals')b.classList.add('ov-totals');
-  else if(s.full==='map'){b.classList.add('ov-map');MODE='map';}
-  else if(s.full==='bubble'){b.classList.add('ov-map');MODE='prop';}
+  document.body.classList.remove('ov-totals','ov-map','ov-lower3','ov-bottombar','ov-side','ov-stat','ov-off');
+  const sc=s.scene||'off';
+  if(sc==='off'){document.body.classList.add('ov-off');return;}
+  if(sc==='totals')document.body.classList.add('ov-totals');
+  else if(sc==='map'){document.body.classList.add('ov-map');MODE='map';}
+  else if(sc==='bubble'){document.body.classList.add('ov-map');MODE='prop';}
+  else if(sc==='lower3')document.body.classList.add('ov-lower3');
+  else if(sc==='bottombar')document.body.classList.add('ov-bottombar');
+  else if(sc==='side')document.body.classList.add('ov-side');
+  else if(sc==='stat')document.body.classList.add('ov-stat');
   ovBarView=s.barView|0;ovBarPaused=!s.barPlaying;
   ovSideIdx=s.sideIdx|0;ovSidePaused=!s.sidePlaying;
-  renderLiveScene(s);
+  renderLiveScene();
 }
-function renderLiveScene(s){
-  s=s||ctrlState;
-  if(s.footer==='lower3')renderLower3();
-  else if(s.footer==='bottombar'){renderBottomBar();ovBarStartTimer();}
-  else if(s.footer==='stat')renderStat();
-  if(s.side==='on'){renderSidePanel();ovSideStartTimer();}
-  if(s.full==='map'||s.full==='bubble')renderMap();
-  else if(s.full==='totals')renderTotals();
+function renderLiveScene(){
+  const sc=ctrlState.scene;
+  if(sc==='map'||sc==='bubble')renderMap();
+  else if(sc==='totals')renderTotals();
+  else if(sc==='lower3')renderLower3();
+  else if(sc==='bottombar'){renderBottomBar();ovBarStartTimer();}
+  else if(sc==='side'){renderSidePanel();ovSideStartTimer();}
+  else if(sc==='stat')renderStat();
 }
-/* ── controller panel UI (Studio Mode: Preview → TAKE → On Air) ── */
+/* ── controller panel UI ── */
 function cpScalePreview(){
-  document.querySelectorAll('.cp-preview-wrap').forEach(wrap=>{
-    const frame=wrap.querySelector('iframe');if(!frame)return;
-    const W=1280,H=720,scale=wrap.offsetWidth/W;
-    frame.style.width=W+'px';frame.style.height=H+'px';
-    frame.style.transform='scale('+scale+')';
-    wrap.style.height=(H*scale)+'px';
-  });
-}
-/* ส่งสถานะ preview (staged + sub-control ปัจจุบัน) ไปยัง iframe PVW */
-function cpPushPreview(){
-  const f=document.getElementById('cp-pvw-frame');
-  if(f&&f.contentWindow){try{f.contentWindow.postMessage({type:'bkk-pvw',state:Object.assign({},ctrlState,pvwState)},'*');}catch(e){}}
+  const wrap=document.getElementById('cp-preview-wrap');
+  const frame=document.getElementById('cp-preview-frame');
+  if(!wrap||!frame)return;
+  const W=1280,H=720;
+  const scale=wrap.offsetWidth/W;
+  frame.style.width=W+'px';
+  frame.style.height=H+'px';
+  frame.style.transform='scale('+scale+')';
+  wrap.style.height=(H*scale)+'px';
 }
 function renderControlPanel(){
   const el=$('ctrl-panel');if(!el)return;
@@ -2293,65 +2239,48 @@ function renderControlPanel(){
     return;
   }
   const s=ctrlState;
-  const anyLive=s.footer!=='off'||s.side!=='off'||s.full!=='off';
-  const onairTxt=[s.footer!=='off'?'Footer: '+cpLabel('footer',s.footer):'',s.side!=='off'?'Side: '+cpLabel('side',s.side):'',s.full!=='off'?'Full: '+cpLabel('full',s.full):''].filter(Boolean).join(' · ')||'ไม่มีอะไรออกอากาศ';
+  const live=s.scene&&s.scene!=='off';
+  const sceneName=(CP_SCENES.find(x=>x.k===s.scene)||{}).label||'—';
+  const sceneBtns=CP_SCENES.map(sc=>`<button class="cp-scene ${sc.k} ${s.scene===sc.k?'on':''}" onclick="ctrlSetScene('${sc.k}')">${sc.svg}<b>${sc.label}</b></button>`).join('');
+  let sub='';
+  if(s.scene==='bottombar'){
+    sub=`<div class="cp-sec"><div class="cp-sec-lbl">สลับวิว · Bottom Bar</div>
+      <div class="cp-sub"><span class="cp-sub-lbl">แสดง:</span>
+        <button class="cp-btn ${!s.barPlaying&&s.barView===0?'on':''}" onclick="ctrlBarView(0)">ผู้ว่าฯ (Top 5)</button>
+        <button class="cp-btn ${!s.barPlaying&&s.barView===1?'on':''}" onclick="ctrlBarView(1)">ส.ก. (ตามพรรค)</button>
+        <button class="cp-btn ${s.barPlaying?'on':''}" onclick="ctrlBarAuto()">${s.barPlaying?'⏸ หยุดสลับ':'▶ สลับอัตโนมัติ'}</button>
+      </div></div>`;
+  }else if(s.scene==='side'){
+    sub=`<div class="cp-sec"><div class="cp-sec-lbl">สลับวิว · Side Panel</div>
+      <div class="cp-sub"><span class="cp-sub-lbl">เลื่อน:</span>
+        <button class="cp-btn" onclick="ctrlSideStep(-1)">◀ ก่อนหน้า</button>
+        <button class="cp-btn" onclick="ctrlSideStep(1)">ถัดไป ▶</button>
+        <button class="cp-btn ${s.sidePlaying?'on':''}" onclick="ctrlSideAuto()">${s.sidePlaying?'⏸ หยุดสลับ':'▶ สลับอัตโนมัติ'}</button>
+      </div></div>`;
+  }
   const conn=fbReady?'● เชื่อมต่อแล้ว':'○ กำลังเชื่อมต่อ…';
-  const base=location.origin+location.pathname;
-  // เลเยอร์: แต่ละอันมีปุ่มเลือก (stage→preview) + TAKE
-  const layers=CP_LAYERS.map(L=>{
-    const pgm=s[L.key],pvw=pvwState[L.key];
-    const dirty=pgm!==pvw;
-    const opts=L.options.map(o=>{
-      const isPvw=pvw===o.k,isPgm=pgm===o.k;
-      return `<button class="cp-opt${isPvw?' pvw':''}${isPgm?' pgm':''}" onclick="cpStage('${L.key}','${o.k}')">${CP_ICONS[o.k]||''}<b>${o.label}</b>${isPgm?'<span class="cp-opt-air">ON AIR</span>':''}</button>`;
-    }).join('');
-    // sub-control เฉพาะตอนเลเยอร์นั้นออกอากาศจริง
-    let sub='';
-    if(L.key==='footer'&&pgm==='bottombar'){
-      sub=`<div class="cp-sub"><span class="cp-sub-lbl">วิว Bottom Bar:</span>
-        <button class="cp-btn ${!s.barPlaying&&s.barView===0?'on':''}" onclick="ctrlBarView(0)">ผู้ว่าฯ</button>
-        <button class="cp-btn ${!s.barPlaying&&s.barView===1?'on':''}" onclick="ctrlBarView(1)">ส.ก.</button>
-        <button class="cp-btn ${s.barPlaying?'on':''}" onclick="ctrlBarAuto()">${s.barPlaying?'⏸ หยุด':'▶ สลับอัตโนมัติ'}</button></div>`;
-    }else if(L.key==='side'&&pgm==='on'){
-      sub=`<div class="cp-sub"><span class="cp-sub-lbl">เลื่อน Side:</span>
-        <button class="cp-btn" onclick="ctrlSideStep(-1)">◀</button>
-        <button class="cp-btn" onclick="ctrlSideStep(1)">▶</button>
-        <button class="cp-btn ${s.sidePlaying?'on':''}" onclick="ctrlSideAuto()">${s.sidePlaying?'⏸ หยุด':'▶ สลับอัตโนมัติ'}</button></div>`;
-    }
-    return `<div class="cp-layer${pgm!=='off'?' on':''}">
-      <div class="cp-layer-hd"><span class="cp-layer-name">${L.label}</span>
-        <span class="cp-layer-pgm${pgm!=='off'?' air':''}">${pgm!=='off'?'● ออกอากาศ: '+cpLabel(L.key,pgm):'○ ปิดอยู่'}</span></div>
-      <div class="cp-opts">${opts}</div>
-      <button class="cp-take${dirty?'':' disabled'}" ${dirty?'':'disabled'} onclick="cpTake('${L.key}')">TAKE ▶ ${cpLabel(L.key,pvw)}</button>
-      ${sub}</div>`;
-  }).join('');
+  const previewSrc=location.origin+location.pathname+'?overlay=live';
   el.innerHTML=`
     <div class="cp-head">
       <img class="cp-logo" src="logo-bkk-election-2569.webp" onerror="this.style.display='none'">
       <div class="cp-title">แผงควบคุมออกอากาศ<small>BKK VOTE 69 · BROADCAST CONTROLLER</small></div>
       <div class="cp-user">${gUser.picture?`<img src="${gUser.picture}" onerror="this.style.display='none'">`:''}<span>${gUser.name}</span><button class="cp-signout" onclick="gSignOut();renderControlPanel()">ออกจากระบบ</button></div>
     </div>
-    <div class="cp-onair ${anyLive?'live':''}">
+    <div class="cp-onair ${live?'live':''}">
       <span class="cp-onair-dot"></span>
-      <div class="cp-onair-txt">${anyLive?'ON AIR':'OFF AIR'}<small>${onairTxt}</small></div>
+      <div class="cp-onair-txt">${live?'ON AIR':'OFF AIR'}<small>${live?'กำลังแสดง: '+sceneName:'ไม่มีอะไรออกอากาศ'}</small></div>
       <span class="cp-conn">${conn}</span>
     </div>
-    <div class="cp-pp">
-      <div class="cp-pane">
-        <div class="cp-pane-lbl pvw">PREVIEW <small>· จัดก่อน ยังไม่ออกอากาศ</small></div>
-        <div class="cp-preview-wrap"><iframe id="cp-pvw-frame" src="${base}?overlay=live&pvw=1" scrolling="no" allowtransparency="true" onload="cpPushPreview()"></iframe></div>
-      </div>
-      <div class="cp-pane">
-        <div class="cp-pane-lbl pgm">ON AIR <small>· ออกอากาศจริง</small></div>
-        <div class="cp-preview-wrap"><iframe id="cp-pgm-frame" src="${base}?overlay=live" scrolling="no" allowtransparency="true"></iframe></div>
+    <div class="cp-sec">
+      <div class="cp-sec-lbl">Live Preview</div>
+      <div class="cp-preview-wrap" id="cp-preview-wrap">
+        <span class="cp-preview-badge">LIVE</span>
+        <iframe id="cp-preview-frame" src="${previewSrc}" scrolling="no" allowtransparency="true"></iframe>
       </div>
     </div>
-    <div class="cp-global">
-      <button class="cp-take cp-take-all" onclick="cpTakeAll()">TAKE ทั้งหมด ▶</button>
-      <button class="cp-cut" onclick="cpCutAll()">CUT · ปิดทั้งหมด</button>
-    </div>
-    ${layers}
-    <div class="cp-hint">เปิด overlay ใน OBS / vMix ที่ <code>?overlay=live</code> · เลือก scene = ขึ้น <b>PREVIEW</b> ก่อน → กด <b>TAKE</b> ถึงออกอากาศ · 3 เลเยอร์ (Footer / Side / Fullscreen) แยกกันอิสระ ขึ้นพร้อมกันได้</div>`;
+    <div class="cp-sec"><div class="cp-sec-lbl">เลือก Scene</div><div class="cp-scenes">${sceneBtns}</div></div>
+    ${sub}
+    <div class="cp-hint">เปิดหน้า overlay ใน OBS / vMix ที่ <code>?overlay=live</code> — หน้านี้จะสั่งงานแบบเรียลไทม์ข้ามเครื่อง · ปุ่ม <b>ปิด (OFF AIR)</b> ซ่อนทุกอย่างจากจอทันที</div>`;
   cpScalePreview();
 }
 function cpRenderSignin(){
@@ -2364,10 +2293,6 @@ function init(){
   buildSample(1);
   renderAll();
   if(CTRL_MODE){document.body.classList.add('ctrl');renderControlPanel();}
-  // preview mode: รับสถานะ staged จาก controller ผ่าน postMessage (ไม่ฟัง Firebase)
-  if(OVERLAY==='live'&&PVW_MODE){
-    addEventListener('message',e=>{const d=e.data;if(d&&d.type==='bkk-pvw'&&d.state)liveApplyControl(d.state);});
-  }
   // auto-connect Firebase หลัง paint แรก (ไม่บล็อกการโหลด) — ถ้ามีข้อมูลจะ override อัตโนมัติ
   setTimeout(()=>{ensureFirebase()},400);
   setTimeout(postHeight,1600);
