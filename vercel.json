@@ -1,0 +1,9 @@
+{
+  "rewrites": [
+    {
+      "source": "/",
+      "has": [{ "type": "host", "value": "ctrl.thestandard.co" }],
+      "destination": "/controller.html"
+    }
+  ]
+}
