@@ -1706,8 +1706,17 @@ function ovSidePaint(){
   const pp=$('ovs-pp');
   if(pp)pp.innerHTML=ovSidePaused?OV_ICO_PLAY:OV_ICO_PAUSE;
 }
+function gridLabel(name,cx,cy,ink,cw){
+  // split name into ≤2 lines, each ≤5 chars
+  const n=name||'';
+  const mid=Math.ceil(n.length/2);
+  const l1=n.slice(0,mid), l2=n.slice(mid);
+  const fs=n.length<=4?9:n.length<=6?8:7;
+  if(!l2)return `<text x="${cx}" y="${cy+fs/2}" text-anchor="middle" style="font-family:var(--font);font-size:${fs}px;font-weight:700;fill:${ink}">${l1}</text>`;
+  return `<text text-anchor="middle" style="font-family:var(--font);font-size:${fs}px;font-weight:700;fill:${ink}"><tspan x="${cx}" dy="${cy-fs/2}">${l1}</tspan><tspan x="${cx}" dy="${fs+1}">${l2}</tspan></text>`;
+}
 function ovSideMap(){
-  const cols=12,rows=8,cw=42,ch=50,gap=5;
+  const cols=12,rows=8,cw=44,ch=54,gap=4;
   const W=cols*(cw+gap)-gap, H=rows*(ch+gap)-gap;
   let cells='';
   DISTRICTS.forEach(d=>{
@@ -1715,8 +1724,7 @@ function ovSideMap(){
     const win=d.counted&&d.win!=null?CANDS[d.win]:null;
     const fill=win?win.color:'#191b1e';
     const ink=win?inkOn(win.color):'#5a5c5f';
-    const nm=(d.name||'').slice(0,4);
-    cells+=`<g><rect x="${x}" y="${y}" width="${cw}" height="${ch}" rx="6" fill="${fill}" stroke="rgba(255,255,255,.06)"/><text x="${x+cw/2}" y="${y+ch/2+3}" text-anchor="middle" style="font-family:var(--font);font-size:8px;font-weight:700;fill:${ink}">${nm}</text></g>`;
+    cells+=`<g><rect x="${x}" y="${y}" width="${cw}" height="${ch}" rx="6" fill="${fill}" stroke="rgba(255,255,255,.06)"/>${gridLabel(d.name,x+cw/2,y+ch/2,ink,cw)}</g>`;
   });
   // legend: leading candidates by district wins
   const winCount={};
@@ -1727,7 +1735,7 @@ function ovSideMap(){
 }
 
 function ovSideSkgMap(){
-  const cols=12,rows=8,cw=42,ch=50,gap=5;
+  const cols=12,rows=8,cw=44,ch=54,gap=4;
   const W=cols*(cw+gap)-gap, H=rows*(ch+gap)-gap;
   let cells='';
   DISTRICTS.forEach(d=>{
@@ -1736,8 +1744,7 @@ function ovSideSkgMap(){
     const winner=arr.length?[...arr].sort((a,b)=>(parseInt(b.votes)||0)-(parseInt(a.votes)||0))[0]:null;
     const fill=winner&&winner.color?winner.color:'#191b1e';
     const ink=winner?inkOn(fill):'#5a5c5f';
-    const nm=(d.name||'').slice(0,4);
-    cells+=`<g><rect x="${x}" y="${y}" width="${cw}" height="${ch}" rx="6" fill="${fill}" stroke="rgba(255,255,255,.06)"/><text x="${x+cw/2}" y="${y+ch/2+3}" text-anchor="middle" style="font-family:var(--font);font-size:8px;font-weight:700;fill:${ink}">${nm}</text></g>`;
+    cells+=`<g><rect x="${x}" y="${y}" width="${cw}" height="${ch}" rx="6" fill="${fill}" stroke="rgba(255,255,255,.06)"/>${gridLabel(d.name,x+cw/2,y+ch/2,ink,cw)}</g>`;
   });
   const partyCount={};
   Object.values(skgData||{}).forEach(arr=>{if(!Array.isArray(arr))return;const w=[...arr].sort((a,b)=>(parseInt(b.votes)||0)-(parseInt(a.votes)||0))[0];if(w){const k=w.party||'อิสระ';if(!partyCount[k])partyCount[k]={name:k,color:w.color||'#888',n:0};partyCount[k].n++;}});
