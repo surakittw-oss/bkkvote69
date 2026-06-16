@@ -2226,18 +2226,18 @@ const CP_ICONS={
   stat:'<svg viewBox="0 0 32 22" fill="none"><rect x="3" y="14" width="5" height="6" rx="1" fill="currentColor"/><rect x="10" y="9" width="5" height="11" rx="1" fill="currentColor" opacity=".8"/><rect x="17" y="5" width="5" height="15" rx="1" fill="currentColor" opacity=".6"/><rect x="24" y="2" width="5" height="18" rx="1" fill="currentColor" opacity=".4"/></svg>',
 };
 const CP_LAYERS=[
-  {key:'footer',label:'Footer · กราฟิกล่าง',options:[{k:'off',label:'ปิด'},{k:'lower3',label:'Lower Third'},{k:'bottombar',label:'Bottom Bar'},{k:'stat',label:'สถิติการนับ'}]},
-  {key:'side',label:'Side Panel · แผงข้าง',options:[{k:'off',label:'ปิด'},{k:'on',label:'เปิดแผงข้าง'}]},
-  {key:'full',label:'Fullscreen · เต็มจอ',options:[{k:'off',label:'ปิด'},{k:'totals',label:'คะแนนรวม'},{k:'map',label:'แผนที่ผู้ชนะ'},{k:'bubble',label:'บับเบิล'}]},
+  {key:'footer',label:'Footer · Lower Graphics',options:[{k:'off',label:'Off'},{k:'lower3',label:'Lower Third'},{k:'bottombar',label:'Bottom Bar'},{k:'stat',label:'Count Stats'}]},
+  {key:'side',label:'Side Panel',options:[{k:'off',label:'Off'},{k:'on',label:'Show Panel'}]},
+  {key:'full',label:'Fullscreen',options:[{k:'off',label:'Off'},{k:'totals',label:'Totals'},{k:'map',label:'Winner Map'},{k:'bubble',label:'Bubble Chart'}]},
 ];
-function cpLabel(layer,val){const L=CP_LAYERS.find(x=>x.key===layer);const o=L&&L.options.find(x=>x.k===val);return o?o.label:'ปิด';}
-function cpSideName(i){const sc=ovSideScenes();if(!sc.length)return'';const x=sc[(((i||0)%sc.length)+sc.length)%sc.length];return x?(x.t==='dist'?'เขต'+x.name:'แผนที่'):'';}
+function cpLabel(layer,val){const L=CP_LAYERS.find(x=>x.key===layer);const o=L&&L.options.find(x=>x.k===val);return o?o.label:'Off';}
+function cpSideName(i){const sc=ovSideScenes();if(!sc.length)return'';const x=sc[(((i||0)%sc.length)+sc.length)%sc.length];return x?(x.t==='dist'?'District '+x.name:'Map'):'';}
 /* ── write side (controller สั่งงาน → program บน Firebase) ── */
 async function ctrlWrite(patch){
   Object.assign(ctrlState,patch);
   if(CTRL_MODE)renderControlPanel();
   try{if(!fbReady)await ensureFirebase();await fbDb.ref(CTRL_REF).update(patch);}
-  catch(e){alert('สั่งงานไม่สำเร็จ: '+e.message);}
+  catch(e){alert('Command failed: '+e.message);}
 }
 /* staging: เลือก scene → ขึ้น preview เท่านั้น (ยังไม่ออกอากาศ) */
 function cpStage(layer,val){pvwState[layer]=val;renderControlPanel();cpPushPreview();}
@@ -2310,8 +2310,8 @@ function renderControlPanel(){
   if(!isAdmin){
     el.innerHTML=`<div class="cp-gate">
       <img class="cp-logo" src="logo-bkk-election-2569.webp" onerror="this.style.display='none'">
-      <h2>แผงควบคุมออกอากาศ</h2>
-      <p>เข้าสู่ระบบด้วยบัญชี <b>@thestandard.co</b> เพื่อสั่งงาน overlay</p>
+      <h2>Broadcast Controller</h2>
+      <p>Sign in with your <b>@thestandard.co</b> account to control overlays</p>
       <div id="cp_signin"></div>
     </div>`;
     cpRenderSignin();
@@ -2324,14 +2324,14 @@ function renderControlPanel(){
     el.innerHTML=`
       <div id="cp-static"></div>
       <div class="cp-pane">
-        <div class="cp-pane-lbl pvw">PREVIEW <small>· ภาพที่จัดไว้ ยังไม่ออกอากาศ จนกว่าจะกด TAKE</small></div>
+        <div class="cp-pane-lbl pvw">PREVIEW <small>· Staged scene — not on air until you press TAKE</small></div>
         <div class="cp-preview-wrap"><iframe id="cp-pvw-frame" src="${base}?overlay=live&pvw=1" scrolling="no" allowtransparency="true" onload="cpPushPreview()"></iframe></div>
       </div>
       <div id="cp-ctrls"></div>`;
   }
   const anyLive=s.footer!=='off'||s.side!=='off'||s.full!=='off';
-  const onairTxt=[s.footer!=='off'?'Footer: '+cpLabel('footer',s.footer):'',s.side!=='off'?'Side: '+cpLabel('side',s.side)+(s.sideIdx?' #'+(s.sideIdx+1):''):'',s.full!=='off'?'Full: '+cpLabel('full',s.full):''].filter(Boolean).join(' · ')||'ไม่มีอะไรออกอากาศ';
-  const conn=fbReady?'● เชื่อมต่อแล้ว':'○ กำลังเชื่อมต่อ…';
+  const onairTxt=[s.footer!=='off'?'Footer: '+cpLabel('footer',s.footer):'',s.side!=='off'?'Side: '+cpLabel('side',s.side)+(s.sideIdx?' #'+(s.sideIdx+1):''):'',s.full!=='off'?'Full: '+cpLabel('full',s.full):''].filter(Boolean).join(' · ')||'Nothing on air';
+  const conn=fbReady?'● Connected':'○ Connecting…';
   // เลเยอร์: แต่ละอันมีปุ่มเลือก (stage→preview) + TAKE
   const layers=CP_LAYERS.map(L=>{
     const pgm=s[L.key],pvw=pvwState[L.key];
@@ -2345,24 +2345,24 @@ function renderControlPanel(){
     let sub='';
     if(L.key==='footer'&&pgm==='bottombar'){
       // footer: ปรับสดบน program (หลังออกอากาศแล้ว)
-      sub=`<div class="cp-sub"><span class="cp-sub-lbl">วิว Bottom Bar:</span>
-        <button class="cp-btn ${!s.barPlaying&&s.barView===0?'on':''}" onclick="ctrlBarView(0)">ผู้ว่าฯ</button>
-        <button class="cp-btn ${!s.barPlaying&&s.barView===1?'on':''}" onclick="ctrlBarView(1)">ส.ก.</button>
-        <button class="cp-btn ${s.barPlaying?'on':''}" onclick="ctrlBarAuto()">${s.barPlaying?'⏸ หยุด':'▶ สลับอัตโนมัติ'}</button></div>`;
+      sub=`<div class="cp-sub"><span class="cp-sub-lbl">Bottom Bar View:</span>
+        <button class="cp-btn ${!s.barPlaying&&s.barView===0?'on':''}" onclick="ctrlBarView(0)">Governor</button>
+        <button class="cp-btn ${!s.barPlaying&&s.barView===1?'on':''}" onclick="ctrlBarView(1)">Councilors</button>
+        <button class="cp-btn ${s.barPlaying?'on':''}" onclick="ctrlBarAuto()">${s.barPlaying?'⏸ Pause':'▶ Auto-rotate'}</button></div>`;
     }else if(L.key==='side'&&pvw==='on'){
       // side: เลือกเขต/โหมด = stage เข้า preview (ใช้ค่า pvwState) → ต้องกด TAKE ถึงออกอากาศ
       const scenes=ovSideScenes();
       const cur=scenes.length?(((pvwState.sideIdx||0)%scenes.length)+scenes.length)%scenes.length:0;
-      const optlist=scenes.map((sc,i)=>`<option value="${i}" ${i===cur?'selected':''}>${sc.t==='dist'?'เขต'+sc.name:'แผนที่ผู้ว่าฯ'}</option>`).join('');
-      sub=`<div class="cp-sub"><span class="cp-sub-lbl">โชว์เขต (preview):</span>
-        <select class="cp-select" onchange="cpStageSideIdx(this.value)">${optlist||'<option>— ยังไม่มีข้อมูล ส.ก. —</option>'}</select>
-        <button class="cp-btn" onclick="cpStageSideStep(-1)" title="ก่อนหน้า">◀</button>
-        <button class="cp-btn" onclick="cpStageSideStep(1)" title="ถัดไป">▶</button>
-        <button class="cp-btn ${pvwState.sidePlaying?'on':''}" onclick="cpStageSideAuto()">${pvwState.sidePlaying?'▶ วนอัตโนมัติ':'⏸ ค้างเขตเดียว'}</button></div>`;
+      const optlist=scenes.map((sc,i)=>`<option value="${i}" ${i===cur?'selected':''}>${sc.t==='dist'?'District '+sc.name:'Governor Map'}</option>`).join('');
+      sub=`<div class="cp-sub"><span class="cp-sub-lbl">District (preview):</span>
+        <select class="cp-select" onchange="cpStageSideIdx(this.value)">${optlist||'<option>— No district data —</option>'}</select>
+        <button class="cp-btn" onclick="cpStageSideStep(-1)" title="Previous">◀</button>
+        <button class="cp-btn" onclick="cpStageSideStep(1)" title="Next">▶</button>
+        <button class="cp-btn ${pvwState.sidePlaying?'on':''}" onclick="cpStageSideAuto()">${pvwState.sidePlaying?'▶ Auto-rotate':'⏸ Hold one'}</button></div>`;
     }
     return `<div class="cp-layer${pgm!=='off'?' on':''}">
       <div class="cp-layer-hd"><span class="cp-layer-name">${L.label}</span>
-        <span class="cp-layer-pgm${pgm!=='off'?' air':''}">${pgm!=='off'?'● ออกอากาศ: '+cpLabel(L.key,pgm):'○ ปิดอยู่'}</span></div>
+        <span class="cp-layer-pgm${pgm!=='off'?' air':''}">${pgm!=='off'?'● ON AIR: '+cpLabel(L.key,pgm):'○ Off'}</span></div>
       <div class="cp-opts">${opts}</div>
       ${sub}
       <button class="cp-take${dirty?'':' disabled'}" ${dirty?'':'disabled'} onclick="cpTake('${L.key}')">TAKE ▶ ${cpLabel(L.key,pvw)}${L.key==='side'&&pvw==='on'?' · '+cpSideName(pvwState.sideIdx):''}</button>
@@ -2371,8 +2371,8 @@ function renderControlPanel(){
   $('cp-static').innerHTML=`
     <div class="cp-head">
       <img class="cp-logo" src="logo-bkk-election-2569.webp" onerror="this.style.display='none'">
-      <div class="cp-title">แผงควบคุมออกอากาศ<small>BKK VOTE 69 · BROADCAST CONTROLLER</small></div>
-      <div class="cp-user">${gUser.picture?`<img src="${gUser.picture}" onerror="this.style.display='none'">`:''}<span>${gUser.name}</span><button class="cp-signout" onclick="gSignOut();renderControlPanel()">ออกจากระบบ</button></div>
+      <div class="cp-title">Broadcast Controller<small>BKK VOTE 69 · LIVE OVERLAY STUDIO</small></div>
+      <div class="cp-user">${gUser.picture?`<img src="${gUser.picture}" onerror="this.style.display='none'">`:''}<span>${gUser.name}</span><button class="cp-signout" onclick="gSignOut();renderControlPanel()">Sign Out</button></div>
     </div>
     <div class="cp-onair ${anyLive?'live':''}">
       <span class="cp-onair-dot"></span>
@@ -2381,18 +2381,18 @@ function renderControlPanel(){
     </div>`;
   $('cp-ctrls').innerHTML=`
     <div class="cp-global">
-      <button class="cp-take cp-take-all" onclick="cpTakeAll()">TAKE ทั้งหมด ▶</button>
-      <button class="cp-cut" onclick="cpCutAll()">CUT · ปิดทั้งหมด</button>
+      <button class="cp-take cp-take-all" onclick="cpTakeAll()">TAKE ALL ▶</button>
+      <button class="cp-cut" onclick="cpCutAll()">CUT · Turn All Off</button>
     </div>
     ${layers}
-    <div class="cp-hint">เปิด overlay ใน OBS / vMix ที่ <code>?overlay=live</code> · เลือก scene = ขึ้น <b>PREVIEW</b> ก่อน → กด <b>TAKE</b> ถึงออกอากาศ · 3 เลเยอร์ (Footer / Side / Fullscreen) แยกกันอิสระ ขึ้นพร้อมกันได้</div>`;
+    <div class="cp-hint">Open overlay in OBS / vMix at <code>?overlay=live</code> · Select a scene → it goes to <b>PREVIEW</b> → press <b>TAKE</b> to broadcast · 3 layers (Footer / Side / Fullscreen) are independent and can be on simultaneously</div>`;
   cpScalePreview();
 }
 function cpRenderSignin(){
   if(!window.google||!google.accounts){setTimeout(cpRenderSignin,400);return;}
   const t=$('cp_signin');if(!t)return;
   google.accounts.id.initialize({client_id:GAUTH_CID,callback:r=>{gHandleCredential(r);renderControlPanel();},ux_mode:'popup'});
-  google.accounts.id.renderButton(t,{type:'standard',shape:'pill',theme:'filled_black',size:'large',text:'signin_with',locale:'th'});
+  google.accounts.id.renderButton(t,{type:'standard',shape:'pill',theme:'filled_black',size:'large',text:'signin_with',locale:'en'});
 }
 function init(){
   buildSample(1);
