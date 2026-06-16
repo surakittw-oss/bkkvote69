@@ -2370,7 +2370,7 @@ function renderControlPanel(){
         <select class="cp-select" onchange="cpStageSideIdx(this.value)">${optlist||'<option>— No district data —</option>'}</select>
         <button class="cp-btn" onclick="cpStageSideStep(-1)" title="Previous">◀</button>
         <button class="cp-btn" onclick="cpStageSideStep(1)" title="Next">▶</button>
-        <button class="cp-btn ${pvwState.sidePlaying?'on':''}" onclick="cpStageSideAuto()">${pvwState.sidePlaying?'▶ Auto-rotate':'⏸ Hold one'}</button></div>`;
+        <button class="cp-btn ${pvwState.sidePlaying?'on':''}" onclick="cpStageSideAuto()">${pvwState.sidePlaying?'⏸ Hold one':'▶ Auto-rotate'}</button></div>`;
     }
     return `<div class="cp-layer${pgm!=='off'?' on':''}">
       <div class="cp-layer-hd"><span class="cp-layer-name">${L.label}</span>
