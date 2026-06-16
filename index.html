@@ -338,10 +338,9 @@ body.ov-lower3 #ov-lower3{display:flex}
 .ov-l3-photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block}
 .ov-l3-photo-fb{position:absolute;inset:0;display:grid;place-items:center;font-size:32px;font-weight:800}
 /* Info — overlaid in the PNG's empty green area (right, below name) */
-.ov-l3-body{position:absolute;left:53.5%;right:2.5%;top:48%;bottom:8%;display:flex;flex-direction:column;justify-content:flex-start;gap:0;z-index:2}
-.ov-l3-cparty{font-size:14px;font-weight:600;color:rgba(255,255,255,.95);line-height:1.15;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,.45)}
-.ov-l3-cvotes{font-size:24px;font-weight:800;font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;line-height:1.1;margin-top:8px;color:#fff;white-space:nowrap;text-shadow:0 1px 4px rgba(0,0,0,.5)}
-.ov-l3-cpct{font-size:12px;font-weight:500;color:rgba(255,255,255,.85);margin-top:2px;text-shadow:0 1px 3px rgba(0,0,0,.45)}
+.ov-l3-body{position:absolute;left:53.5%;right:2.5%;top:54%;bottom:8%;display:flex;flex-direction:column;justify-content:flex-start;gap:0;z-index:2}
+.ov-l3-cvotes{font-size:21px;font-weight:800;font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;line-height:1.1;color:#fff;white-space:nowrap}
+.ov-l3-cpct{font-size:12px;font-weight:500;color:rgba(255,255,255,.85);margin-top:3px}
 
 /* ════════════ OVERLAY · BOTTOM BAR (1264×209) ════════════ */
 #ov-bar{display:none;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(1264px,100vw);height:209px;flex-direction:column;overflow:hidden;background:linear-gradient(180deg,rgba(10,12,15,.97),rgba(6,7,9,.99));border-top:3px solid var(--brand);box-shadow:0 -8px 32px rgba(0,0,0,.5)}
@@ -365,10 +364,9 @@ body.ov-bottombar #ov-bar{display:flex}
 .ovb-gc{position:relative;flex:none;height:100%;aspect-ratio:506/350;overflow:hidden;border-radius:8px;background:#cfe9d6}
 .ovb-gc-photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block}
 .ovb-gc-fb{position:absolute;inset:0;display:grid;place-items:center;font-size:26px;font-weight:800}
-.ovb-gc-body{position:absolute;left:53.5%;right:2.5%;top:48%;bottom:8%;display:flex;flex-direction:column;justify-content:flex-start;gap:0;z-index:2}
-.ovb-gc-party{font-size:11px;font-weight:600;color:rgba(255,255,255,.95);line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 3px rgba(0,0,0,.45)}
-.ovb-gc-votes{font-size:19px;font-weight:800;font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;line-height:1.1;margin-top:6px;color:#fff;white-space:nowrap;text-shadow:0 1px 4px rgba(0,0,0,.5)}
-.ovb-gc-pct{font-size:9px;font-weight:500;color:rgba(255,255,255,.85);margin-top:2px;text-shadow:0 1px 3px rgba(0,0,0,.45)}
+.ovb-gc-body{position:absolute;left:53.5%;right:2.5%;top:54%;bottom:8%;display:flex;flex-direction:column;justify-content:flex-start;gap:0;z-index:2}
+.ovb-gc-votes{font-size:17px;font-weight:800;font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;line-height:1.1;color:#fff;white-space:nowrap}
+.ovb-gc-pct{font-size:9px;font-weight:500;color:rgba(255,255,255,.85);margin-top:3px}
 /* ส.ก. party seats */
 .ovb-skg{gap:2px;padding:0}
 .ovb-pc{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;position:relative;overflow:hidden;background:rgba(16,18,21,.7);padding:8px 6px;gap:3px}
@@ -1454,7 +1452,6 @@ function renderLower3(){
     return `<div class="ov-l3-card rank${i+1}" style="--cc:${hex};--cc-rgb:${ccRgb}">
       ${photo}
       <div class="ov-l3-body">
-        <div class="ov-l3-cparty">${c.party||'อิสระ'}</div>
         <div class="ov-l3-cvotes">${v}</div>
         <div class="ov-l3-cpct">${pct}% ของคะแนน</div>
       </div>
@@ -1534,7 +1531,6 @@ function renderBottomBar(){
     return `<div class="ovb-gc${i===0?' r1':''}" style="--cc:${hex};--cc-rgb:${ccRgb}">
       <div class="ovb-gc-pw">${ovPhoto('ovb-gc-photo','ovb-gc-fb',c.avatar,init,hex)}</div>
       <div class="ovb-gc-body">
-        <div class="ovb-gc-party">${c.party||'อิสระ'}</div>
         <div class="ovb-gc-votes">${c.votes.toLocaleString()}</div>
         <div class="ovb-gc-pct">${pc}% ของคะแนน</div>
       </div></div>`;
