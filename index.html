@@ -1763,8 +1763,13 @@ function applyExternal(data,label){
   }
   pctBase=CANDS.reduce((s,c)=>s+c.votes,0);
   recompute();
+  applyOvImgMap(); // re-apply overlay avatars ทุกครั้งที่ Firebase rebuild CANDS
   if(label){$('srclabel').textContent=label;}
   renderAll();
+}
+function applyOvImgMap(){
+  if(!ovImgMap)return;
+  CANDS=CANDS.map(c=>{const o=ovImgMap[c.no];return o?{...c,color:o.color||c.color,avatar:o.avatar||c.avatar}:c});
 }
 // รับ skg ได้ทั้ง object {เขต:[...]} หรือ array แถว [{district,name,...}] แล้วจัดกลุ่มตามเขต
 function normalizeSkg(raw){
@@ -2007,7 +2012,7 @@ async function fbSave(){
 let ECT_KEY='';const ECT_BASE='https://media.election.in.th';
 const ECT_GOVERNOR_SLUG='bkk-governor-2026';
 const ECT_COUNCIL_SLUG='bkk-council-2026';
-let ectTimer=null,ectImageMap=null;
+let ectTimer=null,ectImageMap=null,ovImgMap=null;
 // คืน data (envelope { success, data, correlationId }) — โยน error ที่อ่านง่ายเมื่อ 401/403/404
 async function ectGet(path){
   const h=ECT_KEY?{Authorization:'Bearer '+ECT_KEY}:{};
@@ -2413,6 +2418,17 @@ function init(){
   // preview mode: รับสถานะ staged จาก controller ผ่าน postMessage (ไม่ฟัง Firebase)
   if(OVERLAY==='live'&&PVW_MODE){
     addEventListener('message',e=>{const d=e.data;if(d&&d.type==='bkk-pvw'&&d.state)liveApplyControl(d.state);});
+  }
+  // overlay mode → โหลดรูปผู้สมัครจาก Sheet broadcast แยกต่างหาก
+  // เก็บไว้ใน ovImgMap เพื่อ re-apply ทุกครั้งที่ Firebase rebuild CANDS
+  if(OVERLAY&&!PVW_MODE){
+    const OVERLAY_IMG_SHEET='https://docs.google.com/spreadsheets/d/1abANACpNrqcd_Yv7S2qeTe2vdDkJZkoAgRgqQ-DWqcE/edit?gid=1384942493#gid=1384942493';
+    loadOverrideSheet(OVERLAY_IMG_SHEET).then(map=>{
+      if(!map||!Object.keys(map).length)return;
+      ovImgMap=map;
+      applyOvImgMap();
+      renderAll();
+    }).catch(()=>{});
   }
   // auto-connect Firebase หลัง paint แรก (ไม่บล็อกการโหลด) — ถ้ามีข้อมูลจะ override อัตโนมัติ
   setTimeout(()=>{ensureFirebase()},400);
