@@ -1830,8 +1830,42 @@ function applyExternal(data,label){
   renderAll();
 }
 function applyOvImgMap(){
-  if(!ovImgMap)return;
-  CANDS=CANDS.map(c=>{const o=ovImgMap[c.no];return o?{...c,color:o.color||c.color,avatar:o.avatar||c.avatar}:c});
+  if(ovImgMap)CANDS=CANDS.map(c=>{const o=ovImgMap[c.no];return o?{...c,color:o.color||c.color,avatar:o.avatar||c.avatar}:c});
+  applySkgImgMap();
+}
+// merge รูป/สี ส.ก. จาก Sheet (คีย์ เขต|เบอร์) เข้า skgData ทุกครั้งที่ rebuild
+function applySkgImgMap(){
+  if(!skgImgMap||!skgData)return;
+  Object.keys(skgData).forEach(dn=>{
+    if(!Array.isArray(skgData[dn]))return;
+    skgData[dn]=skgData[dn].map(c=>{const o=skgImgMap[normName(dn)+'|'+c.no];return o?{...c,avatar:o.avatar||c.avatar,color:o.color||c.color}:c;});
+  });
+}
+// โหลดรูปผู้สมัคร ส.ก. จาก Sheet (คอลัมน์ district[merge], no, color, avatar_url) → map { "เขต|เบอร์": {avatar,color,name} }
+async function loadSkgImgSheet(url){
+  const res=await fetch(sheetURLtoCSV(url));if(!res.ok)throw new Error('HTTP '+res.status);
+  const lines=(await res.text()).split('\n').filter(l=>l.trim());if(lines.length<2)return{};
+  let hi=-1;
+  for(let i=0;i<Math.min(lines.length,8);i++){
+    const L=parseCSVLine(lines[i]).map(c=>c.toLowerCase().replace(/^"+|"+$/g,'').trim());
+    if(L.some(c=>c.includes('district')||c==='เขต')&&L.some(c=>c==='no'||c.includes('ลำดับ')||c.includes('เบอร์'))&&L.some(c=>/avatar|รูป|photo|image/.test(c))){hi=i;break;}
+  }
+  if(hi<0)return{};
+  const hdr=parseCSVLine(lines[hi]).map(h=>h.toLowerCase().replace(/^"+|"+$/g,'').trim());
+  const gi=t=>hdr.findIndex(h=>t.some(x=>h.includes(x)));
+  const iD=gi(['district','เขต']),iNo=gi(['no','ลำดับ','เบอร์']),iAv=gi(['avatar','รูป','photo','image']),iCo=gi(['color','สี','hex']),iNm=gi(['name','ชื่อ']);
+  if(iD<0||iNo<0)return{};
+  const cl=(r,i)=>i>=0?(r[i]||'').replace(/^"+|"+$/g,'').trim():'';
+  const norm=h=>{h=(h||'').trim();return /^[0-9a-fA-F]{6}$/.test(h)?'#'+h:h;};
+  // ข้าม description row (ถัดจาก header ที่ no ไม่ใช่ตัวเลข)
+  let start=hi+1;const fr=cl(parseCSVLine(lines[start]||''),iNo);if(fr&&isNaN(parseInt(fr)))start++;
+  const m={};let lastDist='';
+  lines.slice(start).map(parseCSVLine).forEach(r=>{
+    const dRaw=cl(r,iD);if(dRaw)lastDist=dRaw;
+    const no=parseInt(cl(r,iNo));if(!no||!lastDist)return;
+    m[normName(lastDist)+'|'+no]={avatar:gdrive(cl(r,iAv)),color:norm(cl(r,iCo)),name:cl(r,iNm)};
+  });
+  return m;
 }
 // รับ skg ได้ทั้ง object {เขต:[...]} หรือ array แถว [{district,name,...}] แล้วจัดกลุ่มตามเขต
 function normalizeSkg(raw){
@@ -2074,7 +2108,7 @@ async function fbSave(){
 let ECT_KEY='';const ECT_BASE='https://media.election.in.th';
 const ECT_GOVERNOR_SLUG='bkk-governor-2026';
 const ECT_COUNCIL_SLUG='bkk-council-2026';
-let ectTimer=null,ectImageMap=null,ovImgMap=null;
+let ectTimer=null,ectImageMap=null,ovImgMap=null,skgImgMap=null;
 // คืน data (envelope { success, data, correlationId }) — โยน error ที่อ่านง่ายเมื่อ 401/403/404
 async function ectGet(path){
   const h=ECT_KEY?{Authorization:'Bearer '+ECT_KEY}:{};
@@ -2489,6 +2523,14 @@ function init(){
       if(!map||!Object.keys(map).length)return;
       ovImgMap=map;
       applyOvImgMap();
+      renderAll();
+    }).catch(()=>{});
+    // รูปผู้สมัคร ส.ก. รายเขต (คีย์ เขต|เบอร์) สำหรับ side panel
+    const SKG_IMG_SHEET='https://docs.google.com/spreadsheets/d/1abANACpNrqcd_Yv7S2qeTe2vdDkJZkoAgRgqQ-DWqcE/edit?gid=916858386#gid=916858386';
+    loadSkgImgSheet(SKG_IMG_SHEET).then(map=>{
+      if(!map||!Object.keys(map).length)return;
+      skgImgMap=map;
+      applySkgImgMap();
       renderAll();
     }).catch(()=>{});
   }
