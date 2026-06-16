@@ -75,22 +75,13 @@ body.ov #top-logo{display:none}
 
 .col-head{font-size:clamp(20px,2.6vw,30px);font-weight:900;color:#fff;letter-spacing:-.4px;margin-bottom:22px;display:flex;align-items:center;gap:12px}
 .col-head::before{content:"";width:5px;height:1em;border-radius:3px;background:linear-gradient(180deg,var(--brand-l),var(--brand));box-shadow:0 0 12px rgba(var(--brand-rgb),.5);flex-shrink:0}
-/* แบนเนอร์หัวข้อทรงสี่เหลี่ยมด้านขนาน — ขอบล่างเรืองแสงเขียว CI */
-.col-head.banner{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:0;font-size:clamp(17px,2.3vw,25px);font-family:var(--font);font-weight:900;letter-spacing:.8px;padding:12px 38px;isolation:isolate;
-  background:linear-gradient(180deg,rgba(var(--brand-rgb),.22) 0%,rgba(var(--brand-rgb),.5) 55%,var(--brand-l) 100%);
-  clip-path:polygon(22px 0,100% 0,calc(100% - 22px) 100%,0 100%);
-  filter:drop-shadow(0 4px 13px rgba(var(--brand-rgb),.4));
-  text-shadow:0 1px 3px rgba(0,0,0,.45)}
-.col-head.banner::before{content:"";position:absolute;inset:2px;width:auto;height:auto;border-radius:0;box-shadow:none;flex-shrink:1;z-index:-1;
-  background:linear-gradient(165deg,#0d5230 0%,#0a3a22 50%,#04190e 100%);
-  clip-path:polygon(22px 0,100% 0,calc(100% - 22px) 100%,0 100%)}
+/* แบนเนอร์หัวข้อ — lime flat tag */
+.col-head.banner{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:0;font-size:clamp(15px,2vw,22px);font-family:var(--font);font-weight:900;letter-spacing:.4px;padding:8px 24px;isolation:isolate;
+  background:#57bd44;color:#073018;clip-path:none;border-radius:4px;
+  filter:none;text-shadow:none;border:none}
+.col-head.banner::before{display:none}
 .col-head.banner #skgMeta{text-shadow:none}
-/* แสงสะท้อนวิ่งกวาดผ่านแบนเนอร์เป็นจังหวะ (ถูก clip ตามทรงอัตโนมัติ) */
-.col-head.banner::after{content:"";position:absolute;top:0;bottom:0;left:0;width:55%;z-index:-1;pointer-events:none;
-  background:linear-gradient(105deg,transparent 0%,rgba(255,255,255,.05) 35%,rgba(180,255,210,.45) 50%,rgba(255,255,255,.05) 65%,transparent 100%);
-  transform:translateX(-180%);animation:bannerShine 4.5s cubic-bezier(.5,0,.5,1) infinite}
-@keyframes bannerShine{0%,18%{transform:translateX(-180%)}55%,100%{transform:translateX(320%)}}
-@media(prefers-reduced-motion:reduce){.col-head.banner::after{animation:none;opacity:0}}
+.col-head.banner::after{display:none}
 .grid{display:grid;grid-template-columns:minmax(330px,400px) 1fr auto;gap:30px;align-items:start}
 
 /* TOTALS */
