@@ -1429,6 +1429,7 @@ function logoSetupFbListener(){
 /* ════════════ OVERLAY ════════════ */
 const OVERLAY=(new URLSearchParams(location.search)).get('overlay')||'';
 const PVW_MODE=(new URLSearchParams(location.search)).get('pvw')==='1'; // preview: driven by postMessage, not Firebase
+const LAYER_FILTER=(new URLSearchParams(location.search)).get('layer')||''; // 'footer'|'side'|'' (ว่าง=ทุกเลเยอร์)
 (function initOverlay(){
   if(!OVERLAY)return;
   document.body.classList.add('ov');
@@ -2268,14 +2269,21 @@ function ctrlSetupListener(){
 /* ── live overlay: ประกอบ 3 เลเยอร์ตามสถานะที่รับมา ── */
 function liveApplyControl(s){
   const b=document.body;
+  const showFooter=!LAYER_FILTER||LAYER_FILTER==='footer';
+  const showSide=!LAYER_FILTER||LAYER_FILTER==='side';
+  const showFull=!LAYER_FILTER;
   b.classList.remove('ov-totals','ov-map','ov-lower3','ov-bottombar','ov-side','ov-stat');
-  if(s.footer==='lower3')b.classList.add('ov-lower3');
-  else if(s.footer==='bottombar')b.classList.add('ov-bottombar');
-  else if(s.footer==='stat')b.classList.add('ov-stat');
-  if(s.side==='on')b.classList.add('ov-side');
-  if(s.full==='totals')b.classList.add('ov-totals');
-  else if(s.full==='map'){b.classList.add('ov-map');MODE='map';}
-  else if(s.full==='bubble'){b.classList.add('ov-map');MODE='prop';}
+  if(showFooter){
+    if(s.footer==='lower3')b.classList.add('ov-lower3');
+    else if(s.footer==='bottombar')b.classList.add('ov-bottombar');
+    else if(s.footer==='stat')b.classList.add('ov-stat');
+  }
+  if(showSide&&s.side==='on')b.classList.add('ov-side');
+  if(showFull){
+    if(s.full==='totals')b.classList.add('ov-totals');
+    else if(s.full==='map'){b.classList.add('ov-map');MODE='map';}
+    else if(s.full==='bubble'){b.classList.add('ov-map');MODE='prop';}
+  }
   ovBarView=s.barView|0;ovBarPaused=!s.barPlaying;
   ovSideIdx=s.sideIdx|0;ovSidePaused=!s.sidePlaying;
   renderLiveScene(s);
