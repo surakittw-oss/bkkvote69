@@ -423,20 +423,21 @@ body.ov-side #ov-side{display:flex}
 .ovs-row-elected{display:inline-block;font-size:10px;font-weight:800;color:var(--brand-l);background:rgba(var(--brand-rgb),.16);border:1px solid rgba(var(--brand-rgb),.35);padding:1px 8px;border-radius:20px;margin-top:3px;align-self:flex-start}
 .ovs-row-votes{text-align:right;flex-shrink:0;font-size:26px;font-weight:900;color:#fff;font-family:var(--font-num);font-variant-numeric:tabular-nums}
 .ovs-row-votes small{display:block;font-size:11px;font-weight:600;color:var(--t4)}
-/* การ์ดผู้สมัคร ส.ก. เต็มแถว (รูปจาก Art มีชื่อ/เขตฝังในภาพ) + overlay คะแนน/พรรค */
-.ovs-card{position:relative;flex:1;min-height:0;max-height:132px;border-radius:12px;overflow:hidden;background-color:#0c2418;background-size:contain;background-position:left center;background-repeat:no-repeat;display:flex;align-items:center}
-.ovs-card.win{box-shadow:inset 0 0 0 2px rgba(var(--brand-rgb),.6)}
-.ovs-card-data{position:absolute;top:0;right:0;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:flex-end;text-align:right;padding:0 26px;gap:2px}
-.ovs-card-votes{font-size:40px;font-weight:900;color:#fff;line-height:1;font-family:var(--font-num);font-variant-numeric:tabular-nums;text-shadow:0 2px 12px rgba(0,0,0,.55)}
-.ovs-card-votes small{display:block;font-size:12px;font-weight:600;color:rgba(255,255,255,.72);margin-top:3px;text-shadow:none}
-.ovs-card-party{font-size:15px;font-weight:700;text-shadow:0 1px 6px rgba(0,0,0,.55)}
-/* fallback: ยังไม่มีการ์ดรูป */
-.ovs-card--plain{background:linear-gradient(100deg,var(--cc) 0%,rgba(10,12,15,.55) 58%,rgba(10,12,15,.85) 100%)}
-.ovs-card-rank{font-size:30px;font-weight:900;color:rgba(255,255,255,.92);width:66px;text-align:center;flex-shrink:0;font-family:var(--font-num)}
-.ovs-card-pname{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;color:#fff;padding-right:12px}
-.ovs-card-pname b{font-size:21px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.15}
-.ovs-card-pname span{font-size:14px;font-weight:700}
-.ovs-card-votes--plain{position:static;padding-right:24px;flex-shrink:0}
+/* การ์ดผู้สมัคร ส.ก. — แสดงที่อัตราส่วนจริงของไฟล์ Art (988×588) + overlay คะแนน/พรรค มุมล่างขวา */
+.ovs-card{position:relative;flex:1 1 0;min-height:0;aspect-ratio:988/588;width:auto;max-width:100%;margin:0 auto;border-radius:14px;overflow:hidden;background-color:#0c2418;background-size:cover;background-position:center;background-repeat:no-repeat}
+.ovs-card.win{box-shadow:inset 0 0 0 3px rgba(var(--brand-rgb),.65)}
+/* overlay มุมล่างขวา (พื้นที่ว่างที่ Art เว้นไว้ใต้ชื่อ) */
+.ovs-card-data{position:absolute;right:5%;bottom:7%;display:flex;flex-direction:column;align-items:flex-end;text-align:right;gap:3px}
+.ovs-card-votes{font-size:clamp(30px,7cqw,52px);font-weight:900;color:#fff;line-height:.95;font-family:var(--font-num);font-variant-numeric:tabular-nums;text-shadow:0 2px 14px rgba(0,0,0,.5)}
+.ovs-card-votes small{display:block;font-size:clamp(11px,1.8cqw,15px);font-weight:600;color:rgba(255,255,255,.78);margin-top:4px;text-shadow:none}
+.ovs-card-party{font-size:clamp(14px,2.4cqw,19px);font-weight:800;text-shadow:0 1px 7px rgba(0,0,0,.5)}
+/* fallback: ยังไม่มีไฟล์การ์ด → จำลองเลย์เอาต์เดียวกัน (รูปย่อซ้าย + ชื่อบนขวา + คะแนน/พรรคล่างขวา) */
+.ovs-card{container-type:inline-size}
+.ovs-card--plain{background:linear-gradient(108deg,color-mix(in srgb,var(--cc) 28%,#0c2418) 0%,#0c2418 60%)}
+.ovs-fb-photo{position:absolute;left:5%;top:50%;transform:translateY(-50%);width:33%;aspect-ratio:1;border-radius:12px;display:grid;place-items:center;font-size:clamp(40px,10cqw,72px);font-weight:900;color:#fff;background:var(--cc);box-shadow:0 0 0 3px rgba(255,255,255,.15)}
+.ovs-fb-head{position:absolute;left:42%;top:16%;right:5%;color:#fff}
+.ovs-fb-rank{font-size:clamp(12px,2.2cqw,17px);font-weight:700;color:rgba(255,255,255,.6)}
+.ovs-fb-name{display:block;font-size:clamp(18px,4cqw,30px);font-weight:800;line-height:1.15;margin-top:2px}
 /* View B — แผนที่ผู้ว่าฯ */
 .ovs-mapwrap{flex:1;display:flex;align-items:center;justify-content:center;padding:10px 16px;min-height:0}
 .ovs-mapwrap svg{width:100%;height:100%;max-height:100%}
@@ -1688,26 +1689,26 @@ function ovSidePaint(){
   const scene=scenes[ovSideIdx%scenes.length];
   const a=$('ovs-view-a'),b=$('ovs-view-b'),t=$('ovs-title');if(!a||!b)return;
   if(scene.t==='dist'){
-    const arr=[...skgList(scene.name)].sort((x,y)=>(parseInt(y.votes)||0)-(parseInt(x.votes)||0)).slice(0,5);
+    const arr=[...skgList(scene.name)].sort((x,y)=>(parseInt(y.votes)||0)-(parseInt(x.votes)||0)).slice(0,3);
     const d=DISTRICTS.find(x=>x.name===scene.name||normName(x.name)===normName(scene.name));
     const pct=d&&d.counted?100:0;
     const rows=arr.map((c,i)=>{
       const col=c.color||PALETTE[i%PALETTE.length];
       const votes=fmt(parseInt(c.votes)||0);
-      // มีการ์ดรูป (Art ทำเต็มแถว มีชื่อ/เขตฝังในภาพ) → วางคะแนน+พรรคทับบนการ์ดด้านขวา
-      if(c.avatar){
-        return `<div class="ovs-card${c.elected?' win':''}" style="background-image:url('${c.avatar}')" onerror="">
-          <div class="ovs-card-data">
+      const data=`<div class="ovs-card-data">
             <span class="ovs-card-votes">${votes}<small>คะแนน</small></span>
             <span class="ovs-card-party" style="color:${col}">${c.party||'อิสระ'}</span>
-          </div>
-        </div>`;
+          </div>`;
+      // มีการ์ดรูป (Art ฝังชื่อ/เขตในภาพ 988×588) → วางคะแนน+พรรคทับมุมล่างขวา
+      if(c.avatar){
+        return `<div class="ovs-card${c.elected?' win':''}" style="background-image:url('${c.avatar}')">${data}</div>`;
       }
-      // ยังไม่มีการ์ดรูป → กล่องสี + ลำดับ/ชื่อ/พรรค/คะแนน
+      // ยังไม่มีการ์ดรูป → กล่องสีอัตราส่วนเดียวกัน (รูปย่อซ้าย + ลำดับ/ชื่อ + คะแนน/พรรค)
+      const init=(c.name||'?').trim().slice(0,1);
       return `<div class="ovs-card ovs-card--plain${c.elected?' win':''}" style="--cc:${col}">
-        <span class="ovs-card-rank">${i+1}</span>
-        <div class="ovs-card-pname"><b>${c.name}</b><span style="color:${col}">${c.party||'อิสระ'}</span></div>
-        <span class="ovs-card-votes ovs-card-votes--plain">${votes}<small>คะแนน</small></span>
+        <div class="ovs-fb-photo">${init}</div>
+        <div class="ovs-fb-head"><span class="ovs-fb-rank">อันดับ ${i+1}</span><b class="ovs-fb-name">${c.name}</b></div>
+        ${data}
       </div>`;
     }).join('');
     a.innerHTML=`<div class="ovs-distbar"><span class="ovs-distname">เขต${scene.name}</span><span class="ovs-distpct"><b>${pct}%</b>นับคะแนนแล้ว</span></div><div class="ovs-rows">${rows}</div>`;
