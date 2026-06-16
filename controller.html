@@ -180,7 +180,7 @@ function gSignOut(){
 const CTRL_REF='overlay/control';
 const CTRL_DEFAULT={footer:'off',side:'off',full:'off',barView:0,barPlaying:false,sideIdx:0,sidePlaying:false};
 let ctrlState=Object.assign({},CTRL_DEFAULT);          // program (on air)
-let pvwState={footer:'off',side:'off',full:'off'};     // preview (staged)
+let pvwState={footer:'off',side:'off',full:'off',sideIdx:0,sidePlaying:false}; // preview (staged)
 const PVW_URL=OVERLAY_URL+(OVERLAY_URL.indexOf('?')>=0?'&':'?')+'pvw=1';
 const CP_ICONS={
   off:'<svg viewBox="0 0 32 22" fill="none"><circle cx="16" cy="11" r="6.5" stroke="currentColor" stroke-width="2"/><path d="M16 3.5v6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
@@ -198,6 +198,7 @@ const CP_LAYERS=[
   {key:'full',label:'Fullscreen · เต็มจอ',options:[{k:'off',label:'ปิด'},{k:'totals',label:'คะแนนรวม'},{k:'map',label:'แผนที่ผู้ชนะ'},{k:'bubble',label:'บับเบิล'}]},
 ];
 function cpLabel(layer,val){const L=CP_LAYERS.find(x=>x.key===layer);const o=L&&L.options.find(x=>x.k===val);return o?o.label:'ปิด';}
+function cpSideName(i){const sc=ovSideScenes();if(!sc.length)return'';const x=sc[(((i||0)%sc.length)+sc.length)%sc.length];return x?(x.t==='dist'?'เขต'+x.name:'แผนที่'):'';}
 
 async function ctrlWrite(patch){
   Object.assign(ctrlState,patch);
@@ -206,14 +207,18 @@ async function ctrlWrite(patch){
   catch(e){alert('สั่งงานไม่สำเร็จ: '+e.message);}
 }
 function cpStage(layer,val){pvwState[layer]=val;renderControlPanel();cpPushPreview();}
-function cpTake(layer){ctrlWrite({[layer]:pvwState[layer]});}
-function cpTakeAll(){ctrlWrite({footer:pvwState.footer,side:pvwState.side,full:pvwState.full});}
-function cpCutAll(){pvwState={footer:'off',side:'off',full:'off'};ctrlWrite({footer:'off',side:'off',full:'off'});}
+function cpTake(layer){
+  if(layer==='side')ctrlWrite({side:pvwState.side,sideIdx:pvwState.sideIdx|0,sidePlaying:!!pvwState.sidePlaying});
+  else ctrlWrite({[layer]:pvwState[layer]});
+}
+function cpTakeAll(){ctrlWrite({footer:pvwState.footer,side:pvwState.side,full:pvwState.full,sideIdx:pvwState.sideIdx|0,sidePlaying:!!pvwState.sidePlaying});}
+function cpCutAll(){pvwState={footer:'off',side:'off',full:'off',sideIdx:0,sidePlaying:false};ctrlWrite({footer:'off',side:'off',full:'off'});}
 function ctrlBarView(v){ctrlWrite({barView:v,barPlaying:false});}
 function ctrlBarAuto(){ctrlWrite({barPlaying:!ctrlState.barPlaying});}
-function ctrlSideStep(d){ctrlWrite({sideIdx:(ctrlState.sideIdx||0)+d,sidePlaying:false});}
-function ctrlSideAuto(){ctrlWrite({sidePlaying:!ctrlState.sidePlaying});}
-function ctrlSideSet(i){ctrlWrite({sideIdx:parseInt(i)||0,sidePlaying:false});} // เลือกเขตเจาะจง + ค้างไว้
+/* side: เลือกเขต/โหมด → stage เข้า preview (ต้องกด TAKE ถึงออกอากาศ) */
+function cpStageSideIdx(i){pvwState.sideIdx=parseInt(i)||0;renderControlPanel();cpPushPreview();}
+function cpStageSideStep(d){const n=ovSideScenes().length||1;pvwState.sideIdx=(((pvwState.sideIdx||0)+d)%n+n)%n;renderControlPanel();cpPushPreview();}
+function cpStageSideAuto(){pvwState.sidePlaying=!pvwState.sidePlaying;renderControlPanel();cpPushPreview();}
 /* รายชื่อ scene ของ Side Panel (ต้องตรงลำดับกับ ovSideScenes() ใน overlay: ทุกเขต ส.ก. + แผนที่) */
 let sideScenes=[];
 function ovSideScenes(){return sideScenes;}
@@ -264,11 +269,23 @@ function renderControlPanel(){
     return;
   }
   const s=ctrlState;
+  // scaffold สร้างครั้งเดียว — iframe preview ไม่ถูกโหลดใหม่ทุกครั้งที่ render
+  if(!document.getElementById('cp-ctrls')){
+    el.innerHTML=`
+      <div id="cp-static"></div>
+      <div class="cp-pane">
+        <div class="cp-pane-lbl pvw">PREVIEW <small>· ภาพที่จัดไว้ ยังไม่ออกอากาศ จนกว่าจะกด TAKE</small></div>
+        <div class="cp-preview-wrap"><iframe id="cp-pvw-frame" src="${PVW_URL}" scrolling="no" allowtransparency="true" onload="cpPushPreview()"></iframe></div>
+      </div>
+      <div id="cp-ctrls"></div>`;
+  }
   const anyLive=s.footer!=='off'||s.side!=='off'||s.full!=='off';
-  const onairTxt=[s.footer!=='off'?'Footer: '+cpLabel('footer',s.footer):'',s.side!=='off'?'Side: '+cpLabel('side',s.side):'',s.full!=='off'?'Full: '+cpLabel('full',s.full):''].filter(Boolean).join(' · ')||'ไม่มีอะไรออกอากาศ';
+  const onairTxt=[s.footer!=='off'?'Footer: '+cpLabel('footer',s.footer):'',s.side!=='off'?'Side: '+cpLabel('side',s.side)+(s.sideIdx?' #'+(s.sideIdx+1):''):'',s.full!=='off'?'Full: '+cpLabel('full',s.full):''].filter(Boolean).join(' · ')||'ไม่มีอะไรออกอากาศ';
   const conn=fbReady?'● เชื่อมต่อแล้ว':'○ กำลังเชื่อมต่อ…';
   const layers=CP_LAYERS.map(L=>{
-    const pgm=s[L.key],pvw=pvwState[L.key],dirty=pgm!==pvw;
+    const pgm=s[L.key],pvw=pvwState[L.key];
+    let dirty=pgm!==pvw;
+    if(L.key==='side'&&pvw==='on')dirty=dirty||((s.sideIdx|0)!==(pvwState.sideIdx|0))||(!!s.sidePlaying!==!!pvwState.sidePlaying);
     const opts=L.options.map(o=>{
       const isPvw=pvw===o.k,isPgm=pgm===o.k;
       return `<button class="cp-opt${isPvw?' pvw':''}${isPgm?' pgm':''}" onclick="cpStage('${L.key}','${o.k}')">${CP_ICONS[o.k]||''}<b>${o.label}</b>${isPgm?'<span class="cp-opt-air">ON AIR</span>':''}</button>`;
@@ -279,24 +296,25 @@ function renderControlPanel(){
         <button class="cp-btn ${!s.barPlaying&&s.barView===0?'on':''}" onclick="ctrlBarView(0)">ผู้ว่าฯ</button>
         <button class="cp-btn ${!s.barPlaying&&s.barView===1?'on':''}" onclick="ctrlBarView(1)">ส.ก.</button>
         <button class="cp-btn ${s.barPlaying?'on':''}" onclick="ctrlBarAuto()">${s.barPlaying?'⏸ หยุด':'▶ สลับอัตโนมัติ'}</button></div>`;
-    }else if(L.key==='side'&&(pgm==='on'||pvw==='on')){
+    }else if(L.key==='side'&&pvw==='on'){
       const scenes=ovSideScenes();
-      const cur=scenes.length?(((s.sideIdx||0)%scenes.length)+scenes.length)%scenes.length:0;
+      const cur=scenes.length?(((pvwState.sideIdx||0)%scenes.length)+scenes.length)%scenes.length:0;
       const optlist=scenes.map((sc,i)=>`<option value="${i}" ${i===cur?'selected':''}>${sc.t==='dist'?'เขต'+sc.name:'แผนที่ผู้ว่าฯ'}</option>`).join('');
-      sub=`<div class="cp-sub"><span class="cp-sub-lbl">โชว์เขต:</span>
-        <select class="cp-select" onchange="ctrlSideSet(this.value)">${optlist||'<option>— ยังไม่มีข้อมูล ส.ก. —</option>'}</select>
-        <button class="cp-btn" onclick="ctrlSideStep(-1)" title="ก่อนหน้า">◀</button>
-        <button class="cp-btn" onclick="ctrlSideStep(1)" title="ถัดไป">▶</button>
-        <button class="cp-btn ${s.sidePlaying?'on':''}" onclick="ctrlSideAuto()">${s.sidePlaying?'⏸ หยุดค้างไว้':'▶ วนอัตโนมัติ'}</button></div>`;
+      sub=`<div class="cp-sub"><span class="cp-sub-lbl">โชว์เขต (preview):</span>
+        <select class="cp-select" onchange="cpStageSideIdx(this.value)">${optlist||'<option>— ยังไม่มีข้อมูล ส.ก. —</option>'}</select>
+        <button class="cp-btn" onclick="cpStageSideStep(-1)" title="ก่อนหน้า">◀</button>
+        <button class="cp-btn" onclick="cpStageSideStep(1)" title="ถัดไป">▶</button>
+        <button class="cp-btn ${pvwState.sidePlaying?'on':''}" onclick="cpStageSideAuto()">${pvwState.sidePlaying?'▶ วนอัตโนมัติ':'⏸ ค้างเขตเดียว'}</button></div>`;
     }
     return `<div class="cp-layer${pgm!=='off'?' on':''}">
       <div class="cp-layer-hd"><span class="cp-layer-name">${L.label}</span>
         <span class="cp-layer-pgm${pgm!=='off'?' air':''}">${pgm!=='off'?'● ออกอากาศ: '+cpLabel(L.key,pgm):'○ ปิดอยู่'}</span></div>
       <div class="cp-opts">${opts}</div>
-      <button class="cp-take${dirty?'':' disabled'}" ${dirty?'':'disabled'} onclick="cpTake('${L.key}')">TAKE ▶ ${cpLabel(L.key,pvw)}</button>
-      ${sub}</div>`;
+      ${sub}
+      <button class="cp-take${dirty?'':' disabled'}" ${dirty?'':'disabled'} onclick="cpTake('${L.key}')">TAKE ▶ ${cpLabel(L.key,pvw)}${L.key==='side'&&pvw==='on'?' · '+cpSideName(pvwState.sideIdx):''}</button>
+    </div>`;
   }).join('');
-  el.innerHTML=`
+  document.getElementById('cp-static').innerHTML=`
     <div class="cp-head">
       <img class="cp-logo" src="logo-bkk-election-2569.webp" onerror="this.style.display='none'">
       <div class="cp-title">แผงควบคุมออกอากาศ<small>BKK VOTE 69 · BROADCAST CONTROLLER</small></div>
@@ -306,11 +324,8 @@ function renderControlPanel(){
       <span class="cp-onair-dot"></span>
       <div class="cp-onair-txt">${anyLive?'ON AIR':'OFF AIR'}<small>${onairTxt}</small></div>
       <span class="cp-conn">${conn}</span>
-    </div>
-    <div class="cp-pane">
-      <div class="cp-pane-lbl pvw">PREVIEW <small>· ภาพที่จัดไว้ ยังไม่ออกอากาศ จนกว่าจะกด TAKE</small></div>
-      <div class="cp-preview-wrap"><iframe id="cp-pvw-frame" src="${PVW_URL}" scrolling="no" allowtransparency="true" onload="cpPushPreview()"></iframe></div>
-    </div>
+    </div>`;
+  document.getElementById('cp-ctrls').innerHTML=`
     <div class="cp-global">
       <button class="cp-take cp-take-all" onclick="cpTakeAll()">TAKE ทั้งหมด ▶</button>
       <button class="cp-cut" onclick="cpCutAll()">CUT · ปิดทั้งหมด</button>
