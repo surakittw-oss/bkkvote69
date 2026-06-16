@@ -2392,7 +2392,7 @@ function renderControlPanel(){
       // side: เลือกเขต/โหมด = stage เข้า preview (ใช้ค่า pvwState) → ต้องกด TAKE ถึงออกอากาศ
       const scenes=ovSideScenes();
       const cur=scenes.length?(((pvwState.sideIdx||0)%scenes.length)+scenes.length)%scenes.length:0;
-      const optlist=scenes.map((sc,i)=>`<option value="${i}" ${i===cur?'selected':''}>${sc.t==='dist'?'District '+sc.name:'Governor Map'}</option>`).join('');
+      const optlist=scenes.map((sc,i)=>`<option value="${i}" ${i===cur?'selected':''}>${sc.t==='dist'?'ส.ก. เขต'+sc.name:sc.t==='grid'?'ผู้ชนะ (กริด)':'แผนที่ผู้ว่าฯ'}</option>`).join('');
       sub=`<div class="cp-sub"><span class="cp-sub-lbl">District (preview):</span>
         <select class="cp-select" onchange="cpStageSideIdx(this.value)">${optlist||'<option>— No district data —</option>'}</select>
         <button class="cp-btn" onclick="cpStageSideStep(-1)" title="Previous">◀</button>
