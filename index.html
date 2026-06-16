@@ -1614,7 +1614,7 @@ function ovBarApply(){
 
 /* ── SIDE PANEL (576×1080): rotate[ View A ส.ก.รายเขต ↔ View B แผนที่ผู้ว่าฯ ] ── */
 let ovSideTimer=null, ovSideIdx=0, ovSidePaused=false, ovSideCtlT=null, ovSideWired=false;
-const OV_SIDE_MS=10000;
+const OV_SIDE_MS=7000;
 const OV_ICO_PREV='<svg viewBox="0 0 24 24" fill="none"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const OV_ICO_NEXT='<svg viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const OV_ICO_PAUSE='<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
@@ -1622,7 +1622,6 @@ const OV_ICO_PLAY='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5l12
 function ovSideScenes(){
   const scenes=[];
   Object.keys(skgData||{}).forEach(dn=>{if(Array.isArray(skgData[dn])&&skgData[dn].length)scenes.push({t:'dist',name:dn});});
-  scenes.push({t:'grid'});
   scenes.push({t:'map'});
   return scenes;
 }
@@ -1690,35 +1689,14 @@ function ovSidePaint(){
     a.innerHTML=`<div class="ovs-distbar"><span class="ovs-distname">เขต${scene.name}</span><span class="ovs-distpct"><b>${pct}%</b>นับคะแนนแล้ว</span></div><div class="ovs-rows">${rows}</div>`;
     if(t)t.textContent='ผลการนับคะแนน ส.ก. รายเขต';
     a.classList.add('on');b.classList.remove('on');
-  }else if(scene.t==='grid'){
-    // cartogram grid — embed the map in grid mode
-    const cols=12,rows=8,cw=42,ch=50,gap=5;
-    const W=cols*(cw+gap)-gap, H=rows*(ch+gap)-gap;
-    let cells='';
-    DISTRICTS.forEach(d=>{
-      const x=d.col*(cw+gap),y=d.row*(ch+gap);
-      const win=d.counted&&d.win!=null?CANDS[d.win]:null;
-      const fill=win?win.color:'#191b1e';
-      const ink=win?inkOn(win.color):'#5a5c5f';
-      const nm=(d.name||'').slice(0,4);
-      cells+=`<g><rect x="${x}" y="${y}" width="${cw}" height="${ch}" rx="6" fill="${fill}" stroke="rgba(255,255,255,.06)"/><text x="${x+cw/2}" y="${y+ch/2+3}" text-anchor="middle" style="font-family:var(--font);font-size:8px;font-weight:700;fill:${ink}">${nm}</text></g>`;
-    });
-    const winCount={};
-    DISTRICTS.forEach(d=>{if(d.counted&&d.win!=null)winCount[d.win]=(winCount[d.win]||0)+1;});
-    const leg=Object.keys(winCount).map(ci=>({c:CANDS[ci],n:winCount[ci]})).filter(o=>o.c).sort((a,b)=>b.n-a.n).slice(0,5)
-      .map(o=>`<div class="ovs-leg-item"><span class="ovs-leg-dot" style="background:${o.c.color}"></span>${o.c.short||o.c.name} · ${o.n} เขต</div>`).join('');
-    a.innerHTML=`<div class="ovs-mapwrap"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">${cells}</svg></div><div class="ovs-leg">${leg||'<span style=\'color:var(--t4);font-size:12px\'>ยังไม่มีผลรายเขต</span>'}</div>`;
-    if(t)t.textContent='ผู้ชนะรายเขต (กริด)';
-    a.classList.add('on');b.classList.remove('on');
   }else{
     b.innerHTML=ovSideMap();
     if(t)t.textContent='ผลการนับคะแนน ผู้ว่าฯ รายเขต';
     b.classList.add('on');a.classList.remove('on');
   }
   // อัปเดตแถบควบคุม
-  const sceneLabel=scene.t==='dist'?'เขต'+scene.name:scene.t==='grid'?'ผู้ชนะ (กริด)':'แผนที่ผู้ว่าฯ';
   const lbl=$('ovs-ctl-label');
-  if(lbl)lbl.textContent=sceneLabel+` · ${(ovSideIdx%scenes.length)+1}/${scenes.length}`;
+  if(lbl)lbl.textContent=(scene.t==='dist'?'เขต'+scene.name:'แผนที่ผู้ว่าฯ')+` · ${(ovSideIdx%scenes.length)+1}/${scenes.length}`;
   const pp=$('ovs-pp');
   if(pp)pp.innerHTML=ovSidePaused?OV_ICO_PLAY:OV_ICO_PAUSE;
 }
@@ -2270,7 +2248,7 @@ const CP_LAYERS=[
   {key:'full',label:'Fullscreen',options:[{k:'off',label:'Off'},{k:'map',label:'Winner Map'},{k:'bubble',label:'Bubble Chart'}]},
 ];
 function cpLabel(layer,val){const L=CP_LAYERS.find(x=>x.key===layer);const o=L&&L.options.find(x=>x.k===val);return o?o.label:'Off';}
-function cpSideName(i){const sc=ovSideScenes();if(!sc.length)return'';const x=sc[(((i||0)%sc.length)+sc.length)%sc.length];return x?(x.t==='dist'?'District '+x.name:x.t==='grid'?'Winner Grid':'Map'):'';}
+function cpSideName(i){const sc=ovSideScenes();if(!sc.length)return'';const x=sc[(((i||0)%sc.length)+sc.length)%sc.length];return x?(x.t==='dist'?'District '+x.name:'Map'):'';}
 /* ── write side (controller สั่งงาน → program บน Firebase) ── */
 async function ctrlWrite(patch){
   Object.assign(ctrlState,patch);
@@ -2392,7 +2370,7 @@ function renderControlPanel(){
       // side: เลือกเขต/โหมด = stage เข้า preview (ใช้ค่า pvwState) → ต้องกด TAKE ถึงออกอากาศ
       const scenes=ovSideScenes();
       const cur=scenes.length?(((pvwState.sideIdx||0)%scenes.length)+scenes.length)%scenes.length:0;
-      const optlist=scenes.map((sc,i)=>`<option value="${i}" ${i===cur?'selected':''}>${sc.t==='dist'?'ส.ก. เขต'+sc.name:sc.t==='grid'?'ผู้ชนะ (กริด)':'แผนที่ผู้ว่าฯ'}</option>`).join('');
+      const optlist=scenes.map((sc,i)=>`<option value="${i}" ${i===cur?'selected':''}>${sc.t==='dist'?'District '+sc.name:'Governor Map'}</option>`).join('');
       sub=`<div class="cp-sub"><span class="cp-sub-lbl">District (preview):</span>
         <select class="cp-select" onchange="cpStageSideIdx(this.value)">${optlist||'<option>— No district data —</option>'}</select>
         <button class="cp-btn" onclick="cpStageSideStep(-1)" title="Previous">◀</button>
