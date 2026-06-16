@@ -331,20 +331,26 @@ body.ov-totals .bar{margin-top:4px}
 /* overlay=map */
 body.ov-map #totals-col{display:none!important}
 body.ov-map .map-card{background:transparent}
+/* ════════════ OVERLAY GREEN-FRAME THEME (mockup ก่อน PNG art จริง) ════════════ */
+:root{
+  --ov-lime:#57bd44; --ov-lime-d:#3fa330; --ov-ink:#073018;
+  --ov-grad:linear-gradient(103deg,#1a6b38 0%,#0e4423 46%,#072e16 100%);
+  --ov-stripe:repeating-linear-gradient(112deg,rgba(255,255,255,.035) 0 1px,transparent 1px 72px);
+}
 /* Lower-third broadcast graphic */
-#ov-lower3{display:none;position:fixed;bottom:0;left:0;right:0;flex-direction:column;height:240px;overflow:hidden;background:rgba(8,9,11,.96);border-top:3px solid var(--brand)}
+#ov-lower3{display:none;position:fixed;bottom:0;left:0;right:0;flex-direction:column;height:240px;overflow:hidden;background:var(--ov-lime);padding:7px;border:none}
 body.ov-lower3{background:transparent!important}
 body.ov-lower3::before,body.ov-lower3::after{display:none!important}
 body.ov-lower3 #ov-lower3{display:flex}
-/* Header bar */
-.ov-l3-hd{display:flex;align-items:center;gap:8px;padding:4px 16px;background:rgba(0,0,0,.6);border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0;white-space:nowrap;overflow:hidden}
-.ov-l3-hd-ico{width:18px;height:18px;flex-shrink:0}
-.ov-l3-hd-title{font-size:11px;font-weight:800;color:#fff;letter-spacing:.2px}
-.ov-l3-hd-sub{font-size:10px;color:var(--t3)}
-.ov-l3-hd-right{margin-left:auto;font-size:10px;color:var(--t3);display:flex;align-items:center;gap:5px;flex-shrink:0}
-.ov-l3-hd-brand{font-size:10px;font-weight:700;color:var(--brand-l);letter-spacing:.5px}
+/* Header tab — diagonal lime parallelogram, floating top-left over the body */
+.ov-l3-hd{position:absolute;top:7px;left:7px;z-index:10;display:flex;align-items:center;gap:12px;background:transparent;border:none;white-space:nowrap}
+.ov-l3-hd-ico{display:none}
+.ov-l3-hd-title{font-size:19px;font-weight:800;color:var(--ov-ink);letter-spacing:.2px;background:var(--ov-lime);padding:6px 34px 6px 18px;clip-path:polygon(0 0,100% 0,calc(100% - 24px) 100%,0 100%)}
+.ov-l3-hd-sub{font-size:12px;font-weight:600;color:rgba(255,255,255,.85)}
+.ov-l3-hd-right{display:none}
+.ov-l3-hd-brand{display:none}
 /* Cards row — each card = full composed PNG, aspect-matched (no crop) */
-.ov-l3-cards{display:flex;justify-content:center;align-items:center;flex:1;gap:10px;overflow:hidden;padding:6px}
+.ov-l3-cards{display:flex;justify-content:space-evenly;align-items:center;flex:1;gap:10px;overflow:hidden;padding:44px 18px 14px;background:var(--ov-stripe),var(--ov-grad)}
 .ov-l3-card{position:relative;height:100%;aspect-ratio:506/350;overflow:hidden;border-radius:8px;background:transparent}
 .ov-l3-photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block}
 .ov-l3-photo-fb{position:absolute;inset:0;display:grid;place-items:center;font-size:32px;font-weight:800}
@@ -354,24 +360,24 @@ body.ov-lower3 #ov-lower3{display:flex}
 .ov-l3-cpct{font-size:12px;font-weight:500;color:rgba(255,255,255,.85);margin-top:3px}
 
 /* ════════════ OVERLAY · BOTTOM BAR (1264×209) ════════════ */
-#ov-bar{display:none;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(1264px,100vw);height:209px;flex-direction:column;overflow:hidden;background:linear-gradient(180deg,rgba(10,12,15,.97),rgba(6,7,9,.99));border-top:3px solid var(--brand);box-shadow:0 -8px 32px rgba(0,0,0,.5)}
+#ov-bar{display:none;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(1264px,100vw);height:209px;flex-direction:column;overflow:hidden;background:var(--ov-lime);padding:6px;border:none;box-shadow:0 -8px 32px rgba(0,0,0,.5)}
 body.ov-bottombar{background:transparent!important}
 body.ov-bottombar::before,body.ov-bottombar::after{display:none!important}
 body.ov-bottombar #ov-bar{display:flex}
-.ovb-hd{display:flex;align-items:center;gap:10px;height:40px;flex-shrink:0;padding:0 18px;background:rgba(0,0,0,.45);border-bottom:1px solid rgba(255,255,255,.07);white-space:nowrap}
-.ovb-hd-ico{width:22px;height:22px;flex-shrink:0}
-.ovb-hd-title{font-size:14px;font-weight:800;color:#fff;letter-spacing:.2px}
-.ovb-hd-sub{font-size:11px;color:var(--t3);font-weight:500}
-.ovb-hd-stats{margin-left:auto;display:flex;align-items:center;gap:16px;flex-shrink:0}
+.ovb-hd{position:absolute;top:6px;left:6px;z-index:10;display:flex;align-items:center;gap:11px;background:transparent;border:none;white-space:nowrap}
+.ovb-hd-ico{display:none}
+.ovb-hd-title{font-size:17px;font-weight:800;color:var(--ov-ink);letter-spacing:.2px;background:var(--ov-lime);padding:5px 30px 5px 16px;clip-path:polygon(0 0,100% 0,calc(100% - 22px) 100%,0 100%)}
+.ovb-hd-sub{font-size:11px;color:rgba(255,255,255,.85);font-weight:600}
+.ovb-hd-stats{display:none}
 .ovb-stat{display:flex;align-items:baseline;gap:5px;font-size:11px;color:var(--t3)}
 .ovb-stat b{font-size:15px;font-weight:900;color:#fff;font-family:var(--font-num);font-variant-numeric:tabular-nums}
 .ovb-stat b.pct{color:var(--brand-l)}
-.ovb-hd-brand{font-size:11px;font-weight:800;color:var(--brand-l);letter-spacing:.6px;padding-left:14px;border-left:1px solid rgba(255,255,255,.12)}
-.ovb-stage{position:relative;flex:1;overflow:hidden}
+.ovb-hd-brand{display:none}
+.ovb-stage{position:relative;flex:1;overflow:hidden;background:var(--ov-stripe),var(--ov-grad)}
 .ovb-view{position:absolute;inset:0;display:flex;opacity:0;transition:opacity .5s ease;pointer-events:none}
 .ovb-view.on{opacity:1;pointer-events:auto}
 /* Top 5 governor */
-.ovb-gov{gap:8px;padding:6px;justify-content:center;align-items:center}
+.ovb-gov{gap:8px;padding:40px 14px 12px;justify-content:space-evenly;align-items:center}
 .ovb-gc{position:relative;flex:none;height:100%;aspect-ratio:506/350;overflow:hidden;border-radius:8px;background:transparent}
 .ovb-gc-photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block}
 .ovb-gc-fb{position:absolute;inset:0;display:grid;place-items:center;font-size:26px;font-weight:800}
@@ -379,15 +385,15 @@ body.ov-bottombar #ov-bar{display:flex}
 .ovb-gc-votes{font-size:17px;font-weight:800;font-family:var(--font-num);font-variant-numeric:tabular-nums;line-height:1.1;color:#fff;white-space:nowrap}
 .ovb-gc-pct{font-size:9px;font-weight:500;color:rgba(255,255,255,.85);margin-top:3px}
 /* ส.ก. party seats */
-.ovb-skg{gap:2px;padding:0}
-.ovb-pc{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;position:relative;overflow:hidden;background:rgba(16,18,21,.7);padding:8px 6px;gap:3px}
-.ovb-pc+.ovb-pc{border-left:1px solid rgba(255,255,255,.06)}
+.ovb-skg{gap:0;padding:40px 0 0}
+.ovb-pc{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;position:relative;overflow:hidden;background:transparent;padding:6px 8px 16px;gap:3px}
+.ovb-pc+.ovb-pc::before{content:'';position:absolute;left:0;top:10px;bottom:10px;width:2px;background:rgba(255,255,255,.13);transform:skewX(-12deg)}
 .ovb-pc-bar{position:absolute;left:0;bottom:0;height:4px;width:100%}
 .ovb-pc-name{font-size:13px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;line-height:1.2}
 .ovb-pc-seat{font-size:38px;font-weight:900;line-height:1;font-family:var(--font-num)}
-.ovb-pc-seatlbl{font-size:10px;color:var(--t3);font-weight:600}
-.ovb-pc-votes{font-size:10px;color:var(--t4);font-family:var(--font-num)}
-.ovb-empty{flex:1;display:grid;place-items:center;color:var(--t4);font-size:13px}
+.ovb-pc-seatlbl{font-size:10px;color:rgba(255,255,255,.7);font-weight:600}
+.ovb-pc-votes{font-size:10px;color:rgba(255,255,255,.55);font-family:var(--font-num)}
+.ovb-empty{flex:1;display:grid;place-items:center;color:rgba(255,255,255,.6);font-size:13px}
 .ovb-ctl{position:absolute;right:14px;bottom:12px;display:flex;align-items:center;gap:5px;padding:5px 7px;background:rgba(0,0,0,.8);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.14);border-radius:30px;z-index:30;opacity:0;transition:opacity .3s;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.5)}
 #ov-bar:hover .ovb-ctl,#ov-bar.show-ctl .ovb-ctl{opacity:1;pointer-events:auto}
 .ovb-ctl button{width:28px;height:28px;border-radius:50%;border:none;background:rgba(255,255,255,.08);color:#fff;display:grid;place-items:center;cursor:pointer;transition:background .15s;flex-shrink:0}
@@ -441,23 +447,23 @@ body.ov-side #ov-side{display:flex}
 .ovs-ctl button svg{width:16px;height:16px}
 .ovs-ctl-label{font-size:12px;font-weight:600;color:#fff;padding:0 10px;white-space:nowrap;min-width:120px;text-align:center;font-variant-numeric:tabular-nums}
 /* ════════════ STAT OVERLAY (?overlay=stat) ════════════ */
-#ov-stat{display:none;position:fixed;bottom:0;left:0;right:0;flex-direction:column;height:170px;overflow:hidden;background:rgba(8,9,11,.93);border-top:3px solid var(--brand);backdrop-filter:blur(8px)}
+#ov-stat{display:none;position:fixed;bottom:0;left:0;right:0;flex-direction:column;height:190px;overflow:hidden;background:var(--ov-lime);padding:7px;border:none}
 body.ov-stat{background:transparent!important}
 body.ov-stat::before,body.ov-stat::after{display:none!important}
 body.ov-stat #ov-stat{display:flex}
-.ovst-hd{display:flex;align-items:center;gap:8px;padding:5px 16px;background:rgba(0,0,0,.5);border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0;white-space:nowrap;overflow:hidden}
-.ovst-hd-ico{width:20px;height:20px;flex-shrink:0}
-.ovst-hd-title{font-size:12px;font-weight:800;color:#fff;letter-spacing:.2px}
-.ovst-hd-sub{font-size:10px;color:var(--t3)}
-.ovst-hd-brand{margin-left:auto;font-size:10px;font-weight:700;color:var(--brand-l);letter-spacing:.5px}
-.ovst-body{display:flex;flex:1;overflow:hidden}
-.ovst-block{flex:1;display:flex;flex-direction:column;justify-content:center;padding:10px 28px;gap:2px;position:relative;border-right:1px solid rgba(255,255,255,.07)}
-.ovst-block:last-child{border-right:none}
-.ovst-label{font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.6px;text-transform:uppercase;margin-bottom:3px}
-.ovst-num{font-size:52px;font-weight:900;color:#fff;line-height:1;font-family:var(--font-num);font-variant-numeric:tabular-nums}
-.ovst-num span{font-size:26px;color:var(--t3)}
-.ovst-sub{font-size:12px;font-weight:600;color:var(--brand-l);margin-top:3px}
-.ovst-bar{position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(255,255,255,.06)}
+.ovst-hd{position:absolute;top:7px;left:7px;z-index:10;display:flex;align-items:center;gap:12px;background:transparent;border:none;white-space:nowrap}
+.ovst-hd-ico{display:none}
+.ovst-hd-title{font-size:19px;font-weight:800;color:var(--ov-ink);letter-spacing:.2px;background:var(--ov-lime);padding:6px 34px 6px 18px;clip-path:polygon(0 0,100% 0,calc(100% - 24px) 100%,0 100%)}
+.ovst-hd-sub{font-size:12px;font-weight:600;color:rgba(255,255,255,.85)}
+.ovst-hd-brand{display:none}
+.ovst-body{display:flex;flex:1;overflow:hidden;background:var(--ov-stripe),var(--ov-grad);padding-top:38px}
+.ovst-block{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:6px 28px;gap:2px;position:relative;border:none}
+.ovst-block:first-child::after{content:'';position:absolute;right:0;top:16px;bottom:16px;width:2px;background:rgba(255,255,255,.2);transform:skewX(-14deg)}
+.ovst-label{font-size:17px;font-weight:800;color:#fff;letter-spacing:.3px;margin-bottom:4px}
+.ovst-num{font-size:58px;font-weight:900;color:#fff;line-height:1;font-family:var(--font-num);font-variant-numeric:tabular-nums}
+.ovst-num span{font-size:30px;color:rgba(255,255,255,.9)}
+.ovst-sub{display:none}
+.ovst-bar{display:none}
 .ovst-bar-fill{height:100%;background:var(--brand);transition:width .8s cubic-bezier(.4,0,.2,1)}
 /* ════════════ CUSTOM ARTWORK BACKGROUNDS ════════════
    วางไฟล์ PNG (พื้นโปร่งใส) ชื่อตามนี้ในโฟลเดอร์เดียวกับ index.html แล้วจะใช้เป็นพื้นหลังอัตโนมัติ
@@ -468,9 +474,9 @@ body.ov-stat #ov-stat{display:flex}
      bg-stat.png      1920×170   · สถิติการนับ
    ตัวเลข/รูปผู้สมัครยังเป็น HTML สดวางทับด้านบนเหมือนเดิม */
 #ov-lower3,#ov-stat,#ov-bar,#ov-side{background-size:cover;background-position:center;background-repeat:no-repeat}
-#ov-lower3{background-image:url('bg-lower3.png')}
-#ov-stat{background-image:url('bg-stat.png')}
-#ov-bar{background-image:url('bg-bottombar.png'),linear-gradient(180deg,rgba(10,12,15,.97),rgba(6,7,9,.99))}
+#ov-lower3[data-art]{background-image:url('bg-lower3.png')}
+#ov-stat[data-art]{background-image:url('bg-stat.png')}
+#ov-bar[data-art]{background-image:url('bg-bottombar.png')}
 #ov-side{background-image:url('bg-side.png'),linear-gradient(160deg,rgba(10,12,15,.98),rgba(6,7,9,.99))}
 /* ════════════ BROADCAST CONTROLLER (?control=1) ════════════ */
 body.ctrl{overflow:auto}
@@ -1471,7 +1477,7 @@ function renderLower3(){
     </div>`;
   }).join('');
   const counted=countedDistricts||0;
-  el.innerHTML=`<div class="ov-l3-hd">${hdSvg}<span class="ov-l3-hd-title">ผลการนับคะแนนเลือกตั้งผู้ว่าฯ กทม. 69</span><span class="ov-l3-hd-sub">(ไม่เป็นทางการ)</span><div class="ov-l3-hd-right">นับแล้ว <b style="color:#fff">${counted}</b>/50 เขต &nbsp;·&nbsp; <span class="ov-l3-hd-brand">THE STANDARD</span></div></div><div class="ov-l3-cards">${cards}</div>`;
+  el.innerHTML=`<div class="ov-l3-hd"><span class="ov-l3-hd-title">ผลการเลือกตั้ง ผู้ว่าฯ กทม.</span><span class="ov-l3-hd-sub">อย่างไม่เป็นทางการ</span></div><div class="ov-l3-cards">${cards}</div>`;
 }
 
 /* ════════════ OVERLAY · BOTTOM BAR + SIDE PANEL (BKK 2026 brief) ════════════ */
@@ -1510,23 +1516,17 @@ function renderStat(){
   const turnPct=totalVoters>0?(turnout/totalVoters*100).toFixed(1):'—';
   el.innerHTML=`
     <div class="ovst-hd">
-      ${OV_BALLOT.replace('<svg','<svg class="ovst-hd-ico"')}
-      <span class="ovst-hd-title">ผลการเลือกตั้งผู้ว่าฯ กทม.</span>
-      <span class="ovst-hd-sub">&nbsp;(อย่างไม่เป็นทางการ)</span>
-      <span class="ovst-hd-brand">THE STANDARD</span>
+      <span class="ovst-hd-title">รายงานความคืบหน้า</span>
+      <span class="ovst-hd-sub">อย่างไม่เป็นทางการ</span>
     </div>
     <div class="ovst-body">
       <div class="ovst-block">
         <div class="ovst-label">นับคะแนนแล้ว</div>
         <div class="ovst-num">${cntPct}<span>%</span></div>
-        <div class="ovst-sub">${counted} / 50 เขต</div>
-        <div class="ovst-bar"><div class="ovst-bar-fill" style="width:${cntPct}%"></div></div>
       </div>
       <div class="ovst-block">
-        <div class="ovst-label">ผู้มาใช้สิทธิ</div>
-        <div class="ovst-num" style="font-size:${turnout>=1000000?'38px':'52px'}">${turnout.toLocaleString()}<span> คน</span></div>
-        <div class="ovst-sub">${turnPct!=='—'?turnPct+'% ของผู้มีสิทธิ์':'ยังไม่มีข้อมูล'}</div>
-        <div class="ovst-bar"><div class="ovst-bar-fill" style="width:${turnPct!=='—'?turnPct:0}%"></div></div>
+        <div class="ovst-label">ผู้มาใช้สิทธิเลือกตั้ง</div>
+        <div class="ovst-num" style="font-size:${turnout>=1000000?'44px':'58px'}">${turnout.toLocaleString()}<span> คน</span></div>
       </div>
     </div>`;
 }
@@ -1586,14 +1586,8 @@ function renderBottomBar(){
   const hasSkg=parties.length>0;
   el.innerHTML=`
     <div class="ovb-hd">
-      ${OV_BALLOT.replace('<svg','<svg class="ovb-hd-ico"')}
-      <span class="ovb-hd-title" id="ovb-title">ผลการเลือกตั้งผู้ว่าฯ กทม.</span>
-      <span class="ovb-hd-sub">(อย่างไม่เป็นทางการ)</span>
-      <div class="ovb-hd-stats">
-        <div class="ovb-stat">นับแล้ว <b class="pct">${pct}%</b></div>
-        <div class="ovb-stat">ผู้มาใช้สิทธิ <b>${turnout.toLocaleString()}</b> คน</div>
-        <span class="ovb-hd-brand">THE STANDARD</span>
-      </div>
+      <span class="ovb-hd-title" id="ovb-title">ผลการเลือกตั้ง ผู้ว่าฯ กทม.</span>
+      <span class="ovb-hd-sub">อย่างไม่เป็นทางการ</span>
     </div>
     <div class="ovb-stage">
       <div class="ovb-view ovb-gov" id="ovb-view-gov">${govCards}</div>
@@ -1623,7 +1617,7 @@ function renderBottomBar(){
 function ovBarApply(){
   const gv=$('ovb-view-gov'),sv=$('ovb-view-skg'),t=$('ovb-title');if(!gv)return;
   gv.classList.toggle('on',ovBarView===0);if(sv)sv.classList.toggle('on',ovBarView===1);
-  if(t)t.textContent=ovBarView===0?'ผลการเลือกตั้งผู้ว่าฯ กทม.':'ผลการเลือกตั้ง ส.ก. · ที่นั่งตามพรรค';
+  if(t)t.textContent=ovBarView===0?'ผลการเลือกตั้ง ผู้ว่าฯ กทม.':'ผลการเลือกตั้ง สก.';
   const pp=$('ovb-pp');if(pp)pp.innerHTML=ovBarPaused?OV_ICO_PLAY:OV_ICO_PAUSE;
 }
 
