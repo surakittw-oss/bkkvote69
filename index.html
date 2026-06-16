@@ -1358,6 +1358,7 @@ function renderAll(){
   if(OVERLAY==='bottombar')renderBottomBar();
   if(OVERLAY==='side')renderSidePanel();
   if(OVERLAY==='stat')renderStat();
+  if(OVERLAY==='footer'){renderLower3();renderStat();}
   if(OVERLAY==='live')renderLiveScene();
   requestAnimationFrame(()=>$('prog').style.width=(countedDistricts/50*100)+'%');
   postHeight();setTimeout(postHeight,900);
@@ -1439,8 +1440,19 @@ const PVW_MODE=(new URLSearchParams(location.search)).get('pvw')==='1'; // previ
   else if(OVERLAY==='bottombar') document.body.classList.add('ov-bottombar');
   else if(OVERLAY==='side') document.body.classList.add('ov-side');
   else if(OVERLAY==='stat') document.body.classList.add('ov-stat');
+  else if(OVERLAY==='footer'){document.body.classList.add('ov-lower3');startFooterCycle();}
   // 'live' → ไม่ใส่ class ใด เริ่มจอเปล่า (โปร่งใส) แล้วให้ liveApplyControl ใส่เลเยอร์ตามสถานะ
 })();
+function startFooterCycle(){
+  const views=['ov-lower3','ov-stat'];
+  let i=0;
+  setInterval(()=>{
+    i=(i+1)%views.length;
+    document.body.classList.remove(...views);
+    document.body.classList.add(views[i]);
+    if(views[i]==='ov-lower3')renderLower3();else renderStat();
+  },10000);
+}
 
 function renderLower3(){
   const el=$('ov-lower3'); if(!el)return;
