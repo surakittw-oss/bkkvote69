@@ -549,6 +549,8 @@ body.ctrl #ctrl-panel{display:block}
 .cp-take{margin-top:2px}
 .cp-layer .cp-take{width:100%;flex:none}
 .cp-layer .cp-sub{margin-top:12px}
+.cp-select{padding:8px 12px;border-radius:8px;border:1.5px solid var(--line);background:var(--bg);color:#fff;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;outline:none;max-width:200px}
+.cp-select:hover{border-color:var(--t3)}
 </style>
 </head>
 <body>
@@ -2232,6 +2234,7 @@ function ctrlBarView(v){ctrlWrite({barView:v,barPlaying:false});}
 function ctrlBarAuto(){ctrlWrite({barPlaying:!ctrlState.barPlaying});}
 function ctrlSideStep(d){ctrlWrite({sideIdx:(ctrlState.sideIdx||0)+d,sidePlaying:false});}
 function ctrlSideAuto(){ctrlWrite({sidePlaying:!ctrlState.sidePlaying});}
+function ctrlSideSet(i){ctrlWrite({sideIdx:parseInt(i)||0,sidePlaying:false});} // เลือกเขตเจาะจง + ค้างไว้
 /* ── listen side (overlay/controller ฟังสถานะ program) ── */
 function ctrlSetupListener(){
   if(!fbDb)return;
@@ -2313,11 +2316,15 @@ function renderControlPanel(){
         <button class="cp-btn ${!s.barPlaying&&s.barView===0?'on':''}" onclick="ctrlBarView(0)">ผู้ว่าฯ</button>
         <button class="cp-btn ${!s.barPlaying&&s.barView===1?'on':''}" onclick="ctrlBarView(1)">ส.ก.</button>
         <button class="cp-btn ${s.barPlaying?'on':''}" onclick="ctrlBarAuto()">${s.barPlaying?'⏸ หยุด':'▶ สลับอัตโนมัติ'}</button></div>`;
-    }else if(L.key==='side'&&pgm==='on'){
-      sub=`<div class="cp-sub"><span class="cp-sub-lbl">เลื่อน Side:</span>
-        <button class="cp-btn" onclick="ctrlSideStep(-1)">◀</button>
-        <button class="cp-btn" onclick="ctrlSideStep(1)">▶</button>
-        <button class="cp-btn ${s.sidePlaying?'on':''}" onclick="ctrlSideAuto()">${s.sidePlaying?'⏸ หยุด':'▶ สลับอัตโนมัติ'}</button></div>`;
+    }else if(L.key==='side'&&(pgm==='on'||pvw==='on')){
+      const scenes=ovSideScenes();
+      const cur=scenes.length?(((s.sideIdx||0)%scenes.length)+scenes.length)%scenes.length:0;
+      const optlist=scenes.map((sc,i)=>`<option value="${i}" ${i===cur?'selected':''}>${sc.t==='dist'?'เขต'+sc.name:'แผนที่ผู้ว่าฯ'}</option>`).join('');
+      sub=`<div class="cp-sub"><span class="cp-sub-lbl">โชว์เขต:</span>
+        <select class="cp-select" onchange="ctrlSideSet(this.value)">${optlist||'<option>— ยังไม่มีข้อมูล ส.ก. —</option>'}</select>
+        <button class="cp-btn" onclick="ctrlSideStep(-1)" title="ก่อนหน้า">◀</button>
+        <button class="cp-btn" onclick="ctrlSideStep(1)" title="ถัดไป">▶</button>
+        <button class="cp-btn ${s.sidePlaying?'on':''}" onclick="ctrlSideAuto()">${s.sidePlaying?'⏸ หยุดค้างไว้':'▶ วนอัตโนมัติ'}</button></div>`;
     }
     return `<div class="cp-layer${pgm!=='off'?' on':''}">
       <div class="cp-layer-hd"><span class="cp-layer-name">${L.label}</span>
