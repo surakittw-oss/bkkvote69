@@ -1689,7 +1689,7 @@ function ovSidePaint(){
   const scene=scenes[ovSideIdx%scenes.length];
   const a=$('ovs-view-a'),b=$('ovs-view-b'),t=$('ovs-title');if(!a||!b)return;
   if(scene.t==='dist'){
-    const arr=[...skgList(scene.name)].sort((x,y)=>(parseInt(y.votes)||0)-(parseInt(x.votes)||0)).slice(0,3);
+    const arr=[...skgList(scene.name)].sort((x,y)=>(parseInt(y.votes)||0)-(parseInt(x.votes)||0)).slice(0,5);
     const d=DISTRICTS.find(x=>x.name===scene.name||normName(x.name)===normName(scene.name));
     const pct=d&&d.counted?100:0;
     const rows=arr.map((c,i)=>{
