@@ -321,38 +321,31 @@ body.ov-totals .bar{margin-top:4px}
 body.ov-map #totals-col{display:none!important}
 body.ov-map .map-card{background:transparent}
 /* Lower-third broadcast graphic */
-#ov-lower3{display:none;position:fixed;bottom:0;left:0;right:0;flex-direction:column;height:170px;overflow:hidden;background:rgba(8,9,11,.93);border-top:3px solid var(--brand);backdrop-filter:blur(8px)}
+#ov-lower3{display:none;position:fixed;bottom:0;left:0;right:0;flex-direction:column;height:200px;overflow:hidden;background:rgba(8,9,11,.96);border-top:3px solid var(--brand)}
 body.ov-lower3{background:transparent!important}
 body.ov-lower3::before,body.ov-lower3::after{display:none!important}
 body.ov-lower3 #ov-lower3{display:flex}
 /* Header bar */
-.ov-l3-hd{display:flex;align-items:center;gap:8px;padding:5px 16px;background:rgba(0,0,0,.5);border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0;white-space:nowrap;overflow:hidden}
-.ov-l3-hd-ico{width:20px;height:20px;flex-shrink:0}
-.ov-l3-hd-title{font-size:12px;font-weight:800;color:#fff;letter-spacing:.2px}
+.ov-l3-hd{display:flex;align-items:center;gap:8px;padding:4px 16px;background:rgba(0,0,0,.6);border-bottom:1px solid rgba(255,255,255,.07);flex-shrink:0;white-space:nowrap;overflow:hidden}
+.ov-l3-hd-ico{width:18px;height:18px;flex-shrink:0}
+.ov-l3-hd-title{font-size:11px;font-weight:800;color:#fff;letter-spacing:.2px}
 .ov-l3-hd-sub{font-size:10px;color:var(--t3)}
 .ov-l3-hd-right{margin-left:auto;font-size:10px;color:var(--t3);display:flex;align-items:center;gap:5px;flex-shrink:0}
 .ov-l3-hd-brand{font-size:10px;font-weight:700;color:var(--brand-l);letter-spacing:.5px}
 /* Cards row */
-.ov-l3-cards{display:flex;flex:1;gap:2px;overflow:hidden}
-.ov-l3-card{flex:1;min-width:0;display:flex;align-items:stretch;position:relative;overflow:hidden;background:rgba(14,15,17,.85)}
-.ov-l3-card.rank1{background:rgba(0,22,10,.9)}
-.ov-l3-card+.ov-l3-card{border-left:1px solid rgba(255,255,255,.07)}
-/* Rank ghost number */
-.ov-l3-num{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:68px;font-weight:900;line-height:1;-webkit-text-stroke:1.5px rgba(255,255,255,.09);color:transparent;pointer-events:none;user-select:none}
-.ov-l3-card.rank1 .ov-l3-num{-webkit-text-stroke-color:rgba(var(--brand-rgb),.22)}
-/* Photo */
-.ov-l3-photo{width:110px;flex-shrink:0;object-fit:contain;object-position:bottom center;display:block;align-self:stretch}
-.ov-l3-photo-fb{width:110px;flex-shrink:0;display:grid;place-items:center;font-size:26px;font-weight:800;align-self:stretch}
-/* Info */
-.ov-l3-body{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;padding:8px 12px 8px 10px;gap:2px;z-index:1}
-.ov-l3-rank-badge{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;font-size:10px;font-weight:900;margin-bottom:3px;flex-shrink:0;align-self:flex-start}
-.ov-l3-card.rank1 .ov-l3-rank-badge{background:var(--brand);color:#fff}
-.ov-l3-card.rank2 .ov-l3-rank-badge{background:rgba(255,255,255,.15);color:var(--t2)}
-.ov-l3-card.rank3 .ov-l3-rank-badge{background:rgba(255,255,255,.1);color:var(--t3)}
-.ov-l3-cname{font-size:13px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.3}
-.ov-l3-cparty{font-size:10px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
-.ov-l3-cvotes{font-size:20px;font-weight:900;font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;line-height:1.1}
-.ov-l3-cpct{font-size:10px;color:var(--t3)}
+.ov-l3-cards{display:flex;flex:1;gap:3px;overflow:hidden;padding:3px}
+/* Card — candidate color via inline --cc var */
+.ov-l3-card{flex:1;min-width:0;display:flex;align-items:stretch;position:relative;overflow:hidden;border-radius:6px;background:rgba(12,14,16,.9)}
+.ov-l3-card+.ov-l3-card{margin-left:0}
+/* Photo wrap — full composed PNG (contain, no crop) */
+.ov-l3-pw{position:relative;width:52%;flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.ov-l3-photo{width:100%;height:100%;object-fit:contain;object-position:center;display:block}
+.ov-l3-photo-fb{width:100%;height:100%;display:grid;place-items:center;font-size:32px;font-weight:800}
+/* Info — party / votes / pct from dashboard */
+.ov-l3-body{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;padding:10px 14px;gap:3px;z-index:1;background:linear-gradient(135deg,rgba(var(--cc-rgb,0,168,79),.20) 0%,rgba(0,0,0,0) 75%)}
+.ov-l3-cparty{font-size:13px;font-weight:600;color:rgba(255,255,255,.7)}
+.ov-l3-cvotes{font-size:30px;font-weight:900;font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;line-height:1.1;margin-top:3px}
+.ov-l3-cpct{font-size:11px;color:rgba(255,255,255,.5);margin-top:2px}
 
 /* ════════════ OVERLAY · BOTTOM BAR (1264×209) ════════════ */
 #ov-bar{display:none;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(1264px,100vw);height:209px;flex-direction:column;overflow:hidden;background:linear-gradient(180deg,rgba(10,12,15,.97),rgba(6,7,9,.99));border-top:3px solid var(--brand);box-shadow:0 -8px 32px rgba(0,0,0,.5)}
@@ -372,22 +365,16 @@ body.ov-bottombar #ov-bar{display:flex}
 .ovb-view{position:absolute;inset:0;display:flex;opacity:0;transition:opacity .5s ease;pointer-events:none}
 .ovb-view.on{opacity:1;pointer-events:auto}
 /* Top 5 governor */
-.ovb-gov{gap:2px;padding:0}
-.ovb-gc{flex:1;min-width:0;display:flex;align-items:stretch;position:relative;overflow:hidden;background:rgba(16,18,21,.7)}
+.ovb-gov{gap:3px;padding:3px}
+.ovb-gc{flex:1;min-width:0;display:flex;align-items:stretch;position:relative;overflow:hidden;border-radius:6px;background:rgba(12,14,16,.9)}
 .ovb-gc.r1{background:rgba(0,26,12,.85)}
-.ovb-gc+.ovb-gc{border-left:1px solid rgba(255,255,255,.06)}
-.ovb-gc-num{position:absolute;right:8px;top:2px;font-size:64px;font-weight:900;line-height:1;-webkit-text-stroke:1.5px rgba(255,255,255,.08);color:transparent;pointer-events:none;user-select:none}
-.ovb-gc.r1 .ovb-gc-num{-webkit-text-stroke-color:rgba(var(--brand-rgb),.25)}
-.ovb-gc-photo{width:92px;flex-shrink:0;object-fit:contain;object-position:bottom center;align-self:stretch;display:block}
-.ovb-gc-fb{width:78px;flex-shrink:0;display:grid;place-items:center;font-size:26px;font-weight:800;align-self:stretch}
-.ovb-gc-body{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;padding:8px 10px;gap:1px;z-index:1}
-.ovb-gc-rank{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;font-size:10px;font-weight:900;align-self:flex-start;margin-bottom:2px}
-.ovb-gc.r1 .ovb-gc-rank{background:var(--brand);color:#fff}
-.ovb-gc:not(.r1) .ovb-gc-rank{background:rgba(255,255,255,.12);color:var(--t2)}
-.ovb-gc-name{font-size:13px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.25}
-.ovb-gc-party{font-size:10px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ovb-gc-votes{font-size:21px;font-weight:900;font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;line-height:1.15;margin-top:1px}
-.ovb-gc-pct{font-size:10px;color:var(--t3)}
+.ovb-gc-pw{position:relative;width:46%;flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.ovb-gc-photo{width:100%;height:100%;object-fit:contain;object-position:center;display:block}
+.ovb-gc-fb{width:100%;height:100%;display:grid;place-items:center;font-size:28px;font-weight:800}
+.ovb-gc-body{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;padding:8px 9px;gap:1px;z-index:1;background:linear-gradient(135deg,rgba(var(--cc-rgb,0,168,79),.20) 0%,rgba(0,0,0,0) 75%)}
+.ovb-gc-party{font-size:11px;font-weight:600;color:rgba(255,255,255,.7)}
+.ovb-gc-votes{font-size:21px;font-weight:900;font-family:'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums;line-height:1.1;margin-top:2px;white-space:nowrap}
+.ovb-gc-pct{font-size:10px;color:rgba(255,255,255,.5);margin-top:1px}
 /* ส.ก. party seats */
 .ovb-skg{gap:2px;padding:0}
 .ovb-pc{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;position:relative;overflow:hidden;background:rgba(16,18,21,.7);padding:8px 6px;gap:3px}
@@ -845,6 +832,7 @@ function recompute(){
 function countUp(el,to,dur=900){const s=performance.now();(function t(now){const p=Math.min((now-s)/dur,1);el.textContent=fmt(Math.round(to*(1-Math.pow(1-p,3))));if(p<1)requestAnimationFrame(t)})(performance.now());}
 // เลือกสีตัวอักษรย่อให้ตัดกับสีพื้น (สีอ่อน→ตัวเข้ม, สีเข้ม→ตัวขาว)
 function inkOn(hex){hex=(hex||'').replace('#','');if(hex.length===3)hex=hex.split('').map(x=>x+x).join('');const r=parseInt(hex.slice(0,2),16)||0,g=parseInt(hex.slice(2,4),16)||0,b=parseInt(hex.slice(4,6),16)||0;return (r*299+g*587+b*114)/1000>140?'#06120a':'#fff';}
+function hexToRgb(hex){hex=(hex||'').replace('#','');if(hex.length===3)hex=hex.split('').map(x=>x+x).join('');const r=parseInt(hex.slice(0,2),16),g=parseInt(hex.slice(2,4),16),b=parseInt(hex.slice(4,6),16);return isNaN(r)?null:{r,g,b};}
 function renderTotals(){
   const sorted=[...CANDS].sort((a,b)=>b.votes-a.votes);
   const base=pctBase||sorted.reduce((s,c)=>s+c.votes,0)||1;
@@ -1457,24 +1445,24 @@ function startFooterCycle(){
 function renderLower3(){
   const el=$('ov-lower3'); if(!el)return;
   const sorted=[...CANDS].sort((a,b)=>b.votes-a.votes).slice(0,3);
-  const base=sorted.reduce((s,c)=>s+c.votes,0)||1;
+  const base=pctBase||sorted.reduce((s,c)=>s+c.votes,0)||1;
   const hdSvg='<svg class="ov-l3-hd-ico" viewBox="0 0 24 24" fill="none"><rect x="3" y="8" width="18" height="3" rx="1.5" fill="#00a84f"/><rect x="4" y="11" width="16" height="10" rx="2" fill="#141517" stroke="#2a2b2d" stroke-width="1"/><rect x="9.5" y="6" width="5" height="6" rx="1" fill="#fff" opacity=".9"/><rect x="11" y="9" width="2" height="1.5" rx=".5" fill="#141517"/><circle cx="18" cy="18" r="4" fill="#FFD600"/><circle cx="18" cy="18" r="2.5" fill="#FFF9C4"/><rect x="17.2" y="18" width="1.6" height="2" rx=".8" fill="#141517"/><circle cx="18" cy="17.2" r="1" fill="#141517"/></svg>';
   const cards=sorted.map((c,i)=>{
     const init=(c.short||c.name||'?').trim().slice(0,1);
     const pct=(c.votes/base*100).toFixed(1);
     const v=c.votes.toLocaleString();
+    const hex=c.color||'#00a84f';
+    const rgb=hexToRgb(hex);
+    const ccRgb=rgb?`${rgb.r},${rgb.g},${rgb.b}`:'0,168,79';
     const photo=c.avatar
-      ?`<img class="ov-l3-photo" src="${c.avatar}" onerror="this.outerHTML='<div class=\\'ov-l3-photo-fb\\' style=\\'background:${c.color};color:${inkOn(c.color)}\\'>${init}</div>'">`
-      :`<div class="ov-l3-photo-fb" style="background:${c.color};color:${inkOn(c.color)}">${init}</div>`;
-    return `<div class="ov-l3-card rank${i+1}">
-      <span class="ov-l3-num">${i+1}</span>
-      ${photo}
+      ?`<img class="ov-l3-photo" src="${c.avatar}" onerror="this.outerHTML='<div class=\\'ov-l3-photo-fb\\' style=\\'background:${hex};color:${inkOn(hex)}\\'>${init}</div>'">`
+      :`<div class="ov-l3-photo-fb" style="background:${hex};color:${inkOn(hex)}">${init}</div>`;
+    return `<div class="ov-l3-card rank${i+1}" style="--cc:${hex};--cc-rgb:${ccRgb}">
+      <div class="ov-l3-pw">${photo}</div>
       <div class="ov-l3-body">
-        <span class="ov-l3-rank-badge">${i+1}</span>
-        <div class="ov-l3-cname">${c.name}</div>
         <div class="ov-l3-cparty">${c.party||'อิสระ'}</div>
-        <div class="ov-l3-cvotes" style="color:${c.color}">${v}</div>
-        <div class="ov-l3-cpct">${pct}% ของคะแนนทั้งหมด</div>
+        <div class="ov-l3-cvotes" style="color:${hex}">${v}</div>
+        <div class="ov-l3-cpct">${pct}% ของคะแนน</div>
       </div>
     </div>`;
   }).join('');
@@ -1546,14 +1534,14 @@ function renderBottomBar(){
   const govCards=gov.map((c,i)=>{
     const init=(c.short||c.name||'?').trim().slice(0,1);
     const pc=(c.votes/base*100).toFixed(1);
-    return `<div class="ovb-gc${i===0?' r1':''}">
-      <span class="ovb-gc-num">${i+1}</span>
-      ${ovPhoto('ovb-gc-photo','ovb-gc-fb',c.avatar,init,c.color)}
+    const hex=c.color||'#00a84f';
+    const rgb=hexToRgb(hex);
+    const ccRgb=rgb?`${rgb.r},${rgb.g},${rgb.b}`:'0,168,79';
+    return `<div class="ovb-gc${i===0?' r1':''}" style="--cc:${hex};--cc-rgb:${ccRgb}">
+      <div class="ovb-gc-pw">${ovPhoto('ovb-gc-photo','ovb-gc-fb',c.avatar,init,hex)}</div>
       <div class="ovb-gc-body">
-        <span class="ovb-gc-rank">${i+1}</span>
-        <div class="ovb-gc-name">${c.name}</div>
         <div class="ovb-gc-party">${c.party||'อิสระ'}</div>
-        <div class="ovb-gc-votes" style="color:${c.color}">${c.votes.toLocaleString()}</div>
+        <div class="ovb-gc-votes" style="color:${hex}">${c.votes.toLocaleString()}</div>
         <div class="ovb-gc-pct">${pc}% ของคะแนน</div>
       </div></div>`;
   }).join('');
