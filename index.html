@@ -466,6 +466,19 @@ body.ov-stat #ov-stat{display:flex}
 .ovst-sub{font-size:12px;font-weight:600;color:var(--brand-l);margin-top:3px}
 .ovst-bar{position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(255,255,255,.06)}
 .ovst-bar-fill{height:100%;background:var(--brand);transition:width .8s cubic-bezier(.4,0,.2,1)}
+/* ════════════ CUSTOM ARTWORK BACKGROUNDS ════════════
+   วางไฟล์ PNG (พื้นโปร่งใส) ชื่อตามนี้ในโฟลเดอร์เดียวกับ index.html แล้วจะใช้เป็นพื้นหลังอัตโนมัติ
+   ถ้าไม่มีไฟล์ → ใช้พื้นหลัง gradient เดิม (fallback)
+     bg-lower3.png    1920×170   · Lower Third
+     bg-bottombar.png 1264×209   · Bottom Bar
+     bg-side.png      576×1080   · Side Panel
+     bg-stat.png      1920×170   · สถิติการนับ
+   ตัวเลข/รูปผู้สมัครยังเป็น HTML สดวางทับด้านบนเหมือนเดิม */
+#ov-lower3,#ov-stat,#ov-bar,#ov-side{background-size:cover;background-position:center;background-repeat:no-repeat}
+#ov-lower3{background-image:url('bg-lower3.png')}
+#ov-stat{background-image:url('bg-stat.png')}
+#ov-bar{background-image:url('bg-bottombar.png'),linear-gradient(180deg,rgba(10,12,15,.97),rgba(6,7,9,.99))}
+#ov-side{background-image:url('bg-side.png'),linear-gradient(160deg,rgba(10,12,15,.98),rgba(6,7,9,.99))}
 /* ════════════ BROADCAST CONTROLLER (?control=1) ════════════ */
 body.ctrl{overflow:auto}
 body.ctrl .wrap{display:none}
