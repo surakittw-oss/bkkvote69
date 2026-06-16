@@ -391,8 +391,8 @@ body.ov-bottombar #ov-bar{display:flex}
 .ovb-ctl button:hover{background:var(--brand)}
 .ovb-ctl button svg{width:14px;height:14px}
 
-/* ════════════ OVERLAY · SIDE PANEL (576×1080) ════════════ */
-#ov-side{display:none;position:fixed;top:0;right:0;width:min(576px,100vw);height:100vh;max-height:1080px;flex-direction:column;overflow:hidden;background:linear-gradient(160deg,rgba(10,12,15,.98),rgba(6,7,9,.99));border-left:3px solid var(--brand);box-shadow:-8px 0 32px rgba(0,0,0,.5)}
+/* ════════════ OVERLAY · SIDE PANEL (480×1080) ════════════ */
+#ov-side{display:none;position:fixed;top:0;right:0;width:min(480px,100vw);height:100vh;max-height:1080px;flex-direction:column;overflow:hidden;background:linear-gradient(160deg,rgba(10,12,15,.98),rgba(6,7,9,.99));border-left:3px solid var(--brand);box-shadow:-8px 0 32px rgba(0,0,0,.5)}
 body.ov-side{background:transparent!important}
 body.ov-side::before,body.ov-side::after{display:none!important}
 body.ov-side #ov-side{display:flex}
@@ -476,7 +476,7 @@ body.ov-stat #ov-stat{display:flex}
    ถ้าไม่มีไฟล์ → ใช้พื้นหลัง gradient เดิม (fallback)
      bg-lower3.png    1920×170   · Lower Third
      bg-bottombar.png 1264×209   · Bottom Bar
-     bg-side.png      576×1080   · Side Panel
+     bg-side.png      480×1080   · Side Panel
      bg-stat.png      1920×170   · สถิติการนับ
    ตัวเลข/รูปผู้สมัครยังเป็น HTML สดวางทับด้านบนเหมือนเดิม */
 #ov-lower3,#ov-stat,#ov-bar,#ov-side{background-size:cover;background-position:center;background-repeat:no-repeat}
@@ -486,8 +486,8 @@ body.ov-stat #ov-stat{display:flex}
 #ov-side{background-image:url('bg-side.png'),linear-gradient(160deg,rgba(10,12,15,.98),rgba(6,7,9,.99))}
 /* ── coexist: footer + side panel (controller mode) ── */
 body.ov-side.ov-lower3 #ov-lower3,
-body.ov-side.ov-stat #ov-stat{right:min(576px,100vw)}
-body.ov-side.ov-bottombar #ov-bar{left:0;right:min(576px,100vw);width:auto;transform:none;max-width:none}
+body.ov-side.ov-stat #ov-stat{right:min(480px,100vw)}
+body.ov-side.ov-bottombar #ov-bar{left:0;right:min(480px,100vw);width:auto;transform:none;max-width:none}
 /* ════════════ BROADCAST CONTROLLER (?control=1) ════════════ */
 body.ctrl{overflow:auto}
 body.ctrl .wrap{display:none}
@@ -647,7 +647,7 @@ body.ctrl #ctrl-panel{display:block}
 <!-- OVERLAY bottom bar (1264×209) -->
 <div id="ov-bar"></div>
 
-<!-- OVERLAY side panel (576×1080) -->
+<!-- OVERLAY side panel (480×1080) -->
 <div id="ov-side"></div>
 <div id="ov-stat"></div>
 
