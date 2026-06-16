@@ -1710,14 +1710,39 @@ function ovSidePaint(){
   const pp=$('ovs-pp');
   if(pp)pp.innerHTML=ovSidePaused?OV_ICO_PLAY:OV_ICO_PAUSE;
 }
+// แยกข้อความไทยเป็น grapheme cluster (พยัญชนะ + สระบน/ล่าง/วรรณยุกต์ที่เกาะอยู่ + สระหน้าเกาะตัวถัดไป)
+function thaiClusters(s){
+  const trail=/[ัาำิ-ฺ็-๎]/; // สระ/วรรณยุกต์/ไม้ที่เกาะตัวหน้า
+  const lead=/[เ-ไ]/;                          // สระหน้า เ แ โ ใ ไ เกาะตัวถัดไป
+  const out=[];
+  for(let i=0;i<s.length;i++){
+    const c=s[i];
+    if(out.length&&trail.test(c)){out[out.length-1]+=c;continue;}
+    if(out.length&&lead.test(out[out.length-1].slice(-1))){out[out.length-1]+=c;continue;}
+    out.push(c);
+  }
+  return out;
+}
 function gridLabel(name,cx,cy,ink,cw){
-  // split name into ≤2 lines, each ≤5 chars
-  const n=name||'';
-  const mid=Math.ceil(n.length/2);
-  const l1=n.slice(0,mid), l2=n.slice(mid);
-  const fs=n.length<=4?9:n.length<=6?8:7;
-  if(!l2)return `<text x="${cx}" y="${cy+fs/2}" text-anchor="middle" style="font-family:var(--font);font-size:${fs}px;font-weight:700;fill:${ink}">${l1}</text>`;
-  return `<text text-anchor="middle" style="font-family:var(--font);font-size:${fs}px;font-weight:700;fill:${ink}"><tspan x="${cx}" dy="${cy-fs/2}">${l1}</tspan><tspan x="${cx}" dy="${fs+1}">${l2}</tspan></text>`;
+  const n=(name||'').trim();
+  const cl=thaiClusters(n);
+  const len=cl.length;
+  const fs=len<=4?9:len<=6?8:7;
+  if(len<=4)
+    return `<text x="${cx}" y="${cy+fs*0.34}" text-anchor="middle" style="font-family:var(--font);font-size:${fs}px;font-weight:700;fill:${ink}">${n}</text>`;
+  // พยายามตัดตามคำ (Intl.Segmenter) เพื่อให้ขึ้นบรรทัดสวยตามพยางค์
+  let l1='',l2='';
+  let words=null;
+  try{words=[...new Intl.Segmenter('th',{granularity:'word'}).segment(n)].map(o=>o.segment).filter(w=>w.trim());}catch(e){}
+  if(words&&words.length>1){
+    // เลือกจุดตัดตามขอบคำที่ทำให้ 2 บรรทัดสมดุลที่สุด
+    const wl=words.map(w=>thaiClusters(w).length);
+    let best=1,bestDiff=Infinity,run=0;
+    for(let i=0;i<words.length-1;i++){run+=wl[i];const diff=Math.abs(run-(len-run));if(diff<bestDiff){bestDiff=diff;best=i+1;}}
+    l1=words.slice(0,best).join('');l2=words.slice(best).join('');
+  }
+  if(!l2){const mid=Math.ceil(len/2);l1=cl.slice(0,mid).join('');l2=cl.slice(mid).join('');}
+  return `<text text-anchor="middle" style="font-family:var(--font);font-size:${fs}px;font-weight:700;fill:${ink}"><tspan x="${cx}" y="${cy-fs*0.18}">${l1}</tspan><tspan x="${cx}" y="${cy+fs}">${l2}</tspan></text>`;
 }
 function ovSideMap(){
   const cols=12,rows=8,cw=44,ch=54,gap=4;
