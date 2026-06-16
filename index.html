@@ -549,6 +549,7 @@ body.ctrl #ctrl-panel{display:block}
 .cp-take{margin-top:2px}
 .cp-layer .cp-take{width:100%;flex:none}
 .cp-layer .cp-sub{margin-top:12px}
+</style>
 </head>
 <body>
 <div class="wrap">
@@ -2336,15 +2337,9 @@ function renderControlPanel(){
       <div class="cp-onair-txt">${anyLive?'ON AIR':'OFF AIR'}<small>${onairTxt}</small></div>
       <span class="cp-conn">${conn}</span>
     </div>
-    <div class="cp-pp">
-      <div class="cp-pane">
-        <div class="cp-pane-lbl pvw">PREVIEW <small>· จัดก่อน ยังไม่ออกอากาศ</small></div>
-        <div class="cp-preview-wrap"><iframe id="cp-pvw-frame" src="${base}?overlay=live&pvw=1" scrolling="no" allowtransparency="true" onload="cpPushPreview()"></iframe></div>
-      </div>
-      <div class="cp-pane">
-        <div class="cp-pane-lbl pgm">ON AIR <small>· ออกอากาศจริง</small></div>
-        <div class="cp-preview-wrap"><iframe id="cp-pgm-frame" src="${base}?overlay=live" scrolling="no" allowtransparency="true"></iframe></div>
-      </div>
+    <div class="cp-pane">
+      <div class="cp-pane-lbl pvw">PREVIEW <small>· ภาพที่จัดไว้ ยังไม่ออกอากาศ จนกว่าจะกด TAKE</small></div>
+      <div class="cp-preview-wrap"><iframe id="cp-pvw-frame" src="${base}?overlay=live&pvw=1" scrolling="no" allowtransparency="true" onload="cpPushPreview()"></iframe></div>
     </div>
     <div class="cp-global">
       <button class="cp-take cp-take-all" onclick="cpTakeAll()">TAKE ทั้งหมด ▶</button>
