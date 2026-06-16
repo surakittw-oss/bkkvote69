@@ -108,8 +108,8 @@ body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;opa
 <body>
 <div id="ctrl-panel"></div>
 <script>
-/* ── CONFIG — แก้ตรงนี้ถ้า deploy ต่าง domain ── */
-const OVERLAY_URL='https://bkkvote69.vercel.app/?overlay=live';
+/* ── CONFIG — อ่าน domain อัตโนมัติ ไม่ต้องแก้เมื่อย้าย hosting ── */
+const OVERLAY_URL=location.origin+location.pathname.replace(/controller\.html$/i,'')+'?overlay=live';
 
 /* ── Firebase ── */
 const firebaseConfig={apiKey:"AIzaSyBZrGgrbCSycCe46TZyXtG1boJMYWcAN-o",authDomain:"bkk-election-vote.firebaseapp.com",databaseURL:"https://bkk-election-vote-default-rtdb.asia-southeast1.firebasedatabase.app",projectId:"bkk-election-vote",storageBucket:"bkk-election-vote.firebasestorage.app",messagingSenderId:"1020264986175",appId:"1:1020264986175:web:3ee5c3cd1d93f16c882a8a"};
