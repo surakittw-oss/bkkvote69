@@ -329,7 +329,7 @@ body.ov-map .map-card{background:transparent}
   --ov-stripe:repeating-linear-gradient(112deg,rgba(255,255,255,.035) 0 1px,transparent 1px 72px);
 }
 /* Lower-third broadcast graphic */
-#ov-lower3{display:none;position:fixed;bottom:0;left:0;right:0;flex-direction:column;height:240px;overflow:hidden;background:var(--ov-lime);padding:7px;border:none}
+#ov-lower3{display:none;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(1264px,100vw);height:209px;flex-direction:column;overflow:hidden;background:var(--ov-lime);padding:6px;border:none}
 body.ov-lower3{background:transparent!important}
 body.ov-lower3::before,body.ov-lower3::after{display:none!important}
 body.ov-lower3 #ov-lower3{display:flex}
@@ -341,14 +341,14 @@ body.ov-lower3 #ov-lower3{display:flex}
 .ov-l3-hd-right{display:none}
 .ov-l3-hd-brand{display:none}
 /* Cards row — each card = full composed PNG, aspect-matched (no crop) */
-.ov-l3-cards{display:flex;justify-content:space-evenly;align-items:center;flex:1;gap:10px;overflow:hidden;padding:44px 18px 14px;background:var(--ov-stripe),var(--ov-grad)}
+.ov-l3-cards{display:flex;justify-content:space-evenly;align-items:center;flex:1;gap:14px;overflow:hidden;padding:46px 9px 7px;background:var(--ov-stripe),var(--ov-grad)}
 .ov-l3-card{position:relative;height:100%;aspect-ratio:506/350;overflow:hidden;border-radius:8px;background:transparent}
 .ov-l3-photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block}
 .ov-l3-photo-fb{position:absolute;inset:0;display:grid;place-items:center;font-size:32px;font-weight:800}
 /* Info — overlaid in the PNG's empty green area (right, below name) */
 .ov-l3-body{position:absolute;left:53.5%;right:2.5%;top:54%;bottom:8%;display:flex;flex-direction:column;justify-content:flex-start;gap:0;z-index:2}
-.ov-l3-cvotes{font-size:21px;font-weight:800;font-family:var(--font-num);font-variant-numeric:tabular-nums;line-height:1.1;color:#fff;white-space:nowrap}
-.ov-l3-cpct{font-size:12px;font-weight:500;color:rgba(255,255,255,.85);margin-top:3px}
+.ov-l3-cvotes{font-size:17px;font-weight:800;font-family:var(--font-num);font-variant-numeric:tabular-nums;line-height:1.1;color:#fff;white-space:nowrap}
+.ov-l3-cpct{font-size:9px;font-weight:500;color:rgba(255,255,255,.85);margin-top:3px}
 
 /* ════════════ OVERLAY · BOTTOM BAR (1264×209) ════════════ */
 #ov-bar{display:none;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(1264px,100vw);height:209px;flex-direction:column;overflow:hidden;background:var(--ov-lime);padding:6px;border:none;box-shadow:0 -8px 32px rgba(0,0,0,.5)}
@@ -482,7 +482,7 @@ body.ov-stat #ov-stat{display:flex}
    ตัวเลข/รูปผู้สมัครยังเป็น HTML สดวางทับด้านบนเหมือนเดิม
    มีไฟล์ในโฟลเดอร์ → init() จะ probe แล้วใส่ attribute data-art อัตโนมัติ */
 #ov-lower3,#ov-stat,#ov-bar,#ov-side{background-size:cover;background-position:center;background-repeat:no-repeat}
-#ov-lower3[data-art]{background-image:url('bg-lower3.png')}
+#ov-lower3[data-art]{background-image:url('bg-bottombar.png')}
 #ov-stat[data-art]{background-image:url('bg-stat.png')}
 #ov-bar[data-art]{background-image:url('bg-bottombar.png')}
 #ov-side{background-image:url('bg-side.png'),linear-gradient(160deg,rgba(10,12,15,.98),rgba(6,7,9,.99))}
@@ -2542,7 +2542,7 @@ function cpRenderSignin(){
 }
 // ตรวจว่ามีไฟล์ Art PNG ในโฟลเดอร์มั้ย ถ้ามี → ใส่ data-art (CSS จะสลับไปใช้ PNG + ซ่อน mock อัตโนมัติ)
 function probeArt(){
-  [['ov-lower3','bg-lower3.png'],['ov-bar','bg-bottombar.png'],['ov-stat','bg-stat.png']].forEach(([id,src])=>{
+  [['ov-lower3','bg-bottombar.png'],['ov-bar','bg-bottombar.png'],['ov-stat','bg-stat.png']].forEach(([id,src])=>{
     const el=document.getElementById(id);if(!el)return;
     const im=new Image();
     im.onload=()=>{if(im.naturalWidth>1)el.setAttribute('data-art','');};
