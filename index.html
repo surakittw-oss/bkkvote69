@@ -534,6 +534,10 @@ body.ctrl #ctrl-panel{display:block}
 .cp-scene.off.on{border-color:#ff3b30;background:rgba(255,59,48,.12)}
 .cp-sub{display:flex;gap:9px;flex-wrap:wrap;align-items:center;padding:14px 16px;border-radius:11px;background:var(--bg2);border:1px solid var(--line)}
 .cp-sub-lbl{font-size:13px;font-weight:700;color:var(--t2);margin-right:4px}
+.cp-studio{margin-bottom:22px;padding:14px 16px;border-radius:11px;background:var(--bg2);border:1px solid var(--line);display:flex;flex-direction:column;gap:11px}
+.cp-studio .cp-sub{background:transparent;border:none;padding:0}
+.cp-color{width:44px;height:32px;border:1px solid var(--line);border-radius:7px;background:transparent;cursor:pointer;padding:2px;flex-shrink:0}
+.cp-color-val{font-size:12px;color:var(--t3);font-family:var(--font-num);font-variant-numeric:tabular-nums}
 .cp-btn{padding:9px 16px;border-radius:8px;border:1.5px solid var(--line);background:transparent;color:var(--t2);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:.15s;display:inline-flex;align-items:center;gap:6px}
 .cp-btn:hover{border-color:var(--t3);color:#fff}
 .cp-btn.on{border-color:var(--brand);background:var(--brand);color:#fff}
@@ -1647,6 +1651,7 @@ function ovBarApply(){
 /* ── SIDE PANEL (576×1080): rotate[ View A ส.ก.รายเขต ↔ View B แผนที่ผู้ว่าฯ ] ── */
 let ovSideTimer=null, ovSideIdx=0, ovSidePaused=false, ovSideCtlT=null, ovSideWired=false;
 const OV_SIDE_MS=7000;
+function ovSideMs(){const v=ctrlState&&+ctrlState.sideSpeed;return v>0?v:OV_SIDE_MS;}
 const OV_ICO_PREV='<svg viewBox="0 0 24 24" fill="none"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const OV_ICO_NEXT='<svg viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const OV_ICO_PAUSE='<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
@@ -1658,7 +1663,7 @@ function ovSideScenes(){
   if(Object.keys(skgData||{}).length)scenes.push({t:'skg-map'});
   return scenes;
 }
-function ovSideStartTimer(){if(ovSideTimer){clearInterval(ovSideTimer);ovSideTimer=null;}if(!ovSidePaused)ovSideTimer=setInterval(()=>{ovSideIdx++;ovSidePaint();},OV_SIDE_MS);}
+function ovSideStartTimer(){if(ovSideTimer){clearInterval(ovSideTimer);ovSideTimer=null;}if(!ovSidePaused)ovSideTimer=setInterval(()=>{ovSideIdx++;ovSidePaint();},ovSideMs());}
 function ovSideGo(d){const n=ovSideScenes().length||1;ovSideIdx=((ovSideIdx+d)%n+n)%n;ovSidePaint();ovSideStartTimer();ovSideFlash();}
 function ovSideTogglePlay(){ovSidePaused=!ovSidePaused;ovSideStartTimer();ovSidePaint();ovSideFlash();}
 function ovSideFlash(){const el=$('ov-side');if(!el)return;el.classList.add('show-ctl');if(ovSideCtlT)clearTimeout(ovSideCtlT);ovSideCtlT=setTimeout(()=>el.classList.remove('show-ctl'),2800);}
@@ -1694,7 +1699,7 @@ function renderSidePanel(){
     }
   }
   ovSidePaint();
-  if(!ovSideTimer&&!ovSidePaused)ovSideTimer=setInterval(()=>{ovSideIdx++;ovSidePaint();},OV_SIDE_MS);
+  if(!ovSideTimer&&!ovSidePaused)ovSideTimer=setInterval(()=>{ovSideIdx++;ovSidePaint();},ovSideMs());
 }
 function ovSidePaint(){
   const scenes=ovSideScenes();if(!scenes.length)return;
@@ -2357,7 +2362,7 @@ function copyEmbed(i){
 const CTRL_MODE=(new URLSearchParams(location.search)).get('control')==='1';
 const CTRL_REF='overlay/control';
 /* state แบบเลเยอร์: footer / side / full แยกอิสระ + sub-control (program = ออกอากาศจริง บน Firebase) */
-const CTRL_DEFAULT={footer:'off',side:'off',full:'off',barView:0,barPlaying:false,sideIdx:0,sidePlaying:false};
+const CTRL_DEFAULT={footer:'off',side:'off',full:'off',barView:0,barPlaying:false,sideIdx:0,sidePlaying:false,bgColor:'',sideSpeed:7000};
 let ctrlState=Object.assign({},CTRL_DEFAULT);          // program (on air)
 let pvwState={footer:'off',side:'off',full:'off',sideIdx:0,sidePlaying:false}; // preview (staged — controller เท่านั้น)
 const CP_ICONS={
@@ -2423,6 +2428,8 @@ function liveApplyControl(s){
   else if(s.full==='bubble'){b.classList.add('ov-map');MODE='prop';}
   ovBarView=s.barView|0;ovBarPaused=!s.barPlaying;
   ovSideIdx=s.sideIdx|0;ovSidePaused=!s.sidePlaying;
+  if(s.bgColor)b.style.setProperty('background-color',s.bgColor,'important');
+  else b.style.removeProperty('background-color');
   renderLiveScene(s);
 }
 function renderLiveScene(s){
@@ -2524,10 +2531,27 @@ function renderControlPanel(){
       <div class="cp-onair-txt">${anyLive?'ON AIR':'OFF AIR'}<small>${onairTxt}</small></div>
       <span class="cp-conn">${conn}</span>
     </div>`;
+  const spd=s.sideSpeed||7000;
   $('cp-ctrls').innerHTML=`
     <div class="cp-global">
       <button class="cp-take cp-take-all" onclick="cpTakeAll()">TAKE ALL ▶</button>
       <button class="cp-cut" onclick="cpCutAll()">CUT · Turn All Off</button>
+    </div>
+    <div class="cp-studio">
+      <div class="cp-sec-lbl">STUDIO SETTINGS</div>
+      <div class="cp-sub">
+        <span class="cp-sub-lbl">Background:</span>
+        <input type="color" class="cp-color" value="${s.bgColor||'#00b140'}" oninput="ctrlWrite({bgColor:this.value})">
+        <span class="cp-color-val">${s.bgColor?s.bgColor:'โปร่งใส (Transparent)'}</span>
+        <button class="cp-btn ${!s.bgColor?'on':''}" onclick="ctrlWrite({bgColor:''})">โปร่งใส</button>
+        <button class="cp-btn ${s.bgColor==='#00b140'?'on':''}" onclick="ctrlWrite({bgColor:'#00b140'})">🟩 Green</button>
+        <button class="cp-btn ${s.bgColor==='#0047ff'?'on':''}" onclick="ctrlWrite({bgColor:'#0047ff'})">🟦 Blue</button>
+      </div>
+      <div class="cp-sub">
+        <span class="cp-sub-lbl">Autoplay Speed:</span>
+        ${[3000,5000,7000,10000,15000].map(ms=>`<button class="cp-btn ${spd===ms?'on':''}" onclick="ctrlWrite({sideSpeed:${ms}})">${ms/1000}s</button>`).join('')}
+        <span class="cp-color-val">วนเขตทุก ${spd/1000} วินาที (Side Panel)</span>
+      </div>
     </div>
     ${layers}
     <div class="cp-hint">Open overlay in OBS / vMix at <code>?overlay=live</code> · Select a scene → it goes to <b>PREVIEW</b> → press <b>TAKE</b> to broadcast · 3 layers (Footer / Side / Fullscreen) are independent and can be on simultaneously</div>`;
