@@ -368,8 +368,9 @@ body.ov-bottombar #ov-bar{display:flex}
 .ovb-view{position:absolute;inset:0;display:flex;opacity:0;transition:opacity .5s ease;pointer-events:none}
 .ovb-view.on{opacity:1;pointer-events:auto}
 /* Top 5 governor */
-.ovb-gov{gap:6px;padding:38px 10px 8px;justify-content:space-between;align-items:stretch}
-.ovb-gc{position:relative;flex:1 1 0;min-width:0;height:100%;overflow:hidden;border-radius:8px;background:transparent}
+.ovb-gov{gap:2px;padding:34px 12px 6px;justify-content:space-between;align-items:center}
+.ovb-gc{position:relative;flex:none;height:100%;aspect-ratio:506/350;overflow:hidden;border-radius:8px;background:transparent}
+.ovb-gc-rank{position:absolute;left:7px;bottom:5px;z-index:4;font-family:var(--font-num);font-weight:900;font-size:30px;line-height:.9;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.75)}
 .ovb-gc-photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block}
 .ovb-gc-fb{position:absolute;inset:0;display:grid;place-items:center;font-size:26px;font-weight:800}
 .ovb-gc-body{position:absolute;left:53.5%;right:2.5%;top:54%;bottom:8%;display:flex;flex-direction:column;justify-content:flex-start;gap:0;z-index:2}
@@ -1588,6 +1589,7 @@ function renderBottomBar(){
     const ccRgb=rgb?`${rgb.r},${rgb.g},${rgb.b}`:'0,168,79';
     return `<div class="ovb-gc${i===0?' r1':''}" style="--cc:${hex};--cc-rgb:${ccRgb}">
       <div class="ovb-gc-pw">${ovPhoto('ovb-gc-photo','ovb-gc-fb',c.avatar,init,hex)}</div>
+      <div class="ovb-gc-rank">${i+1}</div>
       <div class="ovb-gc-body">
         <div class="ovb-gc-votes">${c.votes.toLocaleString()}</div>
         <div class="ovb-gc-pct">${pc}% ของคะแนน</div>
