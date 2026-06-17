@@ -453,7 +453,7 @@ body.ov-side #ov-side{display:flex}
 .ovs-ctl button svg{width:16px;height:16px}
 .ovs-ctl-label{font-size:12px;font-weight:600;color:#fff;padding:0 10px;white-space:nowrap;min-width:120px;text-align:center;font-variant-numeric:tabular-nums}
 /* ════════════ STAT OVERLAY (?overlay=stat) ════════════ */
-#ov-stat{display:none;position:fixed;bottom:0;left:0;right:0;flex-direction:column;height:190px;overflow:hidden;background:var(--ov-lime);padding:7px;border:none}
+#ov-stat{display:none;position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:min(1264px,100vw);flex-direction:column;height:209px;overflow:hidden;background:var(--ov-lime);padding:7px;border:none}
 body.ov-stat{background:transparent!important}
 body.ov-stat::before,body.ov-stat::after{display:none!important}
 body.ov-stat #ov-stat{display:flex}
@@ -475,15 +475,26 @@ body.ov-stat #ov-stat{display:flex}
    วางไฟล์ PNG (พื้นโปร่งใส) ชื่อตามนี้ในโฟลเดอร์เดียวกับ index.html แล้วจะใช้เป็นพื้นหลังอัตโนมัติ
    ถ้าไม่มีไฟล์ → ใช้พื้นหลัง gradient เดิม (fallback)
      bg-lower3.png    1920×170   · Lower Third
-     bg-bottombar.png 1264×209   · Bottom Bar
+     bg-bottombar.png 1264×209   · Bottom Bar (ผู้ว่าฯ)
      bg-side.png      480×1080   · Side Panel
-     bg-stat.png      1920×170   · สถิติการนับ
-   ตัวเลข/รูปผู้สมัครยังเป็น HTML สดวางทับด้านบนเหมือนเดิม */
+     bg-stat.png      1264×209   · รายงานความคืบหน้านับคะแนน
+   ตัวเลข/รูปผู้สมัครยังเป็น HTML สดวางทับด้านบนเหมือนเดิม
+   มีไฟล์ในโฟลเดอร์ → init() จะ probe แล้วใส่ attribute data-art อัตโนมัติ */
 #ov-lower3,#ov-stat,#ov-bar,#ov-side{background-size:cover;background-position:center;background-repeat:no-repeat}
 #ov-lower3[data-art]{background-image:url('bg-lower3.png')}
 #ov-stat[data-art]{background-image:url('bg-stat.png')}
 #ov-bar[data-art]{background-image:url('bg-bottombar.png')}
 #ov-side{background-image:url('bg-side.png'),linear-gradient(160deg,rgba(10,12,15,.98),rgba(6,7,9,.99))}
+/* เมื่อตรวจพบไฟล์ Art (data-art) → ใช้ PNG ล้วน ซ่อน mock เดิม (กรอบ lime / หัวแท็บ / พื้น gradient ที่ฝังในภาพแล้ว) */
+#ov-bar[data-art]{background-color:transparent;padding:0;box-shadow:none}
+#ov-bar[data-art] .ovb-hd{display:none}
+#ov-bar[data-art] .ovb-stage{background:transparent}
+#ov-stat[data-art]{background-color:transparent;padding:0}
+#ov-stat[data-art] .ovst-hd{display:none}
+#ov-stat[data-art] .ovst-body{background:transparent}
+#ov-lower3[data-art]{background-color:transparent;padding:0}
+#ov-lower3[data-art] .ov-l3-hd{display:none}
+#ov-lower3[data-art] .ov-l3-cards{background:transparent}
 /* ── coexist: footer + side panel (controller mode) ── */
 body.ov-side.ov-lower3 #ov-lower3,
 body.ov-side.ov-stat #ov-stat{right:min(480px,100vw)}
@@ -2527,9 +2538,19 @@ function cpRenderSignin(){
   google.accounts.id.initialize({client_id:GAUTH_CID,callback:r=>{gHandleCredential(r);renderControlPanel();},ux_mode:'popup'});
   google.accounts.id.renderButton(t,{type:'standard',shape:'pill',theme:'filled_black',size:'large',text:'signin_with',locale:'en'});
 }
+// ตรวจว่ามีไฟล์ Art PNG ในโฟลเดอร์มั้ย ถ้ามี → ใส่ data-art (CSS จะสลับไปใช้ PNG + ซ่อน mock อัตโนมัติ)
+function probeArt(){
+  [['ov-lower3','bg-lower3.png'],['ov-bar','bg-bottombar.png'],['ov-stat','bg-stat.png']].forEach(([id,src])=>{
+    const el=document.getElementById(id);if(!el)return;
+    const im=new Image();
+    im.onload=()=>{if(im.naturalWidth>1)el.setAttribute('data-art','');};
+    im.src=src;
+  });
+}
 function init(){
   buildSample(1);
   renderAll();
+  if(OVERLAY)probeArt();
   if(CTRL_MODE){document.body.classList.add('ctrl');renderControlPanel();}
   // preview mode: รับสถานะ staged จาก controller ผ่าน postMessage (ไม่ฟัง Firebase)
   if(OVERLAY==='live'&&PVW_MODE){
