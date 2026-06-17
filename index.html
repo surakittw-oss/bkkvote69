@@ -386,7 +386,7 @@ body.ov-bottombar #ov-bar{display:flex}
 .ovb-pc-seatlbl{font-size:10px;color:rgba(255,255,255,.7);font-weight:600}
 .ovb-pc-votes{font-size:10px;color:rgba(255,255,255,.55);font-family:var(--font-num)}
 .ovb-empty{flex:1;display:grid;place-items:center;color:rgba(255,255,255,.6);font-size:13px}
-.ovb-ctl{position:absolute;right:14px;bottom:12px;display:flex;align-items:center;gap:5px;padding:5px 7px;background:rgba(0,0,0,.8);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.14);border-radius:30px;z-index:30;opacity:0;transition:opacity .3s;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.5)}
+.ovb-ctl{display:none!important}
 #ov-bar:hover .ovb-ctl,#ov-bar.show-ctl .ovb-ctl{opacity:1;pointer-events:auto}
 .ovb-ctl button{width:28px;height:28px;border-radius:50%;border:none;background:rgba(255,255,255,.08);color:#fff;display:grid;place-items:center;cursor:pointer;transition:background .15s;flex-shrink:0}
 .ovb-ctl button:hover{background:var(--brand)}
@@ -447,7 +447,7 @@ body.ov-side #ov-side{display:flex}
 .ovs-leg-dot{width:11px;height:11px;border-radius:3px;flex-shrink:0}
 .ovs-empty{flex:1;display:grid;place-items:center;color:var(--t4);font-size:14px;padding:20px;text-align:center}
 /* manual control bar — auto-hide */
-.ovs-ctl{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);display:flex;align-items:center;gap:6px;padding:7px 9px;background:rgba(0,0,0,.78);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.14);border-radius:32px;z-index:30;opacity:0;transition:opacity .3s;pointer-events:none;box-shadow:0 6px 22px rgba(0,0,0,.5)}
+.ovs-ctl{display:none!important}
 #ov-side:hover .ovs-ctl,#ov-side.show-ctl .ovs-ctl{opacity:1;pointer-events:auto}
 .ovs-ctl button{width:34px;height:34px;border-radius:50%;border:none;background:rgba(255,255,255,.08);color:#fff;display:grid;place-items:center;cursor:pointer;transition:background .15s;flex-shrink:0}
 .ovs-ctl button:hover{background:var(--brand)}
