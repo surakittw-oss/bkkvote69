@@ -393,16 +393,16 @@ body.ov-bottombar #ov-bar{display:flex}
 .ovb-ctl button svg{width:14px;height:14px}
 
 /* ════════════ OVERLAY · SIDE PANEL (480×1080) ════════════ */
-#ov-side{display:none;position:fixed;top:0;right:0;width:min(480px,100vw);height:100vh;max-height:1080px;flex-direction:column;overflow:hidden;background:linear-gradient(160deg,rgba(10,12,15,.98),rgba(6,7,9,.99));border-left:3px solid var(--brand);box-shadow:-8px 0 32px rgba(0,0,0,.5)}
+#ov-side{display:none;position:fixed;top:0;right:0;width:min(480px,100vw);height:100vh;max-height:1080px;flex-direction:column;overflow:hidden;background:var(--ov-stripe),var(--ov-grad);border:5px solid var(--ov-lime);box-shadow:-8px 0 32px rgba(0,0,0,.5)}
 body.ov-side{background:transparent!important}
 body.ov-side::before,body.ov-side::after{display:none!important}
 body.ov-side #ov-side{display:flex}
-.ovs-hd{display:flex;align-items:center;gap:10px;flex-shrink:0;padding:14px 20px;background:rgba(0,0,0,.4);border-bottom:1px solid rgba(255,255,255,.08)}
-.ovs-hd-ico{width:26px;height:26px;flex-shrink:0}
-.ovs-hd-tt{display:flex;flex-direction:column;min-width:0;gap:1px}
-.ovs-hd-title{font-size:17px;font-weight:800;color:#fff;line-height:1.2}
-.ovs-hd-sub{font-size:12px;color:var(--t3)}
-.ovs-hd-brand{margin-left:auto;font-size:12px;font-weight:800;color:var(--brand-l);letter-spacing:.6px;flex-shrink:0}
+.ovs-hd{display:flex;align-items:flex-start;gap:9px;flex-shrink:0;padding:13px 16px 11px;background:transparent}
+.ovs-hd-ico{display:none}
+.ovs-hd-tt{display:flex;flex-direction:column;align-items:flex-start;gap:5px;min-width:0}
+.ovs-hd-title{font-size:16px;font-weight:800;color:var(--ov-ink);line-height:1.2;background:var(--ov-lime);padding:6px 26px 6px 14px;clip-path:polygon(0 0,100% 0,calc(100% - 19px) 100%,0 100%);white-space:nowrap}
+.ovs-hd-sub{font-size:11px;color:rgba(255,255,255,.78);font-weight:600;white-space:nowrap;padding-left:3px}
+.ovs-hd-brand{margin-left:auto;font-size:12px;font-weight:900;color:var(--brand-l);letter-spacing:.6px;flex-shrink:0;margin-top:5px}
 .ovs-stage{position:relative;flex:1;overflow:hidden}
 .ovs-view{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;transition:opacity .5s ease;pointer-events:none}
 .ovs-view.on{opacity:1;pointer-events:auto}
@@ -485,7 +485,7 @@ body.ov-stat #ov-stat{display:flex}
 #ov-lower3[data-art]{background-image:url('bg-bottombar.png')}
 #ov-stat[data-art]{background-image:url('bg-stat.png')}
 #ov-bar[data-art]{background-image:url('bg-bottombar.png')}
-#ov-side{background-image:url('bg-side.png'),linear-gradient(160deg,rgba(10,12,15,.98),rgba(6,7,9,.99))}
+#ov-side{background-image:url('bg-side.png'),var(--ov-stripe),var(--ov-grad)}
 /* เมื่อตรวจพบไฟล์ Art (data-art) → ใช้ PNG ล้วน ซ่อน mock เดิม (กรอบ lime / หัวแท็บ / พื้น gradient ที่ฝังในภาพแล้ว) */
 #ov-bar[data-art]{background-color:transparent;padding:0;box-shadow:none}
 #ov-bar[data-art] .ovb-hd{display:none}
@@ -1670,7 +1670,6 @@ function renderSidePanel(){
       <div class="ovs-hd">
         ${OV_BALLOT.replace('<svg','<svg class="ovs-hd-ico"')}
         <div class="ovs-hd-tt"><span class="ovs-hd-title" id="ovs-title">ผลการนับคะแนน</span><span class="ovs-hd-sub">(อย่างไม่เป็นทางการ)</span></div>
-        <span class="ovs-hd-brand">THE STANDARD</span>
       </div>
       <div class="ovs-stage">
         <div class="ovs-view" id="ovs-view-a"></div>
