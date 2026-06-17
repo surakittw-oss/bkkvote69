@@ -393,52 +393,40 @@ body.ov-bottombar #ov-bar{display:flex}
 .ovb-ctl button svg{width:14px;height:14px}
 
 /* ════════════ OVERLAY · SIDE PANEL (480×1080) ════════════ */
-#ov-side{display:none;position:fixed;top:0;right:0;width:min(480px,100vw);height:100vh;max-height:1080px;flex-direction:column;overflow:hidden;background:var(--ov-stripe),var(--ov-grad);border:5px solid var(--brand);box-shadow:-8px 0 32px rgba(0,0,0,.5)}
+#ov-side{display:none;position:fixed;top:0;right:0;width:min(576px,100vw);height:100vh;max-height:1080px;flex-direction:column;overflow:hidden;background-color:#0a2018;background-size:cover;background-position:center;box-shadow:-8px 0 32px rgba(0,0,0,.5)}
 body.ov-side{background:transparent!important}
 body.ov-side::before,body.ov-side::after{display:none!important}
 body.ov-side #ov-side{display:flex}
-.ovs-hd{display:flex;align-items:flex-start;gap:9px;flex-shrink:0;padding:13px 16px 11px;background:transparent}
+.ovs-hd{display:flex;align-items:flex-start;flex-shrink:0;padding:14px 22px 6px;background:transparent;min-height:62px}
 .ovs-hd-ico{display:none}
-.ovs-hd-tt{display:flex;flex-direction:column;align-items:flex-start;gap:5px;min-width:0}
-.ovs-hd-title{font-size:16px;font-weight:800;color:var(--ov-ink);line-height:1.2;background:var(--brand);padding:6px 26px 6px 14px;clip-path:polygon(0 0,100% 0,calc(100% - 19px) 100%,0 100%);white-space:nowrap}
-.ovs-hd-sub{font-size:11px;color:rgba(255,255,255,.78);font-weight:600;white-space:nowrap;padding-left:3px}
-.ovs-hd-brand{margin-left:auto;font-size:12px;font-weight:900;color:var(--brand-l);letter-spacing:.6px;flex-shrink:0;margin-top:5px}
+.ovs-hd-tt{display:flex;flex-direction:column;min-width:0}
+.ovs-hd-title{font-size:20px;font-weight:900;line-height:1.06;white-space:pre-line;color:#fff;text-shadow:0 1px 5px rgba(0,0,0,.4)}
+.ovs-hd-sub{display:none}
+.ovs-hd-brand{display:none}
 .ovs-stage{position:relative;flex:1;overflow:hidden}
 .ovs-view{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;transition:opacity .5s ease;pointer-events:none}
 .ovs-view.on{opacity:1;pointer-events:auto}
 /* View A — ส.ก. รายเขต */
-.ovs-distbar{display:flex;align-items:center;gap:12px;padding:16px 20px 12px;flex-shrink:0}
-.ovs-distname{font-size:26px;font-weight:900;color:#fff;line-height:1}
-.ovs-distpct{margin-left:auto;text-align:right;font-size:11px;color:var(--t3);line-height:1.4}
-.ovs-distpct b{font-size:20px;font-weight:900;color:var(--brand-l);font-family:var(--font-num);display:block}
-.ovs-rows{flex:1;display:flex;flex-direction:column;padding:0 20px 16px;gap:8px;overflow:hidden}
-.ovs-row{display:flex;align-items:center;gap:14px;background:rgba(18,20,23,.7);border-radius:12px;padding:12px 16px;position:relative;overflow:hidden;flex:1;max-height:128px}
-.ovs-row.win{background:rgba(0,26,12,.55);box-shadow:inset 0 0 0 1px rgba(var(--brand-rgb),.3)}
-.ovs-row-rank{font-size:28px;font-weight:900;color:var(--t4);width:34px;flex-shrink:0;text-align:center;font-family:var(--font-num)}
-.ovs-row.win .ovs-row-rank{color:var(--brand-l)}
-.ovs-row-photo{width:auto;height:78px;aspect-ratio:989/579;border-radius:8px;object-fit:cover;object-position:center;flex-shrink:0;background:#222}
-.ovs-row-fb{width:auto;height:78px;aspect-ratio:989/579;border-radius:8px;display:grid;place-items:center;font-size:28px;font-weight:800;flex-shrink:0}
-.ovs-row-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
-.ovs-row-name{font-size:18px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
-.ovs-row-party{font-size:13px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ovs-row-elected{display:inline-block;font-size:10px;font-weight:800;color:var(--brand-l);background:rgba(var(--brand-rgb),.16);border:1px solid rgba(var(--brand-rgb),.35);padding:1px 8px;border-radius:20px;margin-top:3px;align-self:flex-start}
-.ovs-row-votes{text-align:right;flex-shrink:0;font-size:26px;font-weight:900;color:#fff;font-family:var(--font-num);font-variant-numeric:tabular-nums}
-.ovs-row-votes small{display:block;font-size:11px;font-weight:600;color:var(--t4)}
-/* การ์ดผู้สมัคร ส.ก. — แสดงที่อัตราส่วนจริงของไฟล์ Art (988×588) + overlay คะแนน/พรรค มุมล่างขวา */
-.ovs-card{position:relative;flex:0 0 calc((100% - 32px)/5);min-height:0;aspect-ratio:988/588;width:auto;max-width:100%;margin:0 auto;border-radius:14px;overflow:hidden;background-color:#0c2418;background-size:cover;background-position:center;background-repeat:no-repeat}
-.ovs-card.win{box-shadow:inset 0 0 0 3px rgba(var(--brand-rgb),.65)}
-/* overlay มุมล่างขวา (พื้นที่ว่างที่ Art เว้นไว้ใต้ชื่อ) */
-.ovs-card-data{position:absolute;right:5%;bottom:7%;display:flex;flex-direction:column;align-items:flex-end;text-align:right;gap:3px}
-.ovs-card-votes{font-size:clamp(30px,7cqw,52px);font-weight:900;color:#fff;line-height:.95;font-family:var(--font-num);font-variant-numeric:tabular-nums;text-shadow:0 2px 14px rgba(0,0,0,.5)}
-.ovs-card-votes small{display:block;font-size:clamp(11px,1.8cqw,15px);font-weight:600;color:rgba(255,255,255,.78);margin-top:4px;text-shadow:none}
-.ovs-card-party{font-size:clamp(14px,2.4cqw,19px);font-weight:800;text-shadow:0 1px 7px rgba(0,0,0,.5)}
-/* fallback: ยังไม่มีไฟล์การ์ด → จำลองเลย์เอาต์เดียวกัน (รูปย่อซ้าย + ชื่อบนขวา + คะแนน/พรรคล่างขวา) */
-.ovs-card{container-type:inline-size}
-.ovs-card--plain{background:linear-gradient(108deg,color-mix(in srgb,var(--cc) 28%,#0c2418) 0%,#0c2418 60%)}
-.ovs-fb-photo{position:absolute;left:5%;top:50%;transform:translateY(-50%);width:33%;aspect-ratio:1;border-radius:12px;display:grid;place-items:center;font-size:clamp(40px,10cqw,72px);font-weight:900;color:#fff;background:var(--cc);box-shadow:0 0 0 3px rgba(255,255,255,.15)}
-.ovs-fb-head{position:absolute;left:42%;top:16%;right:5%;color:#fff}
-.ovs-fb-rank{font-size:clamp(12px,2.2cqw,17px);font-weight:700;color:rgba(255,255,255,.6)}
-.ovs-fb-name{display:block;font-size:clamp(13px,5cqw,18px);font-weight:800;line-height:1.18;margin-top:2px}
+/* sub-header — วางในแถบดำ baked ของ bg */
+.ovs-distbar{display:flex;align-items:center;gap:12px;padding:4px 24px 16px;flex-shrink:0;min-height:54px}
+.ovs-distname{font-size:30px;font-weight:900;color:#fff;line-height:1}
+.ovs-distpct{margin-left:auto;display:flex;align-items:center;gap:9px;text-align:right}
+.ovs-distpct-lbl{font-size:11px;font-weight:600;color:rgba(255,255,255,.8);line-height:1.25}
+.ovs-distpct b{font-size:30px;font-weight:900;color:#fff;font-family:var(--font-num);font-variant-numeric:tabular-nums}
+/* การ์ดผลคะแนน (ส.ก. 3 ใบ / ผู้ว่าฯ 5 ใบ) — เลขอันดับเขียว + รูป + ชื่อ + คะแนน */
+.ovs2-list{flex:1;display:flex;flex-direction:column;gap:15px;padding:4px 24px 30px;overflow:hidden}
+.ovs2-card{position:relative;flex:1;min-height:0;display:flex;align-items:center;gap:0;background:linear-gradient(100deg,rgba(255,255,255,.07),rgba(255,255,255,.02));border-radius:5px;overflow:hidden}
+.ovs2-card.win{box-shadow:inset 0 0 0 2px rgba(var(--brand-rgb),.6)}
+.ovs2-photo{position:relative;height:100%;aspect-ratio:1;max-width:33%;flex-shrink:0;background-size:cover;background-position:left center;background-color:var(--cc,#0c2418);box-shadow:inset 0 0 0 2px rgba(var(--brand-rgb),.55)}
+.ovs2-photo-fb{position:absolute;inset:0;display:grid;place-items:center;font-size:40px;font-weight:900;color:#fff}
+.ovs2-no{position:absolute;right:0;bottom:0;background:#e21f26;color:#fff;font-size:11px;font-weight:700;padding:2px 7px;line-height:1.3}
+.ovs2-no b{font-size:14px;font-weight:900;font-family:var(--font-num)}
+.ovs2-rank{position:absolute;left:0;bottom:0;z-index:3;min-width:42px;height:42px;padding:0 5px;display:grid;place-items:center;background:var(--brand);color:#06241a;font-weight:900;font-size:27px;font-family:var(--font-num);line-height:1}
+.ovs2-mid{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;gap:3px;padding:0 12px}
+.ovs2-name{font-size:20px;font-weight:800;color:#fff;line-height:1.15;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ovs2-party{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ovs2-votes{flex-shrink:0;text-align:right;padding-right:16px;font-size:30px;font-weight:900;color:#fff;font-family:var(--font-num);font-variant-numeric:tabular-nums;line-height:1}
+.ovs2-votes small{display:block;font-size:12px;font-weight:600;color:rgba(255,255,255,.75);margin-top:4px}
 /* View B — แผนที่ผู้ว่าฯ */
 .ovs-mapwrap{flex:1;display:flex;align-items:center;justify-content:center;padding:10px 16px;min-height:0}
 .ovs-mapwrap svg{width:100%;height:100%;max-height:100%}
@@ -485,7 +473,8 @@ body.ov-stat #ov-stat{display:flex}
 #ov-lower3[data-art]{background-image:url('bg-bottombar.png')}
 #ov-stat[data-art]{background-image:url('bg-stat.png')}
 #ov-bar[data-art]{background-image:url('bg-bottombar.png')}
-#ov-side{background-image:url('bg-side.png'),var(--ov-stripe),var(--ov-grad)}
+#ov-side,#ov-side[data-side="skg"]{background-image:url('bg-side-skg.png')}
+#ov-side[data-side="gov"]{background-image:url('bg-side-gov.png')}
 /* เมื่อตรวจพบไฟล์ Art (data-art) → ใช้ PNG ล้วน ซ่อน mock เดิม (กรอบ lime / หัวแท็บ / พื้น gradient ที่ฝังในภาพแล้ว) */
 #ov-bar[data-art]{background-color:transparent;padding:0;box-shadow:none}
 #ov-bar[data-art] .ovb-hd{display:none}
@@ -499,7 +488,7 @@ body.ov-stat #ov-stat{display:flex}
 /* ── coexist: footer + side panel (controller mode) ── */
 body.ov-side.ov-lower3 #ov-lower3,
 body.ov-side.ov-stat #ov-stat,
-body.ov-side.ov-bottombar #ov-bar{left:0;right:min(480px,100vw);width:auto;transform:none;max-width:none}
+body.ov-side.ov-bottombar #ov-bar{left:0;right:min(576px,100vw);width:auto;transform:none;max-width:none}
 /* ════════════ BROADCAST CONTROLLER (?control=1) ════════════ */
 body.ctrl{overflow:auto}
 body.ctrl .wrap{display:none}
@@ -1658,10 +1647,25 @@ const OV_ICO_PAUSE='<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="
 const OV_ICO_PLAY='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5l12 7-12 7z"/></svg>';
 function ovSideScenes(){
   const scenes=[];
-  Object.keys(skgData||{}).forEach(dn=>{if(Array.isArray(skgData[dn])&&skgData[dn].length)scenes.push({t:'dist',name:dn});});
-  scenes.push({t:'map'});
-  if(Object.keys(skgData||{}).length)scenes.push({t:'skg-map'});
+  DISTRICTS.forEach(d=>{
+    scenes.push({t:'gov',name:d.name});
+    if(skgData&&Array.isArray(skgData[d.name])&&skgData[d.name].length)scenes.push({t:'skg',name:d.name});
+  });
   return scenes;
+}
+function ovsDistbar(name,pct){return `<div class="ovs-distbar"><span class="ovs-distname">${name}</span><span class="ovs-distpct"><span class="ovs-distpct-lbl">นับคะแนนแล้ว<br>อย่างไม่เป็นทางการ</span><b>${pct}%</b></span></div>`;}
+function ovsCard(i,avatar,name,sub,votes,color,isGov,win){
+  const cc=color||PALETTE[i%PALETTE.length];
+  const rgb=hexToRgb(cc);const ccRgb=rgb?`${rgb.r},${rgb.g},${rgb.b}`:'8,214,144';
+  const fb=avatar?'':`<div class="ovs2-photo-fb">${(name||'?').trim().slice(0,1)}</div>`;
+  const noBadge=isGov?`<span class="ovs2-no">เบอร์ <b>${sub||''}</b></span>`:'';
+  const subLine=isGov?'':`<div class="ovs2-party" style="color:${cc}">${sub||'อิสระ'}</div>`;
+  const photoStyle=avatar?`--cc:${cc};background-image:url('${avatar}')`:`--cc:${cc}`;
+  return `<div class="ovs2-card${win?' win':''}" style="--cc:${cc};--cc-rgb:${ccRgb}">
+    <div class="ovs2-photo" style="${photoStyle}">${fb}${noBadge}<div class="ovs2-rank">${i+1}</div></div>
+    <div class="ovs2-mid"><div class="ovs2-name">${name}</div>${subLine}</div>
+    <div class="ovs2-votes">${fmt(votes)}<small>คะแนน</small></div>
+  </div>`;
 }
 function ovSideStartTimer(){if(ovSideTimer){clearInterval(ovSideTimer);ovSideTimer=null;}if(!ovSidePaused)ovSideTimer=setInterval(()=>{ovSideIdx++;ovSidePaint();},ovSideMs());}
 function ovSideGo(d){const n=ovSideScenes().length||1;ovSideIdx=((ovSideIdx+d)%n+n)%n;ovSidePaint();ovSideStartTimer();ovSideFlash();}
@@ -1705,43 +1709,24 @@ function ovSidePaint(){
   const scenes=ovSideScenes();if(!scenes.length)return;
   const scene=scenes[ovSideIdx%scenes.length];
   const a=$('ovs-view-a'),b=$('ovs-view-b'),t=$('ovs-title');if(!a||!b)return;
-  if(scene.t==='dist'){
-    const arr=[...skgList(scene.name)].sort((x,y)=>(parseInt(y.votes)||0)-(parseInt(x.votes)||0)).slice(0,5);
-    const d=DISTRICTS.find(x=>x.name===scene.name||normName(x.name)===normName(scene.name));
-    const pct=d&&d.counted?100:0;
-    const rows=arr.map((c,i)=>{
-      const col=c.color||PALETTE[i%PALETTE.length];
-      const votes=fmt(parseInt(c.votes)||0);
-      const data=`<div class="ovs-card-data">
-            <span class="ovs-card-votes">${votes}<small>คะแนน</small></span>
-            <span class="ovs-card-party" style="color:${col}">${c.party||'อิสระ'}</span>
-          </div>`;
-      // มีการ์ดรูป (Art ฝังชื่อ/เขตในภาพ 988×588) → วางคะแนน+พรรคทับมุมล่างขวา
-      if(c.avatar){
-        return `<div class="ovs-card${c.elected?' win':''}" style="background-image:url('${c.avatar}')">${data}</div>`;
-      }
-      // ยังไม่มีการ์ดรูป → กล่องสีอัตราส่วนเดียวกัน (รูปย่อซ้าย + ลำดับ/ชื่อ + คะแนน/พรรค)
-      const init=(c.name||'?').trim().slice(0,1);
-      return `<div class="ovs-card ovs-card--plain${c.elected?' win':''}" style="--cc:${col}">
-        <div class="ovs-fb-photo">${init}</div>
-        <div class="ovs-fb-head"><span class="ovs-fb-rank">อันดับ ${i+1}</span><b class="ovs-fb-name">${c.name}</b></div>
-        ${data}
-      </div>`;
-    }).join('');
-    a.innerHTML=`<div class="ovs-distbar"><span class="ovs-distname">เขต${scene.name}</span><span class="ovs-distpct"><b>${pct}%</b>นับคะแนนแล้ว</span></div><div class="ovs-rows">${rows}</div>`;
-    if(t)t.textContent='ผลการนับคะแนน ส.ก. รายเขต';
-    a.classList.add('on');b.classList.remove('on');
-  }else if(scene.t==='skg-map'){
-    a.innerHTML=ovSideSkgMap();
-    if(t)t.textContent='ผู้ชนะ ส.ก. รายเขต (กริด)';
-    a.classList.add('on');b.classList.remove('on');
+  const sideEl=$('ov-side');if(sideEl)sideEl.setAttribute('data-side',scene.t==='gov'?'gov':'skg');
+  const dname='เขต'+(scene.name||'').replace(/^เขต/,'');
+  const d=DISTRICTS.find(x=>x.name===scene.name||normName(x.name)===normName(scene.name));
+  const pct=d&&d.counted?100:0;
+  b.classList.remove('on');a.classList.add('on');
+  if(scene.t==='gov'){
+    const ranked=(d?d.votes.map((v,ci)=>({c:CANDS[ci],v:v||0})):[]).filter(x=>x.c).sort((x,y)=>y.v-x.v).slice(0,5);
+    const cards=ranked.map((x,i)=>ovsCard(i,x.c.avatar,x.c.name,x.c.no,x.v,x.c.color,true,i===0&&pct>0)).join('');
+    a.innerHTML=ovsDistbar(dname,pct)+`<div class="ovs2-list ovs2-list--gov">${cards}</div>`;
+    if(t)t.textContent='ผลการนับคะแนน\nผู้ว่าฯ รายเขต';
   }else{
-    b.innerHTML=ovSideMap();
-    if(t)t.textContent='ผู้ชนะ ผู้ว่าฯ รายเขต (กริด)';
-    b.classList.add('on');a.classList.remove('on');
+    const arr=[...skgList(scene.name)].sort((x,y)=>(parseInt(y.votes)||0)-(parseInt(x.votes)||0)).slice(0,3);
+    const cards=arr.map((c,i)=>ovsCard(i,c.avatar,c.name,c.party,parseInt(c.votes)||0,c.color,false,c.elected)).join('');
+    a.innerHTML=ovsDistbar(dname,pct)+`<div class="ovs2-list ovs2-list--skg">${cards}</div>`;
+    if(t)t.textContent='ผลการนับคะแนน\nส.ก. รายเขต';
   }
   // อัปเดตแถบควบคุม
-  const sceneLabel=scene.t==='dist'?'เขต'+scene.name:scene.t==='skg-map'?'กริด ส.ก.':'กริด ผู้ว่าฯ';
+  const sceneLabel=(scene.t==='gov'?'ผู้ว่าฯ ':'ส.ก. ')+dname;
   const lbl=$('ovs-ctl-label');
   if(lbl)lbl.textContent=sceneLabel+` · ${(ovSideIdx%scenes.length)+1}/${scenes.length}`;
   const pp=$('ovs-pp');
@@ -2381,7 +2366,7 @@ const CP_LAYERS=[
   {key:'full',label:'Fullscreen',options:[{k:'off',label:'Off'},{k:'map',label:'Winner Map'},{k:'bubble',label:'Bubble Chart'}]},
 ];
 function cpLabel(layer,val){const L=CP_LAYERS.find(x=>x.key===layer);const o=L&&L.options.find(x=>x.k===val);return o?o.label:'Off';}
-function cpSideName(i){const sc=ovSideScenes();if(!sc.length)return'';const x=sc[(((i||0)%sc.length)+sc.length)%sc.length];return x?(x.t==='dist'?'ส.ก. เขต'+x.name:x.t==='skg-map'?'กริด ส.ก.':'กริด ผู้ว่าฯ'):'';}
+function cpSideName(i){const sc=ovSideScenes();if(!sc.length)return'';const x=sc[(((i||0)%sc.length)+sc.length)%sc.length];return x?((x.t==='gov'?'ผู้ว่าฯ ':'ส.ก. ')+'เขต'+(x.name||'').replace(/^เขต/,'')):'';}
 /* ── write side (controller สั่งงาน → program บน Firebase) ── */
 async function ctrlWrite(patch){
   Object.assign(ctrlState,patch);
@@ -2505,7 +2490,7 @@ function renderControlPanel(){
       // side: เลือกเขต/โหมด = stage เข้า preview (ใช้ค่า pvwState) → ต้องกด TAKE ถึงออกอากาศ
       const scenes=ovSideScenes();
       const cur=scenes.length?(((pvwState.sideIdx||0)%scenes.length)+scenes.length)%scenes.length:0;
-      const optlist=scenes.map((sc,i)=>`<option value="${i}" ${i===cur?'selected':''}>${sc.t==='dist'?'ส.ก. เขต'+sc.name:sc.t==='skg-map'?'กริด ส.ก.':'กริด ผู้ว่าฯ'}</option>`).join('');
+      const optlist=scenes.map((sc,i)=>`<option value="${i}" ${i===cur?'selected':''}>${(sc.t==='gov'?'ผู้ว่าฯ ':'ส.ก. ')+'เขต'+(sc.name||'').replace(/^เขต/,'')}</option>`).join('');
       sub=`<div class="cp-sub"><span class="cp-sub-lbl">District (preview):</span>
         <select class="cp-select" onchange="cpStageSideIdx(this.value)">${optlist||'<option>— No district data —</option>'}</select>
         <button class="cp-btn" onclick="cpStageSideStep(-1)" title="Previous">◀</button>
