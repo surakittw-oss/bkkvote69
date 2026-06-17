@@ -1716,7 +1716,8 @@ function ovSidePaint(){
   b.classList.remove('on');a.classList.add('on');
   if(scene.t==='gov'){
     const ranked=(d?d.votes.map((v,ci)=>({c:CANDS[ci],v:v||0})):[]).filter(x=>x.c).sort((x,y)=>y.v-x.v).slice(0,5);
-    const cards=ranked.map((x,i)=>ovsCard(i,x.c.avatar,x.c.name,x.c.no,x.v,x.c.color,true,i===0&&pct>0)).join('');
+    // รูปผู้ว่าฯ ใช้ field sidePhoto (portrait เฉพาะ side panel) — รอ sheet/drive; ยังไม่มี → placeholder
+    const cards=ranked.map((x,i)=>ovsCard(i,x.c.sidePhoto||'',x.c.name,x.c.no,x.v,x.c.color,true,i===0&&pct>0)).join('');
     a.innerHTML=ovsDistbar(dname,pct)+`<div class="ovs2-list ovs2-list--gov">${cards}</div>`;
     if(t)t.textContent='ผลการนับคะแนน\nผู้ว่าฯ รายเขต';
   }else{
