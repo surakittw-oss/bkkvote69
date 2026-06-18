@@ -1511,8 +1511,8 @@ function ovPhoto(cls,fbcls,avatar,init,color){
 /* ── BOTTOM BAR (1264×209): % + turnout + rotate[ Top5 ผู้ว่าฯ ↔ ส.ก.ตามพรรค ] ── */
 let ovBarTimer=null, ovBarView=0, ovBarPaused=false, ovBarCtlT=null, ovBarWired=false, ovBarHasSkg=false;
 const OV_BAR_MS=8000;
-function ovBarStartTimer(){if(ovBarTimer){clearInterval(ovBarTimer);ovBarTimer=null;}if(!ovBarPaused&&ovBarHasSkg)ovBarTimer=setInterval(()=>{ovBarView=(ovBarView+1)%2;ovBarApply();},OV_BAR_MS);}
-function ovBarGo(d){if(!ovBarHasSkg)return;ovBarView=((ovBarView+d)%2+2)%2;ovBarApply();ovBarStartTimer();ovBarFlash();}
+function ovBarStartTimer(){if(ovBarTimer){clearInterval(ovBarTimer);ovBarTimer=null;}if(!ovBarPaused)ovBarTimer=setInterval(()=>{ovBarView=(ovBarView+1)%3;ovBarApply();},OV_BAR_MS);}
+function ovBarGo(d){ovBarView=((ovBarView+d)%3+3)%3;ovBarApply();ovBarStartTimer();ovBarFlash();}
 function ovBarTogglePlay(){if(!ovBarHasSkg)return;ovBarPaused=!ovBarPaused;ovBarStartTimer();ovBarApply();ovBarFlash();}
 function ovBarFlash(){const el=$('ov-bar');if(!el)return;el.classList.add('show-ctl');if(ovBarCtlT)clearTimeout(ovBarCtlT);ovBarCtlT=setTimeout(()=>el.classList.remove('show-ctl'),2800);}
 function renderBottomBar(){
@@ -1564,9 +1564,9 @@ function renderBottomBar(){
     </div>`:''}`;
   // timer คงที่ ไม่ reset ตอน live refresh — แค่อัปเดตเนื้อหา + คง view ปัจจุบัน
   ovBarHasSkg=hasSkg;
-  if(!hasSkg){ovBarView=0;if(ovBarTimer){clearInterval(ovBarTimer);ovBarTimer=null;}}
+  if(!hasSkg&&ovBarView===1){ovBarView=0;}
   ovBarApply();
-  if(hasSkg&&!ovBarTimer&&!ovBarPaused)ovBarTimer=setInterval(()=>{ovBarView=(ovBarView+1)%2;ovBarApply();},OV_BAR_MS);
+  if(!ovBarTimer&&!ovBarPaused)ovBarTimer=setInterval(()=>{ovBarView=(ovBarView+1)%3;ovBarApply();},OV_BAR_MS);
   if(!ovBarWired){
     ovBarWired=true;
     el.addEventListener('mousemove',ovBarFlash);
@@ -1580,8 +1580,16 @@ function renderBottomBar(){
 }
 function ovBarApply(){
   const gv=$('ovb-view-gov'),sv=$('ovb-view-skg'),t=$('ovb-title');if(!gv)return;
-  gv.classList.toggle('on',ovBarView===0);if(sv)sv.classList.toggle('on',ovBarView===1);
-  if(t)t.textContent=ovBarView===0?'ผลการเลือกตั้ง ผู้ว่าฯ กทม.':'ผลการเลือกตั้ง สก.';
+  const b=document.body;
+  if(ovBarView===2){
+    gv.classList.remove('on');if(sv)sv.classList.remove('on');
+    b.classList.remove('ov-bottombar');b.classList.add('ov-stat');
+    renderStat();
+  }else{
+    b.classList.remove('ov-stat');b.classList.add('ov-bottombar');
+    gv.classList.toggle('on',ovBarView===0);if(sv)sv.classList.toggle('on',ovBarView===1);
+  }
+  if(t)t.textContent=ovBarView===0?'ผลการเลือกตั้ง ผู้ว่าฯ กทม.':ovBarView===1?'ผลการเลือกตั้ง สก.':'สถิติการนับคะแนน';
   const pp=$('ovb-pp');if(pp)pp.innerHTML=ovBarPaused?OV_ICO_PLAY:OV_ICO_PAUSE;
 }
 
@@ -2340,7 +2348,7 @@ const CP_ICONS={
   stat:'<svg viewBox="0 0 32 22" fill="none"><rect x="3" y="14" width="5" height="6" rx="1" fill="currentColor"/><rect x="10" y="9" width="5" height="11" rx="1" fill="currentColor" opacity=".8"/><rect x="17" y="5" width="5" height="15" rx="1" fill="currentColor" opacity=".6"/><rect x="24" y="2" width="5" height="18" rx="1" fill="currentColor" opacity=".4"/></svg>',
 };
 const CP_LAYERS=[
-  {key:'footer',label:'Footer · Lower Graphics',options:[{k:'off',label:'Off'},{k:'bottombar',label:'Bottom Bar'},{k:'stat',label:'Count Stats'}]},
+  {key:'footer',label:'Footer · Lower Graphics',options:[{k:'off',label:'Off'},{k:'bottombar',label:'Bottom Bar'}]},
   {key:'side',label:'Side Panel',options:[{k:'off',label:'Off'},{k:'on',label:'Show Panel'}]},
   {key:'full',label:'Fullscreen',options:[{k:'off',label:'Off'},{k:'map',label:'Winner Map'},{k:'bubble',label:'Bubble Chart'}]},
 ];
@@ -2389,11 +2397,13 @@ function applyControlForOverlay(s){
 function footerApplyControl(s){
   const b=document.body;
   b.classList.remove('ov-bottombar','ov-stat');
-  if(s.footer==='bottombar')b.classList.add('ov-bottombar');
+  if(s.footer==='bottombar'&&(s.barView|0)===2)b.classList.add('ov-stat');
+  else if(s.footer==='bottombar')b.classList.add('ov-bottombar');
   else if(s.footer==='stat')b.classList.add('ov-stat');
   if(s.bgColor)b.style.setProperty('background-color',s.bgColor,'important');
   else b.style.removeProperty('background-color');
-  if(s.footer==='bottombar'){ovBarView=s.barView|0;ovBarPaused=!s.barPlaying;renderBottomBar();ovBarStartTimer();}
+  if(s.footer==='bottombar'&&(s.barView|0)===2){renderStat();}
+  else if(s.footer==='bottombar'){ovBarView=s.barView|0;ovBarPaused=!s.barPlaying;renderBottomBar();ovBarStartTimer();}
   else if(s.footer==='stat')renderStat();
 }
 /* ── ลิงค์ side (?overlay=side): โชว์เฉพาะ side panel ตาม controller — ไม่ประกอบเลเยอร์อื่น ── */
@@ -2409,7 +2419,8 @@ function sideApplyControl(s){
 function liveApplyControl(s){
   const b=document.body;
   b.classList.remove('ov-totals','ov-map','ov-bottombar','ov-side','ov-stat');
-  if(s.footer==='bottombar')b.classList.add('ov-bottombar');
+  if(s.footer==='bottombar'&&(s.barView|0)===2)b.classList.add('ov-stat');
+  else if(s.footer==='bottombar')b.classList.add('ov-bottombar');
   else if(s.footer==='stat')b.classList.add('ov-stat');
   if(s.side==='on')b.classList.add('ov-side');
   if(s.full==='totals')b.classList.add('ov-totals');
@@ -2423,7 +2434,8 @@ function liveApplyControl(s){
 }
 function renderLiveScene(s){
   s=s||ctrlState;
-  if(s.footer==='bottombar'){renderBottomBar();ovBarStartTimer();}
+  if(s.footer==='bottombar'&&(s.barView|0)===2){renderStat();}
+  else if(s.footer==='bottombar'){renderBottomBar();ovBarStartTimer();}
   else if(s.footer==='stat')renderStat();
   if(s.side==='on'){renderSidePanel();ovSideStartTimer();}
   if(s.full==='map'||s.full==='bubble')renderMap();
@@ -2484,18 +2496,21 @@ function renderControlPanel(){
     }).join('');
     let sub='';
     if(L.key==='footer'&&pgm==='bottombar'){
-      // footer: ปรับสดบน program (หลังออกอากาศแล้ว)
       sub=`<div class="cp-sub"><span class="cp-sub-lbl">Bottom Bar View:</span>
         <button class="cp-btn ${!s.barPlaying&&s.barView===0?'on':''}" onclick="ctrlBarView(0)">Governor</button>
         <button class="cp-btn ${!s.barPlaying&&s.barView===1?'on':''}" onclick="ctrlBarView(1)">Councilors</button>
+        <button class="cp-btn ${!s.barPlaying&&s.barView===2?'on':''}" onclick="ctrlBarView(2)">Count Stats</button>
         <button class="cp-btn ${s.barPlaying?'on':''}" onclick="ctrlBarAuto()">${s.barPlaying?'⏸ Pause':'▶ Auto-rotate'}</button></div>`;
     }else if(L.key==='side'&&pvw==='on'){
-      // side: เลือกเขต/โหมด = stage เข้า preview (ใช้ค่า pvwState) → ต้องกด TAKE ถึงออกอากาศ
       const scenes=ovSideScenes();
       const cur=scenes.length?(((pvwState.sideIdx||0)%scenes.length)+scenes.length)%scenes.length:0;
-      const optlist=scenes.map((sc,i)=>`<option value="${i}" ${i===cur?'selected':''}>${(sc.t==='gov'?'ผู้ว่าฯ ':'ส.ก. ')+'เขต'+(sc.name||'').replace(/^เขต/,'')}</option>`).join('');
-      sub=`<div class="cp-sub"><span class="cp-sub-lbl">District (preview):</span>
-        <select class="cp-select" onchange="cpStageSideIdx(this.value)">${optlist||'<option>— No district data —</option>'}</select>
+      const govOpts=scenes.map((sc,i)=>sc.t==='gov'?`<option value="${i}" ${i===cur?'selected':''}>${'เขต'+(sc.name||'').replace(/^เขต/,'')}</option>`:null).filter(Boolean).join('');
+      const skgOpts=scenes.map((sc,i)=>sc.t==='skg'?`<option value="${i}" ${i===cur?'selected':''}>${'เขต'+(sc.name||'').replace(/^เขต/,'')}</option>`:null).filter(Boolean).join('');
+      sub=`<div class="cp-sub"><span class="cp-sub-lbl">ผู้ว่าฯ รายเขต:</span>
+        <select class="cp-select" onchange="cpStageSideIdx(this.value)">${govOpts||'<option>—</option>'}</select></div>
+        <div class="cp-sub"><span class="cp-sub-lbl">ส.ก. รายเขต:</span>
+        <select class="cp-select" onchange="cpStageSideIdx(this.value)">${skgOpts||'<option>—</option>'}</select></div>
+        <div class="cp-sub">
         <button class="cp-btn" onclick="cpStageSideStep(-1)" title="Previous">◀</button>
         <button class="cp-btn" onclick="cpStageSideStep(1)" title="Next">▶</button>
         <button class="cp-btn ${pvwState.sidePlaying?'on':''}" onclick="cpStageSideAuto()">${pvwState.sidePlaying?'⏸ Hold one':'▶ Auto-rotate'}</button></div>`;
