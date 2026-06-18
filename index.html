@@ -730,6 +730,7 @@ body.ctrl #ctrl-panel{display:block}
       <div class="srcpane" id="pane-ect">
         <div class="fld"><label>API Key (Bearer token) — <b>จำเป็น</b> มิฉะนั้นได้ 401/403</label><input class="inp" id="ect-key" placeholder="วาง partner API token"></div>
         <div class="fld"><label>URL Sheet สี/รูปบาร์ผู้สมัคร — คอลัมน์ <code>no</code>, <code>color</code> (hex), <code>avatar</code>, <code>name</code> (ใส่หรือไม่ก็ได้)</label><input class="inp" id="ect-img" placeholder="วางลิงก์ Sheet สี/รูป (#gid=)"></div>
+        <div class="fld"><label>URL Sheet รูป ส.ก. รายเขต — คอลัมน์ <code>district</code>, <code>no</code>, <code>color</code>, <code>avatar_url</code> (ใส่หรือไม่ก็ได้)</label><input class="inp" id="ect-skg-img" placeholder="วางลิงก์ Sheet รูป ส.ก. (#gid=)"></div>
         <div class="srcrow"><button class="btn btn-p" onclick="ectStart()">▶ เริ่ม Live</button><button class="btn btn-s" onclick="ectStop()">■ หยุด</button></div>
         <p class="srcnote">ERS2026 Media API · <code>bkk-governor-2026</code> (level=province) + <code>bkk-council-2026</code> ส.ก. (level=area) · auto-refresh 60 วิ · <b>สีบาร์</b>ดึงจาก Sheet ตามเบอร์ (no) ถ้ามี ไม่งั้นใช้สีจาก API</p>
         <div class="srcstatus" id="ect-status">—</div>
@@ -2245,6 +2246,12 @@ async function ectStart(){
     try{ectImageMap=await loadOverrideSheet(img);$('ect-status').textContent='โหลดสี/รูป '+Object.keys(ectImageMap).length+' เบอร์';}
     catch(e){ectImageMap=null;$('ect-status').textContent='⚠ Sheet สี/รูป: '+e.message;}
   }else ectImageMap=null;
+  const skgImg=$('ect-skg-img').value.trim();
+  if(skgImg){
+    $('ect-status').textContent+=' · โหลดรูป ส.ก.…';
+    try{const m=await loadSkgImgSheet(skgImg);if(m&&Object.keys(m).length){skgImgMap=m;applySkgImgMap();renderAll();$('ect-status').textContent+=' ✓ ส.ก. '+Object.keys(m).length+' คน';}}
+    catch(e){$('ect-status').textContent+=' ⚠ ส.ก.: '+e.message;}
+  }
   clearInterval(ectTimer);await loadFromECT();ectTimer=setInterval(loadFromECT,60000);
 }
 function ectStop(){clearInterval(ectTimer);ectTimer=null;$('ect-status').textContent='■ หยุดแล้ว'}
