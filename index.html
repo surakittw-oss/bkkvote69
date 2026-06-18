@@ -1349,11 +1349,9 @@ function setMode(m){MODE=m;renderModes();renderMap();postHeight();}
 function renderAll(){
   $('counted').textContent=countedDistricts;
   renderDashSummary();renderTotals();renderLegend();renderModes();renderMap();renderSkgOverview();
-  if(OVERLAY==='bottombar')renderBottomBar();
-  if(OVERLAY==='side')renderSidePanel();
-  if(OVERLAY==='stat')renderStat();
-  if(OVERLAY==='footer'){renderBottomBar();renderStat();}
   if(OVERLAY==='live')renderLiveScene();
+  else if(OV_IS_SIDE){if(ctrlState.side==='on')renderSidePanel();}
+  else if(OV_IS_FOOTER){if(ctrlState.footer==='bottombar')renderBottomBar();else if(ctrlState.footer==='stat')renderStat();}
   requestAnimationFrame(()=>$('prog').style.width=(countedDistricts/50*100)+'%');
   postHeight();setTimeout(postHeight,900);
 }
@@ -1424,28 +1422,17 @@ function logoSetupFbListener(){
 /* ════════════ OVERLAY ════════════ */
 const OVERLAY=(new URLSearchParams(location.search)).get('overlay')||'';
 const PVW_MODE=(new URLSearchParams(location.search)).get('pvw')==='1'; // preview: driven by postMessage, not Firebase
+/* ลิงค์ footer = bottombar/stat รวมเป็นลิงค์เดียว (controller เลือกว่าโชว์อันไหน); bottombar/stat = alias เผื่อ URL เก่า */
+const OV_IS_FOOTER=(OVERLAY==='footer'||OVERLAY==='bottombar'||OVERLAY==='stat');
+const OV_IS_SIDE=(OVERLAY==='side');
 (function initOverlay(){
   if(!OVERLAY)return;
   document.body.classList.add('ov');
   if(OVERLAY==='totals') document.body.classList.add('ov-totals');
   else if(OVERLAY==='map'){document.body.classList.add('ov-map');MODE='map';}
   else if(OVERLAY==='bubble'){document.body.classList.add('ov-map');MODE='prop';}
-  else if(OVERLAY==='bottombar') document.body.classList.add('ov-bottombar');
-  else if(OVERLAY==='side') document.body.classList.add('ov-side');
-  else if(OVERLAY==='stat') document.body.classList.add('ov-stat');
-  else if(OVERLAY==='footer'){document.body.classList.add('ov-bottombar');startFooterCycle();}
-  // 'live' → ไม่ใส่ class ใด เริ่มจอเปล่า (โปร่งใส) แล้วให้ liveApplyControl ใส่เลเยอร์ตามสถานะ
+  // footer / side / live → เริ่มจอเปล่า (โปร่งใส) แล้วให้ applyControlForOverlay ใส่เลเยอร์ตามที่ controller สั่ง
 })();
-function startFooterCycle(){
-  const views=['ov-bottombar','ov-stat'];
-  let i=0;
-  setInterval(()=>{
-    i=(i+1)%views.length;
-    document.body.classList.remove(...views);
-    document.body.classList.add(views[i]);
-    if(views[i]==='ov-bottombar')renderBottomBar();else renderStat();
-  },10000);
-}
 
 /* ════════════ OVERLAY · BOTTOM BAR + SIDE PANEL (BKK 2026 brief) ════════════ */
 const OV_BALLOT='<svg viewBox="0 0 24 24" fill="none"><rect x="3" y="8" width="18" height="3" rx="1.5" fill="#00a84f"/><rect x="4" y="11" width="16" height="10" rx="2" fill="#141517" stroke="#2a2b2d" stroke-width="1"/><rect x="9.5" y="6" width="5" height="6" rx="1" fill="#fff" opacity=".9"/><rect x="11" y="9" width="2" height="1.5" rx=".5" fill="#141517"/><circle cx="18" cy="18" r="4" fill="#FFD600"/><circle cx="18" cy="18" r="2.5" fill="#FFF9C4"/><rect x="17.2" y="18" width="1.6" height="2" rx=".8" fill="#141517"/><circle cx="18" cy="17.2" r="1" fill="#141517"/></svg>';
@@ -2363,20 +2350,28 @@ function ctrlSetupListener(){
 /* ── route controller state ตามชนิด overlay ── */
 function applyControlForOverlay(s){
   if(OVERLAY==='live')liveApplyControl(s);
-  else if(OVERLAY==='bottombar'||OVERLAY==='stat')standaloneApplyControl(s);
+  else if(OV_IS_FOOTER)footerApplyControl(s);
+  else if(OV_IS_SIDE)sideApplyControl(s);
 }
-/* ── standalone footer overlay: โชว์เฉพาะส่วนของตัวเอง ไม่ประกอบเลเยอร์อื่น ──
-   body class (ov-bottombar / ov-stat) ตั้งไว้แล้วใน initOverlay — ที่นี่อัปเดตแค่ sub-control + bgColor */
-function standaloneApplyControl(s){
+/* ── ลิงค์ footer (?overlay=footer): โชว์ bottombar หรือ stat ตาม controller — ไม่ประกอบ side/fullscreen ── */
+function footerApplyControl(s){
   const b=document.body;
+  b.classList.remove('ov-bottombar','ov-stat');
+  if(s.footer==='bottombar')b.classList.add('ov-bottombar');
+  else if(s.footer==='stat')b.classList.add('ov-stat');
   if(s.bgColor)b.style.setProperty('background-color',s.bgColor,'important');
   else b.style.removeProperty('background-color');
-  if(OVERLAY==='bottombar'){
-    ovBarView=s.barView|0;ovBarPaused=!s.barPlaying;
-    renderBottomBar();ovBarStartTimer();
-  }else if(OVERLAY==='stat'){
-    renderStat();
-  }
+  if(s.footer==='bottombar'){ovBarView=s.barView|0;ovBarPaused=!s.barPlaying;renderBottomBar();ovBarStartTimer();}
+  else if(s.footer==='stat')renderStat();
+}
+/* ── ลิงค์ side (?overlay=side): โชว์เฉพาะ side panel ตาม controller — ไม่ประกอบเลเยอร์อื่น ── */
+function sideApplyControl(s){
+  const b=document.body;
+  b.classList.remove('ov-side');
+  if(s.side==='on')b.classList.add('ov-side');
+  if(s.bgColor)b.style.setProperty('background-color',s.bgColor,'important');
+  else b.style.removeProperty('background-color');
+  if(s.side==='on'){ovSideIdx=s.sideIdx|0;ovSidePaused=!s.sidePlaying;renderSidePanel();ovSideStartTimer();}
 }
 /* ── live overlay: ประกอบ 3 เลเยอร์ตามสถานะที่รับมา ── */
 function liveApplyControl(s){
@@ -2515,7 +2510,11 @@ function renderControlPanel(){
       </div>
     </div>
     ${layers}
-    <div class="cp-hint">Open overlay in OBS / vMix at <code>?overlay=live</code> · Select a scene → it goes to <b>PREVIEW</b> → press <b>TAKE</b> to broadcast · 3 layers (Footer / Side / Fullscreen) are independent and can be on simultaneously</div>`;
+    <div class="cp-hint">ลิงค์ overlay สำหรับ OBS / vMix (เลือก scene → <b>PREVIEW</b> → กด <b>TAKE</b> เพื่อออกอากาศ):<br>
+      • <b>Footer</b> (Bottom Bar / Count Stats รวมลิงค์เดียว): <code>?overlay=footer</code><br>
+      • <b>Side Panel</b>: <code>?overlay=side</code><br>
+      • <b>รวมทุกเลเยอร์</b> (Footer + Side + Fullscreen): <code>?overlay=live</code><br>
+      ลิงค์แยกแต่ละอันโชว์เฉพาะเลเยอร์ของตัวเอง · มีแต่ <code>?overlay=live</code> ที่รวมทุกเลเยอร์พร้อมกัน</div>`;
   cpScalePreview();
 }
 function cpRenderSignin(){
@@ -2539,7 +2538,7 @@ function init(){
   if(OVERLAY)probeArt();
   if(CTRL_MODE){document.body.classList.add('ctrl');renderControlPanel();}
   // preview mode: รับสถานะ staged จาก controller ผ่าน postMessage (ไม่ฟัง Firebase)
-  if((OVERLAY==='live'||OVERLAY==='bottombar'||OVERLAY==='stat')&&PVW_MODE){
+  if((OVERLAY==='live'||OV_IS_FOOTER||OV_IS_SIDE)&&PVW_MODE){
     addEventListener('message',e=>{const d=e.data;if(d&&d.type==='bkk-pvw'&&d.state)applyControlForOverlay(d.state);});
   }
   // overlay mode → โหลดรูปผู้สมัครจาก Sheet broadcast แยกต่างหาก
