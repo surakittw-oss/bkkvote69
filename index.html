@@ -2356,9 +2356,27 @@ function ctrlSetupListener(){
   if(!fbDb)return;
   fbDb.ref(CTRL_REF).on('value',snap=>{
     ctrlState=Object.assign({},CTRL_DEFAULT,snap.val()||{});
-    if((OVERLAY==='live'||OVERLAY==='bottombar'||OVERLAY==='stat')&&!PVW_MODE)liveApplyControl(ctrlState);
+    if(!PVW_MODE)applyControlForOverlay(ctrlState);
     if(CTRL_MODE){renderControlPanel();cpPushPreview();}
   });
+}
+/* ── route controller state ตามชนิด overlay ── */
+function applyControlForOverlay(s){
+  if(OVERLAY==='live')liveApplyControl(s);
+  else if(OVERLAY==='bottombar'||OVERLAY==='stat')standaloneApplyControl(s);
+}
+/* ── standalone footer overlay: โชว์เฉพาะส่วนของตัวเอง ไม่ประกอบเลเยอร์อื่น ──
+   body class (ov-bottombar / ov-stat) ตั้งไว้แล้วใน initOverlay — ที่นี่อัปเดตแค่ sub-control + bgColor */
+function standaloneApplyControl(s){
+  const b=document.body;
+  if(s.bgColor)b.style.setProperty('background-color',s.bgColor,'important');
+  else b.style.removeProperty('background-color');
+  if(OVERLAY==='bottombar'){
+    ovBarView=s.barView|0;ovBarPaused=!s.barPlaying;
+    renderBottomBar();ovBarStartTimer();
+  }else if(OVERLAY==='stat'){
+    renderStat();
+  }
 }
 /* ── live overlay: ประกอบ 3 เลเยอร์ตามสถานะที่รับมา ── */
 function liveApplyControl(s){
@@ -2522,7 +2540,7 @@ function init(){
   if(CTRL_MODE){document.body.classList.add('ctrl');renderControlPanel();}
   // preview mode: รับสถานะ staged จาก controller ผ่าน postMessage (ไม่ฟัง Firebase)
   if((OVERLAY==='live'||OVERLAY==='bottombar'||OVERLAY==='stat')&&PVW_MODE){
-    addEventListener('message',e=>{const d=e.data;if(d&&d.type==='bkk-pvw'&&d.state)liveApplyControl(d.state);});
+    addEventListener('message',e=>{const d=e.data;if(d&&d.type==='bkk-pvw'&&d.state)applyControlForOverlay(d.state);});
   }
   // overlay mode → โหลดรูปผู้สมัครจาก Sheet broadcast แยกต่างหาก
   // เก็บไว้ใน ovImgMap เพื่อ re-apply ทุกครั้งที่ Firebase rebuild CANDS
