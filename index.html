@@ -1363,7 +1363,7 @@ function renderAll(){
   if(OVERLAY==='live')renderLiveScene();
   else if(OV_IS_SIDE){if(ctrlState.side==='on')renderSidePanel();}
   else if(OV_IS_FOOTER){if(ctrlState.footer==='bottombar')renderBottomBar();else if(ctrlState.footer==='stat')renderStat();}
-  requestAnimationFrame(()=>$('prog').style.width=(countedDistricts/50*100)+'%');
+  requestAnimationFrame(()=>$('prog').style.width=(ectCovPct!=null?ectCovPct:(countedDistricts/50*100))+'%');
   postHeight();setTimeout(postHeight,900);
 }
 
@@ -2333,7 +2333,7 @@ async function ectStart(){
   }
   clearInterval(ectTimer);await loadFromECT();ectTimer=setInterval(loadFromECT,20000);startAutoSave();
 }
-function ectStop(){clearInterval(ectTimer);ectTimer=null;stopAutoSave();$('ect-status').textContent='■ หยุดแล้ว'}
+function ectStop(){clearInterval(ectTimer);ectTimer=null;stopAutoSave();ectCovPct=null;$('ect-status').textContent='■ หยุดแล้ว'}
 
 /* ════════════ IFRAME / EMBED ════════════ */
 function postHeight(){try{const p=new URLSearchParams(location.search);const fid=p.get('fid')||p.get('section')||'full';parent.postMessage({type:'bkkvote-height',height:document.body.scrollHeight,fid:fid},'*')}catch(e){}}
