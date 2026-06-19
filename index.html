@@ -655,8 +655,6 @@ body.ctrl #ctrl-panel{display:block}
 
   <div class="dash-summary" id="dashSummary"></div>
 
-  <div class="mb-panel" id="mbPanel"></div>
-
   <div class="grid">
     <section id="totals-col">
       <h2 class="col-head banner">คะแนนรวมทั้ง กทม.</h2>
@@ -667,8 +665,6 @@ body.ctrl #ctrl-panel{display:block}
     <section class="map-card">
       <h2 class="col-head banner">คะแนนรายเขต</h2>
       <div class="map-bar">
-        <span class="count-pill">นับแล้ว <b id="counted">50</b>/50 เขต</span>
-        <span class="prog"><i id="prog"></i></span>
         <span class="map-layer" id="mapLayer">
           <button class="ml-btn on" data-l="gov" onclick="setGeoLayer('gov')">ผู้ว่าฯ</button>
           <button class="ml-btn" data-l="skg" onclick="setGeoLayer('skg')">ส.ก. (พรรค)</button>
@@ -696,6 +692,8 @@ body.ctrl #ctrl-panel{display:block}
     <div class="skg-note">คลิกที่เขตบนแผนที่ด้านบน เพื่อดูผล ส.ก. รายเขต</div>
     <div id="skgParties" class="skg-parties"></div>
   </section>
+
+  <div class="mb-panel" id="mbPanel"></div>
 </div>
 
 
@@ -1179,13 +1177,16 @@ function renderGeoMap(){
 function renderList(){
   // เลเยอร์ ส.ก. — ตารางผู้ชนะ ส.ก. รายเขต
   if(geoLayer==='skg'&&Object.keys(skgData||{}).length){
-    const rows=DISTRICTS.map(d=>{
+    let rows=DISTRICTS.map(d=>{
       const sk=[...skgList(d.name)].sort((a,b)=>(parseInt(b.votes)||0)-(parseInt(a.votes)||0));
       const w=sk.length?(skgList(d.name).find(c=>c.elected)||sk[0]):null;
       const tot=sk.reduce((s,c)=>s+(parseInt(c.votes)||0),0);
       return {d,w,tot};
     }).sort((a,b)=>b.tot-a.tot);
-    $('dtable-host').innerHTML=`<table class="dtable"><thead><tr>
+    const sq=window._dtableSearch||'';
+    if(sq){const q=sq.toLowerCase();rows=rows.filter(r=>(r.d.name||'').toLowerCase().includes(q));}
+    $('dtable-host').innerHTML=`<div class="mb-tbl-filter"><input class="mb-tbl-search" placeholder="ค้นหาเขต…" value="${sq.replace(/"/g,'&quot;')}" oninput="window._dtableSearch=this.value;renderMap()"></div>
+    <table class="dtable"><thead><tr>
       <th>เขต</th><th>ผู้ชนะ ส.ก.</th><th>พรรค</th><th class="r">คะแนนผู้ชนะ</th><th class="r">รวมคะแนน ส.ก.</th>
     </tr></thead><tbody>${rows.map(({d,w,tot})=>{
       if(!w)return `<tr><td>${d.name}</td><td style="color:var(--t4)">ยังไม่มีข้อมูล</td><td>—</td><td class="r">—</td><td class="r">—</td></tr>`;
@@ -1193,13 +1194,16 @@ function renderList(){
     }).join('')}</tbody></table>`;
     return;
   }
-  const sorted=[...DISTRICTS].sort((a,b)=>b.cast-a.cast);
-  $('dtable-host').innerHTML=`<table class="dtable"><thead><tr>
-    <th>เขต</th><th>ผู้ชนะ</th><th class="r">คะแนนผู้ชนะ</th><th class="r">% ในเขต</th><th class="r">ผู้มาใช้สิทธิ์</th>
+  let sorted=[...DISTRICTS].sort((a,b)=>b.cast-a.cast);
+  const dq=window._dtableSearch||'';
+  if(dq){const q=dq.toLowerCase();sorted=sorted.filter(d=>(d.name||'').toLowerCase().includes(q));}
+  $('dtable-host').innerHTML=`<div class="mb-tbl-filter"><input class="mb-tbl-search" placeholder="ค้นหาเขต…" value="${dq.replace(/"/g,'&quot;')}" oninput="window._dtableSearch=this.value;renderMap()"></div>
+  <table class="dtable"><thead><tr>
+    <th>เขต</th><th>ผู้ชนะ</th><th class="r">คะแนนผู้ชนะ</th><th class="r">รวมคะแนน</th>
   </tr></thead><tbody>${sorted.map(d=>{
-    if(!d.counted||d.win==null)return `<tr><td>${d.name}</td><td style="color:var(--t4)">ยังไม่นับ</td><td class="r">—</td><td class="r">—</td><td class="r">—</td></tr>`;
-    const c=CANDS[d.win];const pc=d.cast?(d.votes[d.win]/d.cast*100).toFixed(1):0;
-    return `<tr><td>${d.name}</td><td><span class="wdot" style="background:${c.color}"></span>${c.short}</td><td class="r mono">${fmt(d.votes[d.win])}</td><td class="r mono">${pc}%</td><td class="r mono">${fmt(d.cast)}</td></tr>`;
+    if(!d.counted||d.win==null)return `<tr><td>${d.name}</td><td style="color:var(--t4)">ยังไม่นับ</td><td class="r">—</td><td class="r">—</td></tr>`;
+    const c=CANDS[d.win];
+    return `<tr><td>${d.name}</td><td><span class="wdot" style="background:${c.color}"></span>${c.short}</td><td class="r mono">${fmt(d.votes[d.win])}</td><td class="r mono">${fmt(d.cast)}</td></tr>`;
   }).join('')}</tbody></table>`;
 }
 
@@ -1295,7 +1299,7 @@ function bindBoxes(){
         tip.classList.add('on');return;
       }
       if(!d.counted){tip.innerHTML=`<div class="tt">เขต${d.name}</div><div class="tf">ยังไม่นับคะแนน</div>`;tip.classList.add('on');return;}
-      const rows=[...d.votes.map((v,ci)=>({v,ci}))].sort((a,b)=>b.v-a.v).slice(0,4).map(o=>{const c=CANDS[o.ci];const p=d.cast?(o.v/d.cast*100).toFixed(1):0;return `<div class="tr"><span class="d" style="background:${c.color}"></span><span class="n">${c.short}</span><span class="v">${p}%</span></div>`}).join('');
+      const rows=[...d.votes.map((v,ci)=>({v,ci}))].sort((a,b)=>b.v-a.v).slice(0,4).map(o=>{const c=CANDS[o.ci];return `<div class="tr"><span class="d" style="background:${c.color}"></span><span class="n">${c.short}</span><span class="v">${fmt(o.v)}</span></div>`}).join('');
       const hasSkg=!!(skgData&&skgData[d.name]&&skgData[d.name].length);
       tip.innerHTML=`<div class="tt">เขต${d.name}</div>${rows}<div class="tf">ผู้มาใช้สิทธิ์ ${fmt(d.cast)} · ผู้มีสิทธิ์ ${fmt(d.voters)}${hasSkg?' · คลิกดูผล ส.ก.':' · คลิกดูรายละเอียด'}</div>`;
       tip.classList.add('on');
@@ -1430,12 +1434,10 @@ function setMode(m){MODE=m;renderModes();renderMap();postHeight();}
 
 /* ════════════ RENDER ALL ════════════ */
 function renderAll(){
-  $('counted').textContent=countedDistricts;
   renderDashSummary();renderMbPanel();renderTotals();renderLegend();renderModes();renderMap();renderSkgOverview();
   if(OVERLAY==='live')renderLiveScene();
   else if(OV_IS_SIDE){if(ctrlState.side==='on')renderSidePanel();}
   else if(OV_IS_FOOTER){if(ctrlState.footer==='bottombar')renderBottomBar();else if(ctrlState.footer==='stat')renderStat();}
-  requestAnimationFrame(()=>$('prog').style.width=(ectCovPct!=null?ectCovPct:(countedDistricts/50*100))+'%');
   postHeight();setTimeout(postHeight,900);
 }
 
