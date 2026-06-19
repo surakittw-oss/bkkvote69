@@ -362,11 +362,13 @@ body.ov-bottombar #ov-bar{display:flex}
 .ovb-pc-pw{position:absolute;left:3%;top:50%;transform:translateY(-50%);height:84%;aspect-ratio:1;z-index:1;overflow:visible}
 .ovb-pc-logo{width:100%;height:100%;object-fit:contain;display:block}
 .ovb-pc-logo-fb{width:100%;height:100%;border-radius:50%;display:grid;place-items:center;font-size:26px;font-weight:800}
-.ovb-pc-rank{position:absolute;left:6px;bottom:6px;z-index:4;font-weight:900;font-size:24px;line-height:1;color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.8)}
-.ovb-pc-body{position:absolute;left:53%;right:2%;top:44%;bottom:6%;display:flex;flex-direction:column;justify-content:center;gap:2px;z-index:2}
-.ovb-pc-name{font-size:13px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;line-height:1.2}
+.ovb-pc-rank{position:absolute;left:8px;bottom:8px;z-index:4;font-weight:900;font-size:28px;line-height:1;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.8)}
+/* ชื่อพรรค — ขวาบน ถัดจากโลโก้ */
+.ovb-pc-name{position:absolute;left:55%;right:3%;top:34%;z-index:3;font-size:13px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
+/* ตัวเลขคะแนนทับโลโก้ (เริ่ม ~40% ซ้าย) */
+.ovb-pc-body{position:absolute;left:40%;right:3%;top:54%;bottom:8%;display:flex;flex-direction:column;justify-content:center;gap:0;z-index:3}
 .ovb-pc-votes{font-size:26px;font-weight:900;font-family:var(--font-num);font-variant-numeric:tabular-nums;line-height:1.05;color:#fff;white-space:nowrap}
-.ovb-pc-pct{font-size:11px;font-weight:500;color:rgba(255,255,255,.85);margin-top:2px}
+.ovb-pc-pct{font-size:11px;font-weight:500;color:rgba(255,255,255,.85);margin-top:1px}
 .ovb-empty{flex:1;display:grid;place-items:center;color:rgba(255,255,255,.6);font-size:13px}
 .ovb-ctl{display:none!important}
 #ov-bar:hover .ovb-ctl,#ov-bar.show-ctl .ovb-ctl{opacity:1;pointer-events:auto}
@@ -1555,8 +1557,8 @@ function renderBottomBar(){
       return `<div class="ovb-pc" style="--pc-color:${p.color}">
         <div class="ovb-pc-pw">${logoHtml}</div>
         <div class="ovb-pc-rank">${i+1}</div>
+        <div class="ovb-pc-name">${p.name}</div>
         <div class="ovb-pc-body">
-          <div class="ovb-pc-name">${p.name}</div>
           <div class="ovb-pc-votes">${fmt(p.votes)}</div>
           <div class="ovb-pc-pct">คน</div>
         </div></div>`;
