@@ -123,13 +123,15 @@ body.ov #top-logo{display:none}
 .count-pill{font-size:12px;color:var(--t3);background:var(--bg2);border:1px solid var(--line);border-radius:20px;padding:4px 12px}
 .count-pill b{color:var(--brand-l)}
 /* Dashboard summary bar */
-.dash-summary{display:flex;gap:12px;margin-bottom:18px;flex-wrap:wrap}
-.dash-kpi{flex:1;min-width:180px;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:12px 16px;display:flex;flex-direction:column;gap:4px}
-.dash-kpi-label{font-size:11px;color:var(--t4);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
-.dash-kpi-val{font-size:22px;font-weight:800;color:var(--t1);font-family:var(--font-num);font-variant-numeric:tabular-nums;line-height:1.2}
-.dash-kpi-val span{font-size:13px;font-weight:500;color:var(--t3);margin-left:4px}
-.dash-kpi-bar{height:4px;border-radius:2px;background:var(--bg3);overflow:hidden;margin-top:2px}
-.dash-kpi-bar i{display:block;height:100%;border-radius:2px;background:linear-gradient(90deg,var(--brand),var(--brand-l));width:0;transition:width 1.2s cubic-bezier(.2,.8,.2,1)}
+.dash-summary{display:flex;flex-direction:column;gap:12px;margin-bottom:18px}
+.ds-prog-row{display:flex;flex-direction:column;gap:11px}
+.ds-prog-item{display:flex;flex-direction:column;gap:5px}
+.ds-prog-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.ds-prog-lbl{font-size:13px;font-weight:700;color:var(--t2)}
+.ds-prog-val{font-size:13px;font-weight:700;font-family:var(--font-num);font-variant-numeric:tabular-nums;color:var(--t1);white-space:nowrap}
+.ds-prog-val small{font-size:11px;font-weight:500;color:var(--t4);margin-left:5px}
+.ds-prog-bar{height:8px;border-radius:5px;background:var(--bg3);overflow:hidden}
+.ds-prog-bar i{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,var(--brand),var(--brand-l));width:0;transition:width 1.2s cubic-bezier(.2,.8,.2,1)}
 /* ── central-backend monitoring panel ── */
 .mb-panel{margin-bottom:24px;display:flex;flex-direction:column;gap:16px}
 .mb-sec{background:var(--bg1);border:1px solid var(--line);border-radius:13px;padding:16px 18px}
@@ -1518,34 +1520,42 @@ const OV_IS_SIDE=(OVERLAY==='side');
 /* ════════════ OVERLAY · BOTTOM BAR + SIDE PANEL (BKK 2026 brief) ════════════ */
 const OV_BALLOT='<svg viewBox="0 0 24 24" fill="none"><rect x="3" y="8" width="18" height="3" rx="1.5" fill="#00a84f"/><rect x="4" y="11" width="16" height="10" rx="2" fill="#141517" stroke="#2a2b2d" stroke-width="1"/><rect x="9.5" y="6" width="5" height="6" rx="1" fill="#fff" opacity=".9"/><rect x="11" y="9" width="2" height="1.5" rx=".5" fill="#141517"/><circle cx="18" cy="18" r="4" fill="#FFD600"/><circle cx="18" cy="18" r="2.5" fill="#FFF9C4"/><rect x="17.2" y="18" width="1.6" height="2" rx=".8" fill="#141517"/><circle cx="18" cy="17.2" r="1" fill="#141517"/></svg>';
 function ovTurnout(){return DISTRICTS.reduce((s,d)=>s+(d.counted?(d.cast||0):0),0);}
+const SVG_PROGRESS=`<svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--brand)"><rect x="1" y="9" width="3" height="6" rx="1" fill="currentColor" opacity=".45"/><rect x="6.5" y="5" width="3" height="10" rx="1" fill="currentColor" opacity=".7"/><rect x="12" y="1" width="3" height="14" rx="1" fill="currentColor"/></svg>`;
+const SVG_TARGET=`<svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--brand)"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="8" r="3.5" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/></svg>`;
 function renderDashSummary(){
   const el=$('dashSummary');if(!el||OVERLAY)return;
+  const govCov=mbStats?.gov?.data?.coverage;
+  const skgCov=mbStats?.skg?.data?.coverage;
+  const govSrc=mbStats?.gov?.source;
+  const skgSrc=mbStats?.skg?.source;
   const counted=countedDistricts||0;
-  const cntPct=(counted/50*100).toFixed(1);
-  // ใช้ mbackend statistics ถ้ามี ไม่อย่างนั้น fallback ECT
-  const mbSt=mbStats?.gov?.data?.statistics;
-  const mbCov=mbStats?.gov?.data?.coverage;
-  const turnout=mbSt?(mbSt.totalVotes||0):ovTurnout();
-  const eligibleVoters=mbSt?(mbSt.eligibleVoters||0):DISTRICTS.reduce((s,d)=>s+(d.voters||0),0);
-  const turnPct=mbSt?(mbSt.voterTurnoutPercentage!=null?mbSt.voterTurnoutPercentage.toFixed(1):'—'):(eligibleVoters>0?(turnout/eligibleVoters*100).toFixed(1):'—');
-  const totalVotes=mbSt?(mbSt.goodVotes||0):CANDS.reduce((s,c)=>s+c.votes,0);
-  // coverage bar: ใช้ mbackend stations ถ้ามี ไม่อย่างนั้นใช้ district %
-  const covPct=mbCov?.percentage!=null?mbCov.percentage.toFixed(1):cntPct;
-  const covLabel=mbCov?.totalStations?`${(mbCov.stationsReported||0).toLocaleString()} / ${mbCov.totalStations.toLocaleString()} หน่วย (${covPct}%)`:`${counted} / 50 เขต (${covPct}%)`;
+  function progRow(label,cov){
+    const pct=cov?.percentage!=null?+cov.percentage:(counted/50*100);
+    const stLabel=cov?.totalStations?`${(cov.stationsReported||0).toLocaleString()} / ${cov.totalStations.toLocaleString()} หน่วย`:`${counted} / 50 เขต`;
+    return `<div class="ds-prog-item">
+      <div class="ds-prog-head"><span class="ds-prog-lbl">${label}</span><span class="ds-prog-val">${pct.toFixed(1)}%<small>${stLabel}</small></span></div>
+      <div class="ds-prog-bar"><i style="width:${Math.min(100,pct)}%"></i></div>
+    </div>`;
+  }
+  function decCard(label,s){
+    if(!s||!s.source)return `<div class="mb-dec"><div class="mb-dec-hd"><span>${label}</span><span class="mb-badge off">ไม่มีข้อมูล</span></div></div>`;
+    const src=s.source,sel=src.selected,fp=+src.finalProgress||0,rp=+src.realtimeProgress||0,th=+src.threshold||20;
+    const useFinal=sel==='final';
+    return `<div class="mb-dec">
+      <div class="mb-dec-hd"><span>${label}</span><span class="mb-badge ${useFinal?'final':'rt'}">${useFinal?'✓ ใช้ Final':'⚡ ใช้ Realtime'}</span></div>
+      <div class="mb-dec-row"><span>ผลทางการ (Final) ครอบคลุม</span><b>${fp.toFixed(2)}%</b></div>
+      <div class="mb-dec-bar"><i style="width:${Math.min(100,fp)}%;background:${useFinal?'#22b14c':'#9aa'}"></i><span class="mb-dec-th" style="left:${Math.min(100,th)}%" title="เกณฑ์สลับ ${th}%"></span></div>
+      <div class="mb-dec-foot"><span>Realtime: ${rp.toFixed(2)}%</span><span>เกณฑ์สลับ ${th}%</span></div>
+    </div>`;
+  }
   el.innerHTML=`
-    <div class="dash-kpi">
-      <div class="dash-kpi-label">นับคะแนนแล้ว</div>
-      <div class="dash-kpi-val">${mbCov?.totalStations?(mbCov.stationsReported||0).toLocaleString():counted}<span>${mbCov?.totalStations?'/ '+mbCov.totalStations.toLocaleString()+' หน่วย ('+covPct+'%)':'/ 50 เขต ('+covPct+'%)'}</span></div>
-      <div class="dash-kpi-bar"><i style="width:${covPct}%"></i></div>
+    <div class="mb-sec">
+      <div class="mb-sec-hd">${SVG_PROGRESS} ความคืบหน้าการรายงานผล <small>สัดส่วนหน่วยเลือกตั้งที่รายงานผลแล้ว</small></div>
+      <div class="ds-prog-row">${progRow('ผู้ว่าฯ กทม.',govCov)}${progRow('ส.ก. กทม.',skgCov)}</div>
     </div>
-    <div class="dash-kpi">
-      <div class="dash-kpi-label">ผู้มาใช้สิทธิ์</div>
-      <div class="dash-kpi-val">${turnout.toLocaleString()}<span>คน${turnPct!=='—'?' ('+turnPct+'%)':''}</span></div>
-      <div class="dash-kpi-bar"><i style="width:${turnPct!=='—'?turnPct:0}%"></i></div>
-    </div>
-    <div class="dash-kpi">
-      <div class="dash-kpi-label">คะแนนรวมทั้งหมด</div>
-      <div class="dash-kpi-val">${totalVotes.toLocaleString()}<span>คะแนน</span></div>
+    <div class="mb-sec">
+      <div class="mb-sec-hd">${SVG_TARGET} Data Source Decision <small>เลือกแหล่งข้อมูลอัตโนมัติ — ใช้ Final เมื่อผลทางการครอบคลุม ≥ 20% ของเขต</small></div>
+      <div class="mb-2col">${decCard('ผู้ว่าฯ กทม.',mbStats?.gov)}${decCard('ส.ก. กทม.',mbStats?.skg)}</div>
     </div>`;
 }
 /* ── central-backend monitoring panel: Data Source Decision + coverage gauge + สถิติ + ตาราง RT/Final ── */
@@ -1631,18 +1641,7 @@ function renderMbPanel(){
   const el=$('mbPanel');if(!el||OVERLAY)return;
   if(!mbStats||(!mbStats.gov&&!mbStats.skg)){el.innerHTML='';el.style.display='none';return;}
   el.style.display='';
-  const G='🏛️ ผู้ว่าฯ กทม.',S='🗳️ ส.ก. กทม.';
-  el.innerHTML=`
-    <div class="mb-sec">
-      <div class="mb-sec-hd">🎯 Data Source Decision <small>เลือกแหล่งข้อมูลอัตโนมัติ — ใช้ Final เมื่อผลทางการครอบคลุม ≥ 20% ของเขต</small></div>
-      <div class="mb-2col">${mbDecisionCard('🏛️','ผู้ว่าฯ กทม.',mbStats.gov)}${mbDecisionCard('🗳️','ส.ก. กทม.',mbStats.skg)}</div>
-    </div>
-    <div class="mb-sec">
-      <div class="mb-sec-hd">📊 ความคืบหน้าการรายงานผล <small>สัดส่วนหน่วยเลือกตั้งที่รายงานผลแล้ว</small></div>
-      <div class="mb-2col">${mbGaugeCard('🏛️','ผู้ว่าฯ กทม.',mbStats.gov)}${mbGaugeCard('🗳️','ส.ก. กทม.',mbStats.skg)}</div>
-    </div>
-    <div class="mb-2col mb-stats-row">${mbStatsCard('🏛️','ผู้ว่าฯ กทม.',mbStats.gov)}${mbStatsCard('🗳️','ส.ก. กทม.',mbStats.skg)}</div>
-    <div class="mb-sec"><div class="mb-sec-hd">📍 รายเขต ${mbTableSel==='skg'?'สก.':'ผู้ว่าฯ'} <small>(${(() => {const co=(mbTableSel==='skg'?mbStats.skgConst:mbStats.govConst);const r=co?.data?.constituencies;return r?r.length+'/'+r.length+' เขต':'';})()})</small></div>${mbConstTable()}</div>`;
+  el.innerHTML=`<div class="mb-2col mb-stats-row">${mbStatsCard('🏛️','ผู้ว่าฯ กทม.',mbStats.gov)}${mbStatsCard('🗳️','ส.ก. กทม.',mbStats.skg)}</div>`;
 }
 function renderStat(){
   const el=$('ov-stat');if(!el)return;
