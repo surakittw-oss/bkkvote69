@@ -375,7 +375,7 @@ body.ov-bottombar #ov-bar{display:flex}
 body.ov-side{background:transparent!important}
 body.ov-side::before,body.ov-side::after{display:none!important}
 body.ov-side #ov-side{display:flex}
-.ovs-hd{display:flex;align-items:center;flex-shrink:0;padding:10px 20px 8px 36px;background:transparent;min-height:72px}
+.ovs-hd{display:flex;align-items:flex-end;flex-shrink:0;padding:6px 20px 6px 44px;background:transparent;min-height:68px}
 .ovs-hd-ico{display:none}
 .ovs-hd-tt{display:flex;flex-direction:column;min-width:0}
 .ovs-hd-title{font-size:22px;font-weight:900;line-height:1.08;white-space:pre-line;color:#fff;text-shadow:0 1px 5px rgba(0,0,0,.4)}
@@ -383,7 +383,7 @@ body.ov-side #ov-side{display:flex}
 .ovs-hd-sub{display:none}
 .ovs-hd-brand{display:none}
 .ovs-stage{position:relative;flex:1;overflow:hidden}
-.ovs-view{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;transition:opacity .5s ease;pointer-events:none;padding:0 8px 0 0}
+.ovs-view{position:absolute;inset:0;display:flex;flex-direction:column;opacity:0;transition:opacity .5s ease;pointer-events:none;padding:4px 12px 8px 0}
 .ovs-view.on{opacity:1;pointer-events:auto}
 /* View A — ส.ก. รายเขต */
 /* sub-header — วางในแถบดำ baked ของ bg */
@@ -393,7 +393,7 @@ body.ov-side #ov-side{display:flex}
 .ovs-distpct-lbl{font-size:10px;font-weight:600;color:rgba(255,255,255,.82);line-height:1.25}
 .ovs-distpct b{font-size:34px;font-weight:900;color:#fff;font-family:var(--font-num);font-variant-numeric:tabular-nums;letter-spacing:-1px}
 /* การ์ดผู้ว่าฯ 5 ใบ — ใช้ไฟล์ Art (รูป+กรอบ+เบอร์+ชื่อ baked) เต็มใบ + overlay เลขอันดับ/คะแนน (เหมือน ส.ก.) */
-.ovsg-list{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:stretch;gap:12px;padding:10px 16px 13px 36px;overflow:hidden}
+.ovsg-list{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:stretch;gap:12px;padding:10px 16px 13px 56px;overflow:hidden}
 .ovsg-card{position:relative;flex:1;min-height:0;background-size:cover;background-position:center;background-color:transparent;overflow:hidden}
 .ovsg-card.win{box-shadow:inset 0 0 0 3px rgba(var(--brand-rgb),.7)}
 .ovsg-card--plain{background:#d6f0df}
