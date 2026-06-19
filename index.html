@@ -192,7 +192,7 @@ body.ov #top-logo{display:none}
 .prog{flex:1;min-width:120px;height:5px;border-radius:3px;background:var(--bg3);overflow:hidden}
 .prog > i{display:block;height:100%;background:linear-gradient(90deg,var(--brand),var(--brand-l));width:0;transition:width 1.2s cubic-bezier(.2,.8,.2,1)}
 /* สลับเลเยอร์แผนที่: ผู้ว่าฯ / ส.ก. */
-.map-layer{display:none;border:1px solid var(--line);border-radius:7px;overflow:hidden;flex-shrink:0}
+.map-layer{display:none;border:1px solid var(--line);border-radius:7px;overflow:hidden;flex-shrink:0;margin-left:auto}
 .ml-btn{padding:4px 13px;background:var(--bg2);border:none;color:var(--t3);font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:.15s}
 .ml-btn:hover{color:var(--t1)}
 .ml-btn.on{background:var(--brand);color:#fff}
@@ -678,6 +678,7 @@ body.ctrl #ctrl-panel{display:block}
           <button onclick="zoomReset()" title="รีเซ็ต" aria-label="reset" style="font-size:13px">⤢</button>
         </div>
       </div>
+      <div id="dtable-filter" style="display:none"></div>
       <div id="dtable-host"></div>
       <div class="legend" id="legend"></div>
       <div class="cap">โหมด <b>บับเบิล</b> — แต่ละวงกลม = 1 เขต วางตามตำแหน่งภูมิศาสตร์ · ขนาด = turnout ผู้มาใช้สิทธิ์ · สีพื้น = ผู้ชนะ · วงขอบบาง = รองแชมป์ · คลิกเพื่อดูผลละเอียด · โหมด <b>ผู้ชนะ (แผนที่)</b> แสดงรูปร่างเขตจริง · สลับเลเยอร์ <b>ผู้ว่าฯ / ส.ก. (พรรค)</b> ได้ที่ปุ่มขวาบน ใช้ได้ทุกโหมด — เลเยอร์ ส.ก. ระบายสีตามพรรคที่ชนะ ส.ก. ของแต่ละเขต</div>
@@ -964,6 +965,7 @@ const MAP_W=(COLS+1)*CELL_W, MAP_H=ROWS*CELL_H;
 
 function renderMap(){
   $('dtable-host').innerHTML='';
+  const df=$('dtable-filter');if(df&&MODE!=='list'){df.style.display='none';df.innerHTML='';}
   const map=$('map');
   zoomReset();
   const ctl=$('zoomCtl'); if(ctl) ctl.style.display=(MODE==='list')?'none':'flex';
@@ -1174,8 +1176,8 @@ function renderGeoMap(){
   document.querySelector('.map-wrap').style.height='auto';
 }
 
-function renderList(){
-  // เลเยอร์ ส.ก. — ตารางผู้ชนะ ส.ก. รายเขต
+function renderListTable(){
+  const q=(window._dtableSearch||'').toLowerCase();
   if(geoLayer==='skg'&&Object.keys(skgData||{}).length){
     let rows=DISTRICTS.map(d=>{
       const sk=[...skgList(d.name)].sort((a,b)=>(parseInt(b.votes)||0)-(parseInt(a.votes)||0));
@@ -1183,10 +1185,8 @@ function renderList(){
       const tot=sk.reduce((s,c)=>s+(parseInt(c.votes)||0),0);
       return {d,w,tot};
     }).sort((a,b)=>b.tot-a.tot);
-    const sq=window._dtableSearch||'';
-    if(sq){const q=sq.toLowerCase();rows=rows.filter(r=>(r.d.name||'').toLowerCase().includes(q));}
-    $('dtable-host').innerHTML=`<div class="mb-tbl-filter"><input class="mb-tbl-search" placeholder="ค้นหาเขต…" value="${sq.replace(/"/g,'&quot;')}" oninput="window._dtableSearch=this.value;renderMap()"></div>
-    <table class="dtable"><thead><tr>
+    if(q)rows=rows.filter(r=>(r.d.name||'').toLowerCase().includes(q));
+    $('dtable-host').innerHTML=`<table class="dtable"><thead><tr>
       <th>เขต</th><th>ผู้ชนะ ส.ก.</th><th>พรรค</th><th class="r">คะแนนผู้ชนะ</th><th class="r">รวมคะแนน ส.ก.</th>
     </tr></thead><tbody>${rows.map(({d,w,tot})=>{
       if(!w)return `<tr><td>${d.name}</td><td style="color:var(--t4)">ยังไม่มีข้อมูล</td><td>—</td><td class="r">—</td><td class="r">—</td></tr>`;
@@ -1195,16 +1195,22 @@ function renderList(){
     return;
   }
   let sorted=[...DISTRICTS].sort((a,b)=>b.cast-a.cast);
-  const dq=window._dtableSearch||'';
-  if(dq){const q=dq.toLowerCase();sorted=sorted.filter(d=>(d.name||'').toLowerCase().includes(q));}
-  $('dtable-host').innerHTML=`<div class="mb-tbl-filter"><input class="mb-tbl-search" placeholder="ค้นหาเขต…" value="${dq.replace(/"/g,'&quot;')}" oninput="window._dtableSearch=this.value;renderMap()"></div>
-  <table class="dtable"><thead><tr>
+  if(q)sorted=sorted.filter(d=>(d.name||'').toLowerCase().includes(q));
+  $('dtable-host').innerHTML=`<table class="dtable"><thead><tr>
     <th>เขต</th><th>ผู้ชนะ</th><th class="r">คะแนนผู้ชนะ</th><th class="r">รวมคะแนน</th>
   </tr></thead><tbody>${sorted.map(d=>{
     if(!d.counted||d.win==null)return `<tr><td>${d.name}</td><td style="color:var(--t4)">ยังไม่นับ</td><td class="r">—</td><td class="r">—</td></tr>`;
     const c=CANDS[d.win];
     return `<tr><td>${d.name}</td><td><span class="wdot" style="background:${c.color}"></span>${c.short}</td><td class="r mono">${fmt(d.votes[d.win])}</td><td class="r mono">${fmt(d.cast)}</td></tr>`;
   }).join('')}</tbody></table>`;
+}
+function renderList(){
+  const df=$('dtable-filter');
+  if(df){
+    df.style.display='block';
+    df.innerHTML=`<div class="mb-tbl-filter"><input class="mb-tbl-search" id="dtable-search-input" placeholder="ค้นหาเขต…" value="${(window._dtableSearch||'').replace(/"/g,'&quot;')}" oninput="window._dtableSearch=this.value;renderListTable()"></div>`;
+  }
+  renderListTable();
 }
 
 function fitMap(){
