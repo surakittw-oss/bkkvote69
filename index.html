@@ -357,11 +357,12 @@ body.ov-bottombar #ov-bar{display:flex}
 .ovb-gc-pct{font-size:11px;font-weight:500;color:rgba(255,255,255,.85);margin-top:2px}
 /* ส.ก. party seats */
 .ovb-skg{gap:0;padding:38px 10px 8px 18px;justify-content:center;align-items:stretch}
-.ovb-pc{flex:1;min-width:0;position:relative;height:100%;overflow:hidden;background:transparent;display:flex;align-items:center;gap:0}
-.ovb-pc-logo{width:72px;height:72px;border-radius:50%;object-fit:contain;flex-shrink:0;background:rgba(255,255,255,.1);border:3px solid var(--pc-color,rgba(255,255,255,.2))}
-.ovb-pc-logo-fb{width:72px;height:72px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;font-size:22px;font-weight:800;color:#fff;border:3px solid var(--pc-color,rgba(255,255,255,.2))}
-.ovb-pc-rank{position:absolute;left:6px;bottom:6px;z-index:4;width:38px;height:38px;display:grid;place-items:center;border-radius:8px;background:var(--brand);font-weight:900;font-size:28px;line-height:1;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.45)}
-.ovb-pc-body{position:absolute;left:53.5%;right:2.5%;top:44%;bottom:6%;display:flex;flex-direction:column;justify-content:center;gap:2px;z-index:2}
+.ovb-pc{flex:1;min-width:0;position:relative;height:100%;overflow:hidden;border-radius:0;background:transparent}
+.ovb-pc-pw{position:absolute;left:8%;top:50%;transform:translateY(-50%);width:42%;aspect-ratio:1;border-radius:50%;overflow:hidden;z-index:1}
+.ovb-pc-logo{width:100%;height:100%;object-fit:contain;display:block;border-radius:50%}
+.ovb-pc-logo-fb{width:100%;height:100%;display:grid;place-items:center;font-size:26px;font-weight:800;border-radius:50%}
+.ovb-pc-rank{position:absolute;left:6px;bottom:6px;z-index:4;font-weight:900;font-size:28px;line-height:1;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.6)}
+.ovb-pc-body{position:absolute;left:53.5%;right:2.5%;top:20%;bottom:6%;display:flex;flex-direction:column;justify-content:center;gap:2px;z-index:2}
 .ovb-pc-name{font-size:13px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;line-height:1.2}
 .ovb-pc-votes{font-size:26px;font-weight:900;font-family:var(--font-num);font-variant-numeric:tabular-nums;line-height:1.05;color:#fff;white-space:nowrap}
 .ovb-pc-pct{font-size:11px;font-weight:500;color:rgba(255,255,255,.85);margin-top:2px}
@@ -1548,10 +1549,10 @@ function renderBottomBar(){
       const pc=(p.votes/totalPVotes*100).toFixed(1);
       const init=(p.name||'?').trim().slice(0,1);
       const logoHtml=p.logo
-        ?`<img class="ovb-pc-logo" src="${p.logo}" onerror="this.outerHTML='<div class=\\'ovb-pc-logo-fb\\' style=\\'background:${p.color}\\'>${init}</div>'">`
-        :`<div class="ovb-pc-logo-fb" style="background:${p.color}">${init}</div>`;
+        ?`<img class="ovb-pc-logo" src="${p.logo}" onerror="this.outerHTML='<div class=\\'ovb-pc-logo-fb\\' style=\\'background:${p.color};color:${inkOn(p.color)}\\'>${init}</div>'">`
+        :`<div class="ovb-pc-logo-fb" style="background:${p.color};color:${inkOn(p.color)}">${init}</div>`;
       return `<div class="ovb-pc" style="--pc-color:${p.color}">
-        ${logoHtml}
+        <div class="ovb-pc-pw">${logoHtml}</div>
         <div class="ovb-pc-rank">${i+1}</div>
         <div class="ovb-pc-body">
           <div class="ovb-pc-name">${p.name}</div>
