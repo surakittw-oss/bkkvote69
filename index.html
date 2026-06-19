@@ -2264,41 +2264,25 @@ async function loadFromECT(){
     const areaVotes={}; // areaNumber → { candIndex: votes }
     cands.forEach((c,ci)=>{(c._raw?.votesByAreaDetails||[]).forEach(a=>{const an=a.areaNumber;if(!an)return;(areaVotes[an]=areaVotes[an]||{})[ci]=a.votes||0;});});
     const govAreaList=(govAreas?.electionAreas||govAreas?.areas||(Array.isArray(govAreas)?govAreas:[]));
-    // map areaNumber → coverage% จาก govAreaList (ใช้ตัดสิน "นับครบ" หรือยัง)
-    const areaCovPct={};
-    govAreaList.forEach(a=>{
-      const an=a.areaNumber||a.number; if(!an)return;
-      const cov=a.coverage||{};
-      let pct=null;
-      if(typeof cov.percentage==='number')pct=cov.percentage;
-      else if(cov.totalStations>0)pct=((cov.stationsReported||0)/cov.totalStations)*100;
-      else if(typeof a.progress==='number')pct=a.progress;
-      areaCovPct[an]=pct;
-    });
     let districts, govEstimated=false;
     if(Object.keys(areaVotes).length){
-      // มีคะแนนผู้ว่าฯ แยกรายเขตจริง (votesByAreaDetails)
       districts=Object.keys(areaVotes).map(an=>{
         const nm=govAreaMap[an]||BKK_DISTRICTS[an-1]||('เขต '+an);
-        const pct=areaCovPct[an];
-        // counted = 1 เฉพาะเมื่อ coverage ครบ 100% หรือไม่มีข้อมูล coverage เลย (ถือว่าครบ)
-        const counted=(pct==null||pct>=100)?1:0;
-        const row={district:nm,counted};const av=areaVotes[an];
+        const av=areaVotes[an];
+        const totalV=Object.values(av).reduce((s,v)=>s+v,0);
+        const row={district:nm,counted:totalV>0?1:0};
         Object.keys(av).forEach(ci=>row['votes_'+(+ci+1)]=av[ci]);
         return row;
       });
     } else if(govAreaList.length){
-      // ไม่มี breakdown รายผู้สมัคร → ใช้ turnout จริงรายเขต + ประมาณสัดส่วนจากคะแนนรวมทั้งจังหวัด
       govEstimated=true;
       const provTotal=cands.reduce((s,c)=>s+c.votes,0)||1;
       const shares=cands.map(c=>c.votes/provTotal);
       districts=govAreaList.map(a=>{
         const an=a.areaNumber||a.number;
         const nm=govAreaMap[an]||BKK_DISTRICTS[an-1]||(a.name||'เขต '+an);
-        const pct=areaCovPct[an];
-        const counted=(pct!=null&&pct>=100)?1:((pct==null&&(a.goodVotes||a.totalVotes||0)>0)?1:0);
         const cast=a.goodVotes||a.totalVotes||0;
-        const row={district:nm,counted};
+        const row={district:nm,counted:cast>0?1:0};
         if(cast>0)cands.forEach((c,ci)=>row['votes_'+(ci+1)]=Math.round(shares[ci]*cast));
         return row;
       });
