@@ -1541,7 +1541,9 @@ function renderDashSummary(){
   const counted=countedDistricts||0;
   function progRow(label,cov){
     const pct=cov?.percentage!=null?+cov.percentage:(counted/50*100);
-    const stLabel=cov?.totalStations?`${(cov.stationsReported||0).toLocaleString()} / ${cov.totalStations.toLocaleString()} หน่วย`:`${counted} / 50 เขต`;
+    const totSt=cov?.total_stations??cov?.totalStations??0;
+    const repSt=cov?.stations_reported??cov?.stationsReported??0;
+    const stLabel=totSt?`${repSt.toLocaleString()} / ${totSt.toLocaleString()} หน่วย`:`${counted} / 50 เขต`;
     return `<div class="ds-prog-item">
       <div class="ds-prog-head"><span class="ds-prog-lbl">${label}</span><span class="ds-prog-val">${pct.toFixed(1)}%<small>${stLabel}</small></span></div>
       <div class="ds-prog-bar"><i style="width:${Math.min(100,pct)}%"></i></div>
@@ -1591,10 +1593,12 @@ function mbDecisionCard(icon,title,s){
 }
 function mbGaugeCard(icon,title,s){
   const cov=s?.data?.coverage;
-  if(!cov||!cov.totalStations)return `<div class="mb-gauge"><div class="mb-gauge-ttl">${icon} ${title}</div><div class="mb-gauge-empty">—</div></div>`;
+  const totSt=cov?.total_stations??cov?.totalStations??0;
+  const repSt=cov?.stations_reported??cov?.stationsReported??0;
+  if(!cov||!totSt)return `<div class="mb-gauge"><div class="mb-gauge-ttl">${icon} ${title}</div><div class="mb-gauge-empty">—</div></div>`;
   return `<div class="mb-gauge">${mbGaugeSvg(cov.percentage,'#22b14c')}
     <div class="mb-gauge-lbl">หน่วยรายงาน</div>
-    <div class="mb-gauge-stations"><b>${(cov.stationsReported||0).toLocaleString()}</b> <span>/ ${(cov.totalStations||0).toLocaleString()}</span></div>
+    <div class="mb-gauge-stations"><b>${repSt.toLocaleString()}</b> <span>/ ${totSt.toLocaleString()}</span></div>
     <div class="mb-gauge-ttl">${icon} ${title}</div></div>`;
 }
 function mbStatsCard(icon,title,s){
@@ -1602,14 +1606,22 @@ function mbStatsCard(icon,title,s){
   if(!st)return `<div class="mb-stat"><div class="mb-stat-hd">${icon} ${title}</div><div class="mb-gauge-empty">ไม่มีข้อมูลสถิติ</div></div>`;
   const cov=d.coverage||{};
   const cell=(lbl,val,cls)=>`<div class="mb-stat-cell"><div class="mb-stat-cell-lbl">${lbl}</div><div class="mb-stat-cell-val ${cls||''}">${val}</div></div>`;
+  // รองรับ snake_case (API จริง) และ camelCase (Firebase บันทึกไว้แล้ว)
+  const totalVotes=st.total_votes??st.totalVotes??0;
+  const goodVotes=st.good_votes??st.goodVotes??0;
+  const eligibleVoters=st.eligible_voters??st.eligibleVoters??0;
+  const turnoutPct=st.voter_turnout_percentage??st.voterTurnoutPercentage??null;
+  const stationsReported=cov.stations_reported??cov.stationsReported??0;
+  const totalStations=cov.total_stations??cov.totalStations??0;
+  const covPct=cov.percentage??null;
   return `<div class="mb-stat"><div class="mb-stat-hd">${icon} ${title}</div>
     <div class="mb-stat-grid">
-      ${cell('ผู้มาใช้สิทธิ',(st.totalVotes||0).toLocaleString()+' <small>คน</small>')}
-      ${cell('คะแนนที่ถูกต้อง',(st.goodVotes||0).toLocaleString()+' <small>ใบ</small>')}
-      ${cell('ผู้มีสิทธิเลือกตั้ง',(st.eligibleVoters||0).toLocaleString()+' <small>คน</small>')}
-      ${cell('% ผู้มาใช้สิทธิ',(st.voterTurnoutPercentage!=null?st.voterTurnoutPercentage.toFixed(2):'—')+'<small>%</small>','accent')}
+      ${cell('ผู้มาใช้สิทธิ',totalVotes.toLocaleString()+' <small>คน</small>')}
+      ${cell('คะแนนที่ถูกต้อง',goodVotes.toLocaleString()+' <small>ใบ</small>')}
+      ${cell('ผู้มีสิทธิเลือกตั้ง',eligibleVoters.toLocaleString()+' <small>คน</small>')}
+      ${cell('% ผู้มาใช้สิทธิ',(turnoutPct!=null?turnoutPct.toFixed(2):'—')+'<small>%</small>','accent')}
     </div>
-    <div class="mb-stat-foot">หน่วยรายงานแล้ว <b>${(cov.stationsReported||0).toLocaleString()} / ${(cov.totalStations||0).toLocaleString()}</b> (${cov.percentage!=null?cov.percentage.toFixed(2):'—'}%)</div>
+    <div class="mb-stat-foot">หน่วยรายงานแล้ว <b>${stationsReported.toLocaleString()} / ${totalStations.toLocaleString()}</b> (${covPct!=null?covPct.toFixed(2):'—'}%)</div>
   </div>`;
 }
 let mbTblSearch='',mbTblSort='diff';
@@ -2357,9 +2369,9 @@ function ectAreasToConst(areasResp){
   const arr=areasResp?.electionAreas||areasResp?.areas||(Array.isArray(areasResp)?areasResp:[]);
   if(!arr.length)return null;
   const constituencies=arr.map(a=>{
-    const an=a.areaNumber||a.number;
-    const nm=(a.name||a.areaName||a.electionArea?.name||'').replace(/^เขต\s*/,'เขต').trim()||('เขต '+an);
-    const v=a.goodVotes||a.totalVotes||a.statistics?.goodVotes||a.statistics?.totalVotes||0;
+    const an=a.area_number||a.areaNumber||a.number;
+    const nm=(a.area_name||a.areaName||a.name||a.electionArea?.name||'').replace(/^เขต\s*/,'เขต').trim()||('เขต '+an);
+    const v=a.total_votes||a.totalVotes||a.good_votes||a.goodVotes||0;
     return {areaNumber:an,name:nm.startsWith('เขต')?nm:('เขต'+nm),realtimeVotes:v,finalVotes:v,difference:0};
   }).filter(r=>r.areaNumber);
   const reported=constituencies.filter(r=>r.realtimeVotes>0).length;
@@ -2463,9 +2475,8 @@ async function loadImageSheet(url){return loadOverrideSheet(url);}
 function buildAreaNameMap(areaList){
   const m={};
   (areaList||[]).forEach(a=>{
-    const an=a.areaNumber||a.number; if(!an)return;
-    let nm=(a.areaName||a.name||'').replace(/^เขต\s*/,'').replace(/^กรุงเทพมหานคร\s*/,'').trim();
-    // ถ้า API คืนชื่อแบบ "เขตเลือกตั้งที่ N" ที่ไม่ตรงชื่อเขตจริง → ใช้ลำดับแทน
+    const an=a.area_number||a.areaNumber||a.number; if(!an)return;
+    let nm=(a.area_name||a.areaName||a.name||'').replace(/^เขต\s*/,'').replace(/^กรุงเทพมหานคร\s*/,'').trim();
     if(!nm||/เลือกตั้งที่|^\d+$/.test(nm)||!BKK_DISTRICTS.includes(nm))nm=BKK_DISTRICTS[an-1]||nm||('เขต '+an);
     m[an]=nm;
   });
@@ -2483,55 +2494,110 @@ async function loadFromECT(){
       ectCandidates(C,'area').catch(()=>({candidates:[]})),
       ectGet(`/api/media/elections/${C}/auto/electionAreas?level=area&limit=100`).catch(()=>null),
     ]);
-    // ── ผู้ว่าฯ: candidates (totalVotes + rank + votesByAreaDetails) ──
+    // ── ผู้ว่าฯ: candidates — รองรับทั้ง camelCase (/auto/candidates) และ snake_case (/auto/electionAreas) ──
     const cl=govC.candidates||[];
     if(!cl.length)throw new Error('ไม่พบผู้สมัครผู้ว่าฯ (ตรวจ token/level=province)');
-    let cands=cl.slice().sort((a,b)=>(b.totalVotes||0)-(a.totalVotes||0)).map((c,i)=>({
-      no:c.number||c.no||i+1, originalIndex:i, _raw:c,
-      name:(c.name||'').trim()||('ผู้สมัคร '+(i+1)), party:c.party?.name?.trim()||'อิสระ',
-      votes:c.totalVotes||0, color:c.party?.color||PALETTE[i%PALETTE.length], avatar:c.photoUrl||c.imageUrl||''
+    let cands=cl.slice().sort((a,b)=>(b.votes||b.totalVotes||0)-(a.votes||a.totalVotes||0)).map((c,i)=>({
+      no:c.candidate_number||c.number||c.no||i+1, originalIndex:i, _raw:c,
+      name:(c.candidate_name||c.name||'').trim()||('ผู้สมัคร '+(i+1)),
+      party:(c.party_name||c.party?.name||'').trim()||'อิสระ',
+      votes:c.votes||c.totalVotes||0,
+      color:c.party_color||c.party?.color||PALETTE[i%PALETTE.length],
+      avatar:c.candidate_photo_url||c.photoUrl||c.imageUrl||''
     }));
     if(ectImageMap)cands=cands.map(c=>{const o=ectImageMap[c.no];return o?{...c,color:o.color||c.color,avatar:o.avatar||c.avatar,name:o.name||c.name,partyLogo:o.partyLogo||c.partyLogo}:c});
 
-    // ── คะแนนผู้ว่าฯ รายเขต: จาก votesByAreaDetails ของแต่ละผู้สมัคร ──
-    const govAreaMap=buildAreaNameMap((govAreas?.electionAreas||govAreas?.areas||(Array.isArray(govAreas)?govAreas:[])));
+    // ── คะแนนผู้ว่าฯ รายเขต: อ่านจาก electionAreas.candidates[] โดยตรง (API คืน snake_case) ──
+    const govAreaList=(Array.isArray(govAreas)?govAreas:(govAreas?.electionAreas||govAreas?.areas||[]));
+    const govAreaMap=buildAreaNameMap(govAreaList);
     const areaVotes={}; // areaNumber → { candIndex: votes }
-    cands.forEach((c,ci)=>{(c._raw?.votesByAreaDetails||[]).forEach(a=>{const an=a.areaNumber;if(!an)return;(areaVotes[an]=areaVotes[an]||{})[ci]=a.votes||0;});});
-    const govAreaList=(govAreas?.electionAreas||govAreas?.areas||(Array.isArray(govAreas)?govAreas:[]));
+    // สร้าง map candidate_number → index ใน cands
+    const candNoMap={};
+    cands.forEach((c,ci)=>{if(c.no)candNoMap[c.no]=ci;});
+    // อ่านคะแนนรายเขตจาก candidates[] ใน electionAreas (ดีที่สุด — ตรงตาม spec)
+    govAreaList.forEach(a=>{
+      const an=a.area_number||a.areaNumber||a.number; if(!an)return;
+      areaVotes[an]={};
+      (a.candidates||[]).forEach(c=>{
+        const cn=c.candidate_number||c.number||c.no;
+        const ci=candNoMap[cn]??-1; if(ci<0)return;
+        areaVotes[an][ci]=c.votes||0;
+      });
+    });
+    // fallback: ถ้า electionAreas ไม่มี candidates → ลองจาก votesByAreaDetails บน candidate (camelCase)
+    if(!Object.keys(areaVotes).some(an=>Object.keys(areaVotes[an]).length)){
+      cands.forEach((c,ci)=>{(c._raw?.votesByAreaDetails||[]).forEach(a=>{
+        const an=a.areaNumber||a.area_number; if(!an)return;
+        (areaVotes[an]=areaVotes[an]||{})[ci]=a.votes||0;
+      });});
+    }
     let districts, govEstimated=false;
-    if(Object.keys(areaVotes).length){
-      districts=Object.keys(areaVotes).map(an=>{
+    if(Object.keys(areaVotes).some(an=>Object.keys(areaVotes[an]).length)){
+      districts=govAreaList.map(a=>{
+        const an=a.area_number||a.areaNumber||a.number; if(!an)return null;
         const nm=govAreaMap[an]||BKK_DISTRICTS[an-1]||('เขต '+an);
-        const av=areaVotes[an];
+        const cast=a.total_votes||a.totalVotes||0;
+        const av=areaVotes[an]||{};
         const totalV=Object.values(av).reduce((s,v)=>s+v,0);
-        const row={district:nm,counted:totalV>0?1:0};
+        const row={district:nm,counted:(totalV>0||cast>0)?1:0,_cast:cast};
         Object.keys(av).forEach(ci=>row['votes_'+(+ci+1)]=av[ci]);
         return row;
-      });
-    } else if(govAreaList.length){
+      }).filter(Boolean);
+    } else {
       govEstimated=true;
       const provTotal=cands.reduce((s,c)=>s+c.votes,0)||1;
       const shares=cands.map(c=>c.votes/provTotal);
       districts=govAreaList.map(a=>{
-        const an=a.areaNumber||a.number;
-        const nm=govAreaMap[an]||BKK_DISTRICTS[an-1]||(a.name||'เขต '+an);
-        const cast=a.goodVotes||a.totalVotes||0;
+        const an=a.area_number||a.areaNumber||a.number;
+        const nm=govAreaMap[an]||BKK_DISTRICTS[an-1]||(a.area_name||a.name||'เขต '+an);
+        const cast=a.total_votes||a.totalVotes||a.good_votes||a.goodVotes||0;
         const row={district:nm,counted:cast>0?1:0};
         if(cast>0)cands.forEach((c,ci)=>row['votes_'+(ci+1)]=Math.round(shares[ci]*cast));
         return row;
       });
-    } else { districts=undefined; }
+    }
     cands=cands.map(c=>{const{_raw,...rest}=c;return rest;});
 
-    // ── ส.ก. รายเขต: council candidates (level=area) จับกลุ่มตาม areaNumber ──
-    const councilAreaMap=buildAreaNameMap((councilAreas?.electionAreas||councilAreas?.areas||(Array.isArray(councilAreas)?councilAreas:[])));
+    // ── ส.ก. รายเขต: จับกลุ่มผู้สมัครตาม areaNumber — รองรับ snake_case (electionAreas) ──
+    const councilAreaListRaw=(Array.isArray(councilAreas)?councilAreas:(councilAreas?.electionAreas||councilAreas?.areas||[]));
+    const councilAreaMap=buildAreaNameMap(councilAreaListRaw);
     let skg={};
-    (councilC.candidates||[]).forEach(c=>{
-      const an=c.areaNumber||c.electionArea?.number||c.electionArea?.areaNumber;
-      let dn=councilAreaMap[an]||(c.areaName||c.electionArea?.name||'').replace(/^เขต\s*/,'').trim()||(an?('เขต '+an):'อื่นๆ');
-      if(BKK_DISTRICTS.includes((c.electionArea?.name||'').replace(/^เขต\s*/,'').trim()))dn=(c.electionArea.name).replace(/^เขต\s*/,'').trim();
-      (skg[dn]=skg[dn]||[]).push({no:c.number||0,name:(c.name||'').trim(),party:c.party?.name?.trim()||'อิสระ',votes:c.totalVotes||0,elected:c.rank===1,color:c.party?.color||'',avatar:c.photoUrl||c.imageUrl||''});
-    });
+    // path 1: councilC.candidates[] มี area_number (candidates endpoint with area info)
+    if((councilC.candidates||[]).length){
+      (councilC.candidates||[]).forEach(c=>{
+        const an=c.area_number||c.areaNumber||c.electionArea?.number||c.electionArea?.areaNumber;
+        let dn=councilAreaMap[an]||(c.area_name||c.areaName||c.electionArea?.name||'').replace(/^เขต\s*/,'').trim()||(an?('เขต '+an):'อื่นๆ');
+        const enm=(c.area_name||c.areaName||c.electionArea?.name||'').replace(/^เขต\s*/,'').trim();
+        if(BKK_DISTRICTS.includes(enm))dn=enm;
+        (skg[dn]=skg[dn]||[]).push({
+          no:c.candidate_number||c.number||0,
+          name:(c.candidate_name||c.name||'').trim(),
+          party:(c.party_name||c.party?.name||'').trim()||'อิสระ',
+          votes:c.votes||c.totalVotes||0,
+          elected:c.rank===1,
+          color:c.party_color||c.party?.color||'',
+          avatar:c.candidate_photo_url||c.photoUrl||c.imageUrl||''
+        });
+      });
+    }
+    // path 2: councilAreas[] มี candidates[] ต่อเขต (electionAreas endpoint)
+    if(!Object.keys(skg).length&&councilAreaListRaw.length){
+      councilAreaListRaw.forEach(a=>{
+        const an=a.area_number||a.areaNumber||a.number; if(!an)return;
+        let dn=councilAreaMap[an]||BKK_DISTRICTS[an-1]||('เขต '+an);
+        (a.candidates||[]).forEach(c=>{
+          (skg[dn]=skg[dn]||[]).push({
+            no:c.candidate_number||c.number||0,
+            name:(c.candidate_name||c.name||'').trim(),
+            party:(c.party_name||c.party?.name||'').trim()||'อิสระ',
+            votes:c.votes||c.totalVotes||0,
+            elected:c.rank===1,
+            color:c.party_color||c.party?.color||'',
+            avatar:c.candidate_photo_url||c.photoUrl||c.imageUrl||''
+          });
+        });
+      });
+    }
     Object.keys(skg).forEach(d=>skg[d].sort((a,b)=>b.votes-a.votes));
 
     autoFirebase=false;currentSource='ect';
@@ -2549,8 +2615,8 @@ async function loadFromECT(){
     const mbCov=govStat?.data?.coverage;
     const cov=(mbCov&&typeof mbCov.percentage==='number'?mbCov:null)||govStat?.data?.coverage||govC.meta?.coverage||{};
     if(typeof cov.percentage==='number')ectCovPct=cov.percentage;
-    else if(cov.areasReported!=null&&cov.totalAreas)ectCovPct=(cov.areasReported/cov.totalAreas)*100;
-    else if(cov.stationsReported&&cov.totalStations)ectCovPct=(cov.stationsReported/cov.totalStations)*100;
+    else if((cov.areas_reported??cov.areasReported)!=null&&(cov.total_areas??cov.totalAreas))ectCovPct=((cov.areas_reported??cov.areasReported)/(cov.total_areas??cov.totalAreas))*100;
+    else if((cov.stations_reported??cov.stationsReported)&&(cov.total_stations??cov.totalStations))ectCovPct=((cov.stations_reported??cov.stationsReported)/(cov.total_stations??cov.totalStations))*100;
     else ectCovPct=null;
     renderMbPanel();
     let pctTxt='';
