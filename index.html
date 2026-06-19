@@ -182,6 +182,11 @@ body.ov #top-logo{display:none}
 .mb-tbl-area{color:var(--t4);font-family:var(--font-num);font-variant-numeric:tabular-nums;width:42px}
 .mb-tbl-num{text-align:right;font-family:var(--font-num);font-variant-numeric:tabular-nums}
 .mb-tbl-num.pos{color:#3ddc7a}.mb-tbl-num.neg{color:#ff6b60}
+.mb-tbl-filter{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.mb-tbl-search{flex:1;min-width:160px;padding:8px 12px;border-radius:8px;border:1.5px solid var(--line);background:var(--bg2);color:var(--t1);font-size:13px;font-family:inherit;outline:none;transition:.15s}
+.mb-tbl-search:focus{border-color:var(--brand)}
+.mb-tbl-search::placeholder{color:var(--t4)}
+.mb-tbl-sortsel{padding:8px 12px;border-radius:8px;border:1.5px solid var(--line);background:var(--bg2);color:var(--t2);font-size:13px;font-family:inherit;cursor:pointer;outline:none}
 .prog{flex:1;min-width:120px;height:5px;border-radius:3px;background:var(--bg3);overflow:hidden}
 .prog > i{display:block;height:100%;background:linear-gradient(90deg,var(--brand),var(--brand-l));width:0;transition:width 1.2s cubic-bezier(.2,.8,.2,1)}
 /* สลับเลเยอร์แผนที่: ผู้ว่าฯ / ส.ก. */
@@ -1573,37 +1578,47 @@ function mbStatsCard(icon,title,s){
   const cell=(lbl,val,cls)=>`<div class="mb-stat-cell"><div class="mb-stat-cell-lbl">${lbl}</div><div class="mb-stat-cell-val ${cls||''}">${val}</div></div>`;
   return `<div class="mb-stat"><div class="mb-stat-hd">${icon} ${title}</div>
     <div class="mb-stat-grid">
-      ${cell('คะแนนนับแล้ว (บัตรดี)',(st.goodVotes||0).toLocaleString()+' <small>ใบ</small>')}
-      ${cell('บัตรทั้งหมด',(st.totalVotes||0).toLocaleString()+' <small>ใบ</small>')}
-      ${cell('บัตรเสีย',(st.invalidVotes||0).toLocaleString()+' <small>ใบ</small>')}
-      ${cell('ไม่ประสงค์ลงคะแนน',(st.noVotes||0).toLocaleString()+' <small>ใบ</small>')}
+      ${cell('คะแนนนับแล้ว',(st.totalVotes||0).toLocaleString()+' <small>ใบ</small>')}
+      ${cell('ผู้มาใช้สิทธิ',(st.goodVotes||0).toLocaleString()+' <small>คน</small>')}
       ${cell('ผู้มีสิทธิเลือกตั้ง',(st.eligibleVoters||0).toLocaleString()+' <small>คน</small>')}
-      ${cell('% ผู้มาใช้สิทธิ',(st.voterTurnoutPercentage!=null?st.voterTurnoutPercentage.toFixed(2):'—')+'%','accent')}
+      ${cell('% ผู้มาใช้สิทธิ',(st.voterTurnoutPercentage!=null?st.voterTurnoutPercentage.toFixed(2):'—')+'<small>%</small>','accent')}
     </div>
     <div class="mb-stat-foot">หน่วยรายงานแล้ว <b>${(cov.stationsReported||0).toLocaleString()} / ${(cov.totalStations||0).toLocaleString()}</b> (${cov.percentage!=null?cov.percentage.toFixed(2):'—'}%)</div>
   </div>`;
 }
+let mbTblSearch='',mbTblSort='diff';
 function mbConstTable(){
   const co=(mbTableSel==='skg'?mbStats.skgConst:mbStats.govConst);
   const rows=co?.data?.constituencies;
   const sum=co?.data?.summary;
+  const total=rows?rows.length:0;
+  const reported=rows?rows.filter(r=>(r.realtimeVotes||0)+(r.finalVotes||0)>0).length:0;
   const head=`<div class="mb-tbl-tabs">
     <button class="mb-tbl-tab ${mbTableSel==='gov'?'on':''}" onclick="mbTableSel='gov';renderMbPanel()">🏛️ ผู้ว่าฯ</button>
     <button class="mb-tbl-tab ${mbTableSel==='skg'?'on':''}" onclick="mbTableSel='skg';renderMbPanel()">🗳️ ส.ก.</button>
     ${sum?`<span class="mb-tbl-sum">RT ${sum.realtimeCount} · Final ${sum.finalCount} · ครบทั้งคู่ ${sum.bothCount}</span>`:''}
   </div>`;
   if(!rows||!rows.length)return `<div class="mb-tbl-wrap">${head}<div class="mb-gauge-empty" style="padding:24px">ไม่มีข้อมูลรายเขต</div></div>`;
-  const sorted=[...rows].sort((a,b)=>Math.abs(b.difference||0)-Math.abs(a.difference||0));
+  const q=mbTblSearch.toLowerCase();
+  let filtered=q?rows.filter(r=>(r.name||'').toLowerCase().includes(q)||String(r.areaNumber||'').includes(q)):rows;
+  const sortFns={diff:(a,b)=>Math.abs(b.difference||0)-Math.abs(a.difference||0),votes:(a,b)=>((b.realtimeVotes||0)+(b.finalVotes||0))-((a.realtimeVotes||0)+(a.finalVotes||0)),area:(a,b)=>(a.areaNumber||0)-(b.areaNumber||0)};
+  const sorted=[...filtered].sort(sortFns[mbTblSort]||sortFns.diff);
   const body=sorted.map(r=>{
-    const diff=r.difference||0;const dcls=diff>0?'pos':(diff<0?'neg':'');
+    const votes=Math.max(r.realtimeVotes||0,r.finalVotes||0);
     return `<tr><td class="mb-tbl-area">${r.areaNumber||''}</td><td>${(r.name||'').replace(/^เขต/,'เขต')}</td>
-      <td class="mb-tbl-num">${(r.realtimeVotes||0).toLocaleString()}</td>
-      <td class="mb-tbl-num">${(r.finalVotes||0).toLocaleString()}</td>
-      <td class="mb-tbl-num ${dcls}">${diff>0?'+':''}${diff.toLocaleString()}</td></tr>`;
+      <td class="mb-tbl-num">${votes.toLocaleString()}</td></tr>`;
   }).join('');
   return `<div class="mb-tbl-wrap">${head}
+    <div class="mb-tbl-filter">
+      <input class="mb-tbl-search" placeholder="ค้นหาเขต…" value="${mbTblSearch.replace(/"/g,'&quot;')}" oninput="mbTblSearch=this.value;renderMbPanel()">
+      <select class="mb-tbl-sortsel" onchange="mbTblSort=this.value;renderMbPanel()">
+        <option value="diff"${mbTblSort==='diff'?' selected':''}>เรียงตามผลต่าง</option>
+        <option value="votes"${mbTblSort==='votes'?' selected':''}>เรียงตามคะแนน</option>
+        <option value="area"${mbTblSort==='area'?' selected':''}>เรียงตามเขต</option>
+      </select>
+    </div>
     <div class="mb-tbl-scroll"><table class="mb-tbl">
-      <thead><tr><th>เขต</th><th>ชื่อเขต</th><th class="mb-tbl-num">Realtime</th><th class="mb-tbl-num">Final</th><th class="mb-tbl-num">ต่าง</th></tr></thead>
+      <thead><tr><th>เขต</th><th>ชื่อเขต</th><th class="mb-tbl-num">คะแนน</th></tr></thead>
       <tbody>${body}</tbody></table></div></div>`;
 }
 function renderMbPanel(){
@@ -1621,7 +1636,7 @@ function renderMbPanel(){
       <div class="mb-2col">${mbGaugeCard('🏛️','ผู้ว่าฯ กทม.',mbStats.gov)}${mbGaugeCard('🗳️','ส.ก. กทม.',mbStats.skg)}</div>
     </div>
     <div class="mb-2col mb-stats-row">${mbStatsCard('🏛️','ผู้ว่าฯ กทม.',mbStats.gov)}${mbStatsCard('🗳️','ส.ก. กทม.',mbStats.skg)}</div>
-    <div class="mb-sec"><div class="mb-sec-hd">📍 รายเขต · Realtime เทียบ Final</div>${mbConstTable()}</div>`;
+    <div class="mb-sec"><div class="mb-sec-hd">📍 รายเขต ${mbTableSel==='skg'?'สก.':'ผู้ว่าฯ'} <small>(${(() => {const co=(mbTableSel==='skg'?mbStats.skgConst:mbStats.govConst);const r=co?.data?.constituencies;return r?r.length+'/'+r.length+' เขต':'';})()})</small></div>${mbConstTable()}</div>`;
 }
 function renderStat(){
   const el=$('ov-stat');if(!el)return;
