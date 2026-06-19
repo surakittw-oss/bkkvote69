@@ -718,6 +718,7 @@ body.ctrl #ctrl-panel{display:block}
           <button class="btn btn-s" onclick="fbSave()">☁️ บันทึกข้อมูลปัจจุบันขึ้น Firebase</button>
         </div>
         <div class="srcstatus" id="fb-status">—</div>
+        <div id="fb-save-status" style="margin-top:8px;padding:6px 10px;border-radius:6px;background:rgba(255,255,255,.06);font-size:.85em;color:#999;display:none"><span id="fb-save-icon">💾</span> <span id="fb-save-text">—</span></div>
       </div>
 
       <div class="srcpane" id="pane-sheets">
@@ -736,7 +737,6 @@ body.ctrl #ctrl-panel{display:block}
         <div class="srcrow"><button class="btn btn-p" onclick="ectStart()">▶ เริ่ม Live</button><button class="btn btn-s" onclick="ectStop()">■ หยุด</button></div>
         <p class="srcnote">ERS2026 Media API · <code>bkk-governor-2026</code> (level=province) + <code>bkk-council-2026</code> ส.ก. (level=area) · auto-refresh 20 วิ · auto-save Firebase 15 วิ · <b>สีบาร์</b>ดึงจาก Sheet ตามเบอร์ (no) ถ้ามี ไม่งั้นใช้สีจาก API</p>
         <div class="srcstatus" id="ect-status">—</div>
-        <div class="srcstatus" id="fb-save-status" style="font-size:.85em;color:#888">—</div>
       </div>
     </div>
   </div>
@@ -2166,8 +2166,8 @@ async function fbAutoSave(){
     const all=await snapsRef.orderByKey().once('value');
     const keys=Object.keys(all.val()||{});
     if(keys.length>200){const del={};keys.slice(0,keys.length-200).forEach(k=>del[k]=null);await snapsRef.update(del);}
-    const el=$('fb-save-status');if(el)el.textContent='💾 บันทึก Firebase ล่าสุด: '+new Date(ts).toLocaleTimeString('th-TH');
-  }catch(e){console.warn('auto-save err',e);const el=$('fb-save-status');if(el)el.textContent='⚠️ บันทึกไม่สำเร็จ';}
+    const el=$('fb-save-status');if(el){el.style.display='';$('fb-save-icon').textContent='💾';$('fb-save-text').textContent='Auto-save ล่าสุด: '+new Date(ts).toLocaleTimeString('th-TH');el.style.color='#6fca6f';}
+  }catch(e){console.warn('auto-save err',e);const el=$('fb-save-status');if(el){el.style.display='';$('fb-save-icon').textContent='⚠️';$('fb-save-text').textContent='บันทึกไม่สำเร็จ';el.style.color='#e88';}}
 }
 function startAutoSave(){stopAutoSave();autoSaveTimer=setInterval(fbAutoSave,15000);}
 function stopAutoSave(){if(autoSaveTimer){clearInterval(autoSaveTimer);autoSaveTimer=null;}}
