@@ -355,20 +355,15 @@ body.ov-bottombar #ov-bar{display:flex}
 .ovb-gc-body{position:absolute;left:53.5%;right:2.5%;top:44%;bottom:6%;display:flex;flex-direction:column;justify-content:center;gap:2px;z-index:2}
 .ovb-gc-votes{font-size:26px;font-weight:900;font-family:var(--font-num);font-variant-numeric:tabular-nums;line-height:1.05;color:#fff;white-space:nowrap}
 .ovb-gc-pct{font-size:11px;font-weight:500;color:rgba(255,255,255,.85);margin-top:2px}
-/* ส.ก. party seats — layout mirrors .ovb-gov */
+/* ส.ก. party seats — ใช้ art composite เหมือนการ์ดผู้ว่า */
 .ovb-skg{gap:0;padding:38px 10px 8px 18px;justify-content:center;align-items:stretch}
 .ovb-pc{position:relative;flex:1;min-width:0;height:100%;overflow:hidden;border-radius:0;background:transparent}
-/* โลโก้วางเต็มฝั่งซ้าย เหมือน art composite ผู้ว่า */
-.ovb-pc-pw{position:absolute;left:3%;top:50%;transform:translateY(-50%);height:84%;aspect-ratio:1;z-index:1;overflow:visible}
-.ovb-pc-logo{width:100%;height:100%;object-fit:contain;display:block}
-.ovb-pc-logo-fb{width:100%;height:100%;border-radius:50%;display:grid;place-items:center;font-size:26px;font-weight:800}
-.ovb-pc-rank{position:absolute;left:8px;bottom:8px;z-index:4;font-weight:900;font-size:28px;line-height:1;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.8)}
-/* ชื่อพรรค — ขวาบน ถัดจากโลโก้ */
-.ovb-pc-name{position:absolute;left:55%;right:3%;top:34%;z-index:3;font-size:13px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2}
-/* ตัวเลขคะแนนทับโลโก้ (เริ่ม ~40% ซ้าย) */
-.ovb-pc-body{position:absolute;left:40%;right:3%;top:54%;bottom:8%;display:flex;flex-direction:column;justify-content:center;gap:0;z-index:3}
+.ovb-pc-photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block}
+.ovb-pc-fb{position:absolute;inset:0;display:grid;place-items:center;font-size:26px;font-weight:800}
+.ovb-pc-rank{position:absolute;left:6px;bottom:6px;z-index:4;font-weight:900;font-size:28px;line-height:1;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.8)}
+.ovb-pc-body{position:absolute;left:53.5%;right:2.5%;top:44%;bottom:6%;display:flex;flex-direction:column;justify-content:center;gap:2px;z-index:2}
 .ovb-pc-votes{font-size:26px;font-weight:900;font-family:var(--font-num);font-variant-numeric:tabular-nums;line-height:1.05;color:#fff;white-space:nowrap}
-.ovb-pc-pct{font-size:11px;font-weight:500;color:rgba(255,255,255,.85);margin-top:1px}
+.ovb-pc-pct{font-size:11px;font-weight:500;color:rgba(255,255,255,.85);margin-top:2px}
 .ovb-empty{flex:1;display:grid;place-items:center;color:rgba(255,255,255,.6);font-size:13px}
 .ovb-ctl{display:none!important}
 #ov-bar:hover .ovb-ctl,#ov-bar.show-ctl .ovb-ctl{opacity:1;pointer-events:auto}
@@ -1507,7 +1502,11 @@ function ovPartySeats(){
       if(!pm[p])pm[p]={name:p,seats:0,votes:0,color:c.color||PALETTE[Object.keys(pm).length%PALETTE.length],logo:''};
       pm[p].votes+=parseInt(c.votes)||0;if(c.elected)pm[p].seats++;if(c.color)pm[p].color=c.color;});
   });
-  if(skgPartyLogoMap){Object.values(pm).forEach(p=>{const l=skgPartyLogoMap[p.name];if(l)p.logo=l;});}
+  if(skgPartyLogoMap){Object.values(pm).forEach(p=>{
+    let l=skgPartyLogoMap[p.name];
+    if(!l){const k=Object.keys(skgPartyLogoMap).find(n=>p.name.includes(n)||n.includes(p.name));if(k)l=skgPartyLogoMap[k];}
+    if(l)p.logo=l;
+  });}
   return Object.values(pm).sort((a,b)=>b.seats-a.seats||b.votes-a.votes);
 }
 function ovPhoto(cls,fbcls,avatar,init,color){
@@ -1551,13 +1550,9 @@ function renderBottomBar(){
     ?parties.slice(0,5).map((p,i)=>{
       const pc=(p.votes/totalPVotes*100).toFixed(1);
       const init=(p.name||'?').trim().slice(0,1);
-      const logoHtml=p.logo
-        ?`<img class="ovb-pc-logo" src="${p.logo}" onerror="this.outerHTML='<div class=\\'ovb-pc-logo-fb\\' style=\\'background:${p.color};color:${inkOn(p.color)}\\'>${init}</div>'">`
-        :`<div class="ovb-pc-logo-fb" style="background:${p.color};color:${inkOn(p.color)}">${init}</div>`;
-      return `<div class="ovb-pc" style="--pc-color:${p.color}">
-        <div class="ovb-pc-pw">${logoHtml}</div>
+      return `<div class="ovb-pc">
+        <div class="ovb-gc-pw">${ovPhoto('ovb-pc-photo','ovb-pc-fb',p.logo,init,p.color)}</div>
         <div class="ovb-pc-rank">${i+1}</div>
-        <div class="ovb-pc-name">${p.name}</div>
         <div class="ovb-pc-body">
           <div class="ovb-pc-votes">${fmt(p.votes)}</div>
           <div class="ovb-pc-pct">คน</div>
