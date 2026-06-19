@@ -2426,7 +2426,6 @@ const CP_ICONS={
 const CP_LAYERS=[
   {key:'footer',label:'Footer · Lower Graphics',options:[{k:'off',label:'Off'},{k:'bottombar',label:'Bottom Bar'}]},
   {key:'side',label:'Side Panel',options:[{k:'off',label:'Off'},{k:'on',label:'Show Panel'}]},
-  {key:'full',label:'Fullscreen',options:[{k:'off',label:'Off'},{k:'map',label:'Winner Map'},{k:'bubble',label:'Bubble Chart'}]},
 ];
 function cpLabel(layer,val){const L=CP_LAYERS.find(x=>x.key===layer);const o=L&&L.options.find(x=>x.k===val);return o?o.label:'Off';}
 function cpSideName(i,f){const sc=ovSideScenes(f||pvwState.sideFilter);if(!sc.length)return'';const x=sc[(((i||0)%sc.length)+sc.length)%sc.length];return x?((x.t==='gov'?'ผู้ว่าฯ ':'ส.ก. ')+'เขต'+(x.name||'').replace(/^เขต/,'')):'';}
