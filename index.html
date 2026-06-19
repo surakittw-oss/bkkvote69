@@ -2147,6 +2147,28 @@ let ECT_KEY='';const ECT_BASE='https://media.election.in.th';
 const ECT_GOVERNOR_SLUG='bkk-governor-2026';
 const ECT_COUNCIL_SLUG='bkk-council-2026';
 let ectTimer=null,ectImageMap=null,ovImgMap=null,skgImgMap=null,govSideMap=null,skgPartyLogoMap=null;
+let autoSaveTimer=null;
+async function fbAutoSave(){
+  if(!fbReady||!fbDb)return;
+  if(currentSource!=='ect'&&currentSource!=='firebase')return;
+  try{
+    const candPayload=CANDS.map((c,i)=>({no:c.no,originalIndex:c.idx??i,name:c.name,short:c.short,party:c.party,color:c.color,votes:c.votes,avatar:c.avatar||''}));
+    const distPayload=DISTRICTS.map(d=>{const o={district:d.name,counted:d.counted?1:0};CANDS.forEach((c,ci)=>o['votes_'+((c.idx??ci)+1)]=d.votes[ci]||0);return o});
+    await fbDb.ref('election/candidates').set(candPayload);
+    await fbDb.ref('election/districts').set(distPayload);
+    if(skgData&&Object.keys(skgData).length)await fbDb.ref('election/skg').set(skgData);
+    const ts=new Date().toISOString();
+    await fbDb.ref('election/meta').update({updatedAt:ts,autoSavedAt:ts});
+    const snap={ts,source:currentSource,totalVotes:CANDS.reduce((s,c)=>s+c.votes,0),candidates:candPayload.map(c=>({no:c.no,votes:c.votes}))};
+    const snapsRef=fbDb.ref('election/snapshots');
+    await snapsRef.push(snap);
+    const all=await snapsRef.orderByKey().once('value');
+    const keys=Object.keys(all.val()||{});
+    if(keys.length>200){const del={};keys.slice(0,keys.length-200).forEach(k=>del[k]=null);await snapsRef.update(del);}
+  }catch(e){console.warn('auto-save err',e);}
+}
+function startAutoSave(){stopAutoSave();autoSaveTimer=setInterval(fbAutoSave,15000);}
+function stopAutoSave(){if(autoSaveTimer){clearInterval(autoSaveTimer);autoSaveTimer=null;}}
 // คืน data (envelope { success, data, correlationId }) — โยน error ที่อ่านง่ายเมื่อ 401/403/404
 async function ectGet(path){
   const h=ECT_KEY?{Authorization:'Bearer '+ECT_KEY}:{};
@@ -2306,9 +2328,9 @@ async function ectStart(){
     try{const m=await loadSkgImgSheet(skgImg);if(m&&Object.keys(m).length){skgImgMap=m;applySkgImgMap();renderAll();$('ect-status').textContent+=' ✓ ส.ก. '+Object.keys(m).length+' คน';}}
     catch(e){$('ect-status').textContent+=' ⚠ ส.ก.: '+e.message;}
   }
-  clearInterval(ectTimer);await loadFromECT();ectTimer=setInterval(loadFromECT,60000);
+  clearInterval(ectTimer);await loadFromECT();ectTimer=setInterval(loadFromECT,20000);startAutoSave();
 }
-function ectStop(){clearInterval(ectTimer);ectTimer=null;$('ect-status').textContent='■ หยุดแล้ว'}
+function ectStop(){clearInterval(ectTimer);ectTimer=null;stopAutoSave();$('ect-status').textContent='■ หยุดแล้ว'}
 
 /* ════════════ IFRAME / EMBED ════════════ */
 function postHeight(){try{const p=new URLSearchParams(location.search);const fid=p.get('fid')||p.get('section')||'full';parent.postMessage({type:'bkkvote-height',height:document.body.scrollHeight,fid:fid},'*')}catch(e){}}
