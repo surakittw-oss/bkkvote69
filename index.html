@@ -1615,11 +1615,12 @@ const OV_ICO_PREV='<svg viewBox="0 0 24 24" fill="none"><path d="M15 5l-7 7 7 7"
 const OV_ICO_NEXT='<svg viewBox="0 0 24 24" fill="none"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 const OV_ICO_PAUSE='<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>';
 const OV_ICO_PLAY='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 5l12 7-12 7z"/></svg>';
-function ovSideScenes(){
+function ovSideScenes(filter){
+  const f=filter||ctrlState.sideFilter||'both';
   const scenes=[];
   DISTRICTS.forEach(d=>{
-    scenes.push({t:'gov',name:d.name});
-    if(skgData&&Array.isArray(skgData[d.name])&&skgData[d.name].length)scenes.push({t:'skg',name:d.name});
+    if(f==='gov'||f==='both')scenes.push({t:'gov',name:d.name});
+    if((f==='skg'||f==='both')&&skgData&&Array.isArray(skgData[d.name])&&skgData[d.name].length)scenes.push({t:'skg',name:d.name});
   });
   return scenes;
 }
@@ -2396,9 +2397,9 @@ function copyEmbed(i){
 const CTRL_MODE=(new URLSearchParams(location.search)).get('control')==='1';
 const CTRL_REF='overlay/control';
 /* state แบบเลเยอร์: footer / side / full แยกอิสระ + sub-control (program = ออกอากาศจริง บน Firebase) */
-const CTRL_DEFAULT={footer:'off',side:'off',full:'off',barView:0,barPlaying:false,sideIdx:0,sidePlaying:false,bgColor:'',sideSpeed:7000};
+const CTRL_DEFAULT={footer:'off',side:'off',full:'off',barView:0,barPlaying:false,sideIdx:0,sidePlaying:false,sideFilter:'both',bgColor:'',sideSpeed:7000};
 let ctrlState=Object.assign({},CTRL_DEFAULT);          // program (on air)
-let pvwState={footer:'off',side:'off',full:'off',sideIdx:0,sidePlaying:false}; // preview (staged — controller เท่านั้น)
+let pvwState={footer:'off',side:'off',full:'off',sideIdx:0,sidePlaying:false,sideFilter:'both'}; // preview (staged — controller เท่านั้น)
 const CP_ICONS={
   off:'<svg viewBox="0 0 32 22" fill="none"><circle cx="16" cy="11" r="6.5" stroke="currentColor" stroke-width="2"/><path d="M16 3.5v6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
   bottombar:'<svg viewBox="0 0 32 22" fill="none"><rect x="1" y="1" width="30" height="20" rx="2.5" stroke="currentColor" stroke-width="1.4" opacity=".4"/><rect x="6.5" y="14.5" width="19" height="4.5" rx="1.2" fill="currentColor"/></svg>',
@@ -2414,7 +2415,7 @@ const CP_LAYERS=[
   {key:'full',label:'Fullscreen',options:[{k:'off',label:'Off'},{k:'map',label:'Winner Map'},{k:'bubble',label:'Bubble Chart'}]},
 ];
 function cpLabel(layer,val){const L=CP_LAYERS.find(x=>x.key===layer);const o=L&&L.options.find(x=>x.k===val);return o?o.label:'Off';}
-function cpSideName(i){const sc=ovSideScenes();if(!sc.length)return'';const x=sc[(((i||0)%sc.length)+sc.length)%sc.length];return x?((x.t==='gov'?'ผู้ว่าฯ ':'ส.ก. ')+'เขต'+(x.name||'').replace(/^เขต/,'')):'';}
+function cpSideName(i,f){const sc=ovSideScenes(f||pvwState.sideFilter);if(!sc.length)return'';const x=sc[(((i||0)%sc.length)+sc.length)%sc.length];return x?((x.t==='gov'?'ผู้ว่าฯ ':'ส.ก. ')+'เขต'+(x.name||'').replace(/^เขต/,'')):'';}
 /* ── write side (controller สั่งงาน → program บน Firebase) ── */
 async function ctrlWrite(patch){
   Object.assign(ctrlState,patch);
@@ -2426,19 +2427,22 @@ async function ctrlWrite(patch){
 function cpStage(layer,val){pvwState[layer]=val;renderControlPanel();cpPushPreview();}
 /* TAKE: ยืนยัน → push เลเยอร์นั้นออกอากาศจริง (side รวมเขตที่เลือก + โหมดค้าง/วน) */
 function cpTake(layer){
-  if(layer==='side')ctrlWrite({side:pvwState.side,sideIdx:pvwState.sideIdx|0,sidePlaying:!!pvwState.sidePlaying});
+  if(layer==='side')ctrlWrite({side:pvwState.side,sideIdx:pvwState.sideIdx|0,sidePlaying:!!pvwState.sidePlaying,sideFilter:pvwState.sideFilter||'both'});
   else ctrlWrite({[layer]:pvwState[layer]});
 }
-function cpTakeAll(){ctrlWrite({footer:pvwState.footer,side:pvwState.side,full:pvwState.full,sideIdx:pvwState.sideIdx|0,sidePlaying:!!pvwState.sidePlaying});}
+function cpTakeAll(){ctrlWrite({footer:pvwState.footer,side:pvwState.side,full:pvwState.full,sideIdx:pvwState.sideIdx|0,sidePlaying:!!pvwState.sidePlaying,sideFilter:pvwState.sideFilter||'both'});}
 /* CUT: ปิดทุกเลเยอร์ทันที (panic OFF AIR) */
-function cpCutAll(){pvwState={footer:'off',side:'off',full:'off',sideIdx:0,sidePlaying:false};ctrlWrite({footer:'off',side:'off',full:'off'});}
+function cpCutAll(){pvwState={footer:'off',side:'off',full:'off',sideIdx:0,sidePlaying:false,sideFilter:'both'};ctrlWrite({footer:'off',side:'off',full:'off'});}
 /* footer sub-control: ปรับสด บน program */
 function ctrlBarView(v){ctrlWrite({barView:v,barPlaying:false});}
 function ctrlBarAuto(){ctrlWrite({barPlaying:!ctrlState.barPlaying});}
 /* side: เลือกเขต/โหมด → stage เข้า preview (ยังไม่ออกอากาศ จนกว่าจะ TAKE) */
-function cpStageSideIdx(i){pvwState.sideIdx=parseInt(i)||0;renderControlPanel();cpPushPreview();}
-function cpStageSideStep(d){const n=ovSideScenes().length||1;pvwState.sideIdx=(((pvwState.sideIdx||0)+d)%n+n)%n;renderControlPanel();cpPushPreview();}
+function cpStageSideIdx(i){pvwState.sideIdx=parseInt(i)||0;pvwState.sidePlaying=false;renderControlPanel();cpPushPreview();}
+function cpStageSideStep(d){const n=ovSideScenes(pvwState.sideFilter).length||1;pvwState.sideIdx=(((pvwState.sideIdx||0)+d)%n+n)%n;renderControlPanel();cpPushPreview();}
 function cpStageSideAuto(){pvwState.sidePlaying=!pvwState.sidePlaying;renderControlPanel();cpPushPreview();}
+function cpStageSideFilter(f){pvwState.sideFilter=f;pvwState.sideIdx=0;pvwState.sidePlaying=(f!=='both');renderControlPanel();cpPushPreview();}
+function cpStageSideAutoGov(){pvwState.sideFilter='gov';pvwState.sideIdx=0;pvwState.sidePlaying=true;renderControlPanel();cpPushPreview();}
+function cpStageSideAutoSkg(){pvwState.sideFilter='skg';pvwState.sideIdx=0;pvwState.sidePlaying=true;renderControlPanel();cpPushPreview();}
 /* ── listen side (overlay/controller ฟังสถานะ program) ── */
 function ctrlSetupListener(){
   if(!fbDb)return;
@@ -2474,7 +2478,7 @@ function sideApplyControl(s){
   if(s.side==='on')b.classList.add('ov-side');
   if(s.bgColor)b.style.setProperty('background-color',s.bgColor,'important');
   else b.style.removeProperty('background-color');
-  if(s.side==='on'){ovSideIdx=s.sideIdx|0;ovSidePaused=!s.sidePlaying;renderSidePanel();ovSideStartTimer();}
+  if(s.side==='on'){ovSideIdx=s.sideIdx|0;ovSidePaused=!s.sidePlaying;ctrlState.sideFilter=s.sideFilter||'both';renderSidePanel();ovSideStartTimer();}
 }
 /* ── live overlay: ประกอบ 3 เลเยอร์ตามสถานะที่รับมา ── */
 function liveApplyControl(s){
@@ -2488,7 +2492,7 @@ function liveApplyControl(s){
   else if(s.full==='map'){b.classList.add('ov-map');MODE='map';}
   else if(s.full==='bubble'){b.classList.add('ov-map');MODE='prop';}
   ovBarView=s.barView|0;ovBarPaused=!s.barPlaying;
-  ovSideIdx=s.sideIdx|0;ovSidePaused=!s.sidePlaying;
+  ovSideIdx=s.sideIdx|0;ovSidePaused=!s.sidePlaying;ctrlState.sideFilter=s.sideFilter||'both';
   if(s.bgColor)b.style.setProperty('background-color',s.bgColor,'important');
   else b.style.removeProperty('background-color');
   renderLiveScene(s);
@@ -2506,7 +2510,7 @@ function renderLiveScene(s){
 function cpScalePreview(){
   document.querySelectorAll('.cp-preview-wrap').forEach(wrap=>{
     const frame=wrap.querySelector('iframe');if(!frame)return;
-    const W=1280,H=720,scale=wrap.offsetWidth/W;
+    const W=1920,H=1080,scale=wrap.offsetWidth/W;
     frame.style.width=W+'px';frame.style.height=H+'px';
     frame.style.transform='scale('+scale+')';
     wrap.style.height=(H*scale)+'px';
@@ -2543,14 +2547,15 @@ function renderControlPanel(){
       <div id="cp-ctrls"></div>`;
   }
   const anyLive=s.footer!=='off'||s.side!=='off'||s.full!=='off';
-  const onairTxt=[s.footer!=='off'?'Footer: '+cpLabel('footer',s.footer):'',s.side!=='off'?'Side: '+cpLabel('side',s.side)+(s.sideIdx?' #'+(s.sideIdx+1):''):'',s.full!=='off'?'Full: '+cpLabel('full',s.full):''].filter(Boolean).join(' · ')||'Nothing on air';
+  const sideModeLbl={gov:'ผู้ว่าฯ',skg:'ส.ก.',both:'ทั้งคู่'}[s.sideFilter||'both'];
+  const onairTxt=[s.footer!=='off'?'Footer: '+cpLabel('footer',s.footer):'',s.side!=='off'?'Side: '+(s.sidePlaying?'Auto '+sideModeLbl:cpSideName(s.sideIdx,s.sideFilter)):'',s.full!=='off'?'Full: '+cpLabel('full',s.full):''].filter(Boolean).join(' · ')||'Nothing on air';
   const conn=fbReady?'● Connected':'○ Connecting…';
   // เลเยอร์: แต่ละอันมีปุ่มเลือก (stage→preview) + TAKE
   const layers=CP_LAYERS.map(L=>{
     const pgm=s[L.key],pvw=pvwState[L.key];
     // side ถือว่า "dirty" ถ้าค่า on/off ต่าง หรือ (ขณะ staged on) เขต/โหมดที่จัดไว้ต่างจากที่ออกอากาศ
     let dirty=pgm!==pvw;
-    if(L.key==='side'&&pvw==='on')dirty=dirty||((s.sideIdx|0)!==(pvwState.sideIdx|0))||(!!s.sidePlaying!==!!pvwState.sidePlaying);
+    if(L.key==='side'&&pvw==='on')dirty=dirty||((s.sideIdx|0)!==(pvwState.sideIdx|0))||(!!s.sidePlaying!==!!pvwState.sidePlaying)||((s.sideFilter||'both')!==(pvwState.sideFilter||'both'));
     const opts=L.options.map(o=>{
       const isPvw=pvw===o.k,isPgm=pgm===o.k;
       return `<button class="cp-opt${isPvw?' pvw':''}${isPgm?' pgm':''}" onclick="cpStage('${L.key}','${o.k}')">${CP_ICONS[o.k]||''}<b>${o.label}</b>${isPgm?'<span class="cp-opt-air">ON AIR</span>':''}</button>`;
@@ -2563,25 +2568,40 @@ function renderControlPanel(){
         <button class="cp-btn ${!s.barPlaying&&s.barView===2?'on':''}" onclick="ctrlBarView(2)">Count Stats</button>
         <button class="cp-btn ${s.barPlaying?'on':''}" onclick="ctrlBarAuto()">${s.barPlaying?'⏸ Pause':'▶ Auto-rotate'}</button></div>`;
     }else if(L.key==='side'&&pvw==='on'){
-      const scenes=ovSideScenes();
-      const cur=scenes.length?(((pvwState.sideIdx||0)%scenes.length)+scenes.length)%scenes.length:0;
-      const govOpts=scenes.map((sc,i)=>sc.t==='gov'?`<option value="${i}" ${i===cur?'selected':''}>${'เขต'+(sc.name||'').replace(/^เขต/,'')}</option>`:null).filter(Boolean).join('');
-      const skgOpts=scenes.map((sc,i)=>sc.t==='skg'?`<option value="${i}" ${i===cur?'selected':''}>${'เขต'+(sc.name||'').replace(/^เขต/,'')}</option>`:null).filter(Boolean).join('');
-      sub=`<div class="cp-sub"><span class="cp-sub-lbl">ผู้ว่าฯ รายเขต:</span>
-        <select class="cp-select" onchange="cpStageSideIdx(this.value)">${govOpts||'<option>—</option>'}</select></div>
-        <div class="cp-sub"><span class="cp-sub-lbl">ส.ก. รายเขต:</span>
-        <select class="cp-select" onchange="cpStageSideIdx(this.value)">${skgOpts||'<option>—</option>'}</select></div>
-        <div class="cp-sub">
+      const pf=pvwState.sideFilter||'both';
+      const allScenes=ovSideScenes('both');
+      const govScenes=ovSideScenes('gov');
+      const skgScenes=ovSideScenes('skg');
+      const filteredScenes=ovSideScenes(pf);
+      const cur=filteredScenes.length?(((pvwState.sideIdx||0)%filteredScenes.length)+filteredScenes.length)%filteredScenes.length:0;
+      const govIdx=pf==='gov'?cur:-1;
+      const skgIdx=pf==='skg'?cur:-1;
+      const govOpts=allScenes.map((sc,i)=>sc.t==='gov'?`<option value="${i}" ${govIdx>=0&&allScenes.indexOf(sc)===allScenes.findIndex((s,j)=>s.t==='gov'&&govScenes.indexOf(s)===govIdx)?'selected':''}>${'เขต'+(sc.name||'').replace(/^เขต/,'')}</option>`:null).filter(Boolean).join('');
+      const skgOpts=allScenes.map((sc,i)=>sc.t==='skg'?`<option value="${i}" ${skgIdx>=0&&allScenes.indexOf(sc)===allScenes.findIndex((s,j)=>s.t==='skg'&&skgScenes.indexOf(s)===skgIdx)?'selected':''}>${'เขต'+(sc.name||'').replace(/^เขต/,'')}</option>`:null).filter(Boolean).join('');
+      const govSelOpts=govScenes.map((sc,i)=>`<option value="${i}" ${pf==='gov'&&i===cur?'selected':''}>${'เขต'+(sc.name||'').replace(/^เขต/,'')}</option>`).join('');
+      const skgSelOpts=skgScenes.map((sc,i)=>`<option value="${i}" ${pf==='skg'&&i===cur?'selected':''}>${'เขต'+(sc.name||'').replace(/^เขต/,'')}</option>`).join('');
+      sub=`<div class="cp-sub" style="gap:6px;flex-wrap:wrap">
+        <span class="cp-sub-lbl" style="width:100%">Auto Play Mode:</span>
+        <button class="cp-btn ${pf==='gov'&&pvwState.sidePlaying?'on':''}" onclick="cpStageSideAutoGov()">▶ ผู้ว่าฯ</button>
+        <button class="cp-btn ${pf==='skg'&&pvwState.sidePlaying?'on':''}" onclick="cpStageSideAutoSkg()">▶ ส.ก.</button>
+        <button class="cp-btn ${pf==='both'&&pvwState.sidePlaying?'on':''}" onclick="cpStageSideFilter('both');pvwState.sidePlaying=true;renderControlPanel();cpPushPreview()">▶ ทั้งคู่</button>
+        <button class="cp-btn ${!pvwState.sidePlaying?'on':''}" onclick="cpStageSideAuto()">${pvwState.sidePlaying?'⏸ หยุด':'⏸ หยุดอยู่'}</button>
+      </div>
+      <div class="cp-sub"><span class="cp-sub-lbl">ผู้ว่าฯ เลือกเขต:</span>
+        <select class="cp-select" onchange="pvwState.sideFilter='gov';cpStageSideIdx(this.value)">${govSelOpts||'<option>—</option>'}</select></div>
+      <div class="cp-sub"><span class="cp-sub-lbl">ส.ก. เลือกเขต:</span>
+        <select class="cp-select" onchange="pvwState.sideFilter='skg';cpStageSideIdx(this.value)">${skgSelOpts||'<option>—</option>'}</select></div>
+      <div class="cp-sub">
         <button class="cp-btn" onclick="cpStageSideStep(-1)" title="Previous">◀</button>
         <button class="cp-btn" onclick="cpStageSideStep(1)" title="Next">▶</button>
-        <button class="cp-btn ${pvwState.sidePlaying?'on':''}" onclick="cpStageSideAuto()">${pvwState.sidePlaying?'⏸ Hold one':'▶ Auto-rotate'}</button></div>`;
+      </div>`;
     }
     return `<div class="cp-layer${pgm!=='off'?' on':''}">
       <div class="cp-layer-hd"><span class="cp-layer-name">${L.label}</span>
         <span class="cp-layer-pgm${pgm!=='off'?' air':''}">${pgm!=='off'?'● ON AIR: '+cpLabel(L.key,pgm):'○ Off'}</span></div>
       <div class="cp-opts">${opts}</div>
       ${sub}
-      <button class="cp-take${dirty?'':' disabled'}" ${dirty?'':'disabled'} onclick="cpTake('${L.key}')">TAKE ▶ ${cpLabel(L.key,pvw)}${L.key==='side'&&pvw==='on'?' · '+cpSideName(pvwState.sideIdx):''}</button>
+      <button class="cp-take${dirty?'':' disabled'}" ${dirty?'':'disabled'} onclick="cpTake('${L.key}')">TAKE ▶ ${cpLabel(L.key,pvw)}${L.key==='side'&&pvw==='on'?' · '+(pvwState.sidePlaying?({gov:'Auto ผู้ว่าฯ',skg:'Auto ส.ก.',both:'Auto ทั้งคู่'}[pvwState.sideFilter||'both']):cpSideName(pvwState.sideIdx)):''}</button>
     </div>`;
   }).join('');
   $('cp-static').innerHTML=`
