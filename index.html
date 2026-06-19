@@ -2324,21 +2324,38 @@ async function fbSave(){
 let ECT_KEY='';const ECT_BASE='https://media.election.in.th';
 const ECT_GOVERNOR_SLUG='bkk-governor-2026';
 const ECT_COUNCIL_SLUG='bkk-council-2026';
-/* ── central backend (mbackend) — สถิติ/coverage/source-decision จริง (ไม่มีข้อมูลรายผู้สมัคร) ── */
-const MB_BASE='https://mbackend.election.in.th';
-let mbStats={gov:null,skg:null,govConst:null,skgConst:null}; // {data,source,meta} ต่อ election + ตาราง constituencies
-let mbMode='auto'; // auto | final | realtime
-// เรียก mbackend: ส่ง Bearer key (ช่อง API key เดิม) + credentials เผื่อ cookie-auth ของ partner — คืน { data, source, meta }
-async function mbGet(path){
+/* ── dashboard stats: ใช้ Media API เดียวกัน (auto endpoints) ตาม Postman bkk69 ──
+   statistics: /elections/{slug}/auto/statistics?level=province&province=10  (คืน {statistics, coverage} + source)
+   รายเขต:     /elections/{slug}/auto/electionAreas  (คืน array ราย area — ดึงมาแล้วใน loadFromECT, reuse)
+   ทุก /auto response มี source = { selected, finalProgress, realtimeProgress, threshold } */
+const BKK_PROVINCE=10; // รหัสจังหวัด กทม.
+let mbStats={gov:null,skg:null,govConst:null,skgConst:null}; // {data:{statistics,coverage},source} ต่อ election + ตาราง constituencies
+// ดึงแบบเก็บ envelope เต็ม (data + source + meta) — source อาจอยู่ top-level หรือใน data
+async function ectGetFull(path){
   const h=ECT_KEY?{Authorization:'Bearer '+ECT_KEY}:{};
-  const res=await fetch(MB_BASE+path,{headers:h,credentials:'include'});
+  const res=await fetch(ECT_BASE+path,{headers:h});
   if(!res.ok)throw new Error('HTTP '+res.status);
   const j=await res.json();
-  if(j&&j.success===false)throw new Error(j.error?.message||j.message||'mbackend error');
-  return {data:j.data!==undefined?j.data:j,source:j.source||null,meta:j.meta||null};
+  if(j&&j.success===false)throw new Error(j.error?.message||j.message||'API error');
+  const data=j.data!==undefined?j.data:j;
+  const source=j.source||data?.source||j.meta?.source||null;
+  return {data,source,meta:j.meta||j.pagination||null};
 }
-function mbStatistics(electionId,mode){return mbGet(`/api/dashboard/statistics/${electionId}?mode=${mode||mbMode||'auto'}`);}
-function mbConstituencies(electionId){return mbGet(`/api/dashboard/constituencies?electionId=${electionId}`);}
+// auto/statistics ระดับจังหวัด กทม. (รวมทุกเขตของ election นั้น) — คืน {data:{statistics,coverage},source}
+function ectStatistics(slug){return ectGetFull(`/api/media/elections/${slug}/auto/statistics?level=province&province=${BKK_PROVINCE}`);}
+// แปลง electionAreas → โครงสร้าง constituencies สำหรับตารางรายเขต {data:{constituencies,summary}}
+function ectAreasToConst(areasResp){
+  const arr=areasResp?.electionAreas||areasResp?.areas||(Array.isArray(areasResp)?areasResp:[]);
+  if(!arr.length)return null;
+  const constituencies=arr.map(a=>{
+    const an=a.areaNumber||a.number;
+    const nm=(a.name||a.areaName||a.electionArea?.name||'').replace(/^เขต\s*/,'เขต').trim()||('เขต '+an);
+    const v=a.goodVotes||a.totalVotes||a.statistics?.goodVotes||a.statistics?.totalVotes||0;
+    return {areaNumber:an,name:nm.startsWith('เขต')?nm:('เขต'+nm),realtimeVotes:v,finalVotes:v,difference:0};
+  }).filter(r=>r.areaNumber);
+  const reported=constituencies.filter(r=>r.realtimeVotes>0).length;
+  return {data:{constituencies,summary:{realtimeCount:reported,finalCount:reported,bothCount:reported}}};
+}
 // คืนค่า mbStats จากที่บันทึกไว้บน Firebase (สำหรับ dashboard สาธารณะที่โหลดจาก Firebase)
 function mbRestoreFromFb(saved){
   if(!saved||(!saved.gov&&!saved.skg)){mbStats={gov:null,skg:null,govConst:null,skgConst:null};renderMbPanel();return;}
@@ -2449,12 +2466,13 @@ async function loadFromECT(){
   $('ect-status').textContent='กำลังโหลดจาก ECT...';
   try{
     const G=ECT_GOVERNOR_SLUG, C=ECT_COUNCIL_SLUG;
-    const [govStat,govC,govAreas,councilC,councilAreas]=await Promise.all([
-      ectGet(`/api/media/elections/${G}/auto/statistics?level=province`).catch(()=>null),
+    const [govStat,councilStat,govC,govAreas,councilC,councilAreas]=await Promise.all([
+      ectStatistics(G).catch(()=>null),
+      ectStatistics(C).catch(()=>null),
       ectCandidates(G,'province'),
-      ectGet(`/api/media/elections/${G}/auto/electionAreas?level=province`).catch(()=>null),
+      ectGet(`/api/media/elections/${G}/auto/electionAreas?level=province&limit=100`).catch(()=>null),
       ectCandidates(C,'area').catch(()=>({candidates:[]})),
-      ectGet(`/api/media/elections/${C}/auto/electionAreas?level=area`).catch(()=>null),
+      ectGet(`/api/media/elections/${C}/auto/electionAreas?level=area&limit=100`).catch(()=>null),
     ]);
     // ── ผู้ว่าฯ: candidates (totalVotes + rank + votesByAreaDetails) ──
     const cl=govC.candidates||[];
@@ -2510,18 +2528,17 @@ async function loadFromECT(){
     autoFirebase=false;currentSource='ect';
     applyExternal({candidates:cands,districts,skg:Object.keys(skg).length?skg:undefined},'ECT API (Live)');setSrcDot('on');
 
-    // ── central backend (mbackend): สถิติ/coverage/source-decision จริง + ตารางรายเขต RT/Final ──
-    const [mbGov,mbCouncil,mbGovCo,mbCouncilCo]=await Promise.all([
-      mbStatistics(G).catch(()=>null),
-      mbStatistics(C).catch(()=>null),
-      mbConstituencies(G).catch(()=>null),
-      mbConstituencies(C).catch(()=>null),
-    ]);
-    mbStats={gov:mbGov,skg:mbCouncil,govConst:mbGovCo,skgConst:mbCouncilCo};
+    // ── dashboard: สถิติ/coverage/source-decision + ตารางรายเขต จาก Media API auto endpoints ──
+    mbStats={
+      gov:govStat,                      // {data:{statistics,coverage},source}
+      skg:councilStat,
+      govConst:ectAreasToConst(govAreas),     // {data:{constituencies,summary}}
+      skgConst:ectAreasToConst(councilAreas),
+    };
 
-    // ── สถานะ/ความคืบหน้า: ใช้ coverage สถานีจริงจาก mbackend ก่อน แล้วค่อย fallback ──
-    const mbCov=mbGov?.data?.coverage;
-    const cov=(mbCov&&typeof mbCov.percentage==='number'?mbCov:null)||govStat?.coverage||govC.meta?.coverage||{};
+    // ── สถานะ/ความคืบหน้า: ใช้ coverage สถานีจริง (auto/statistics) ก่อน แล้วค่อย fallback ──
+    const mbCov=govStat?.data?.coverage;
+    const cov=(mbCov&&typeof mbCov.percentage==='number'?mbCov:null)||govStat?.data?.coverage||govC.meta?.coverage||{};
     if(typeof cov.percentage==='number')ectCovPct=cov.percentage;
     else if(cov.areasReported!=null&&cov.totalAreas)ectCovPct=(cov.areasReported/cov.totalAreas)*100;
     else if(cov.stationsReported&&cov.totalStations)ectCovPct=(cov.stationsReported/cov.totalStations)*100;
@@ -2532,7 +2549,7 @@ async function loadFromECT(){
     else if(cov.areasReported!=null&&cov.totalAreas)pctTxt=' · นับ '+cov.areasReported+'/'+cov.totalAreas+' เขต';
     else if(cov.stationsReported!=null&&cov.totalStations)pctTxt=' · '+cov.stationsReported+'/'+cov.totalStations+' หน่วย';
     if(mbCov&&mbCov.totalStations)pctTxt+=' ('+mbCov.stationsReported+'/'+mbCov.totalStations+' หน่วย)';
-    const sel=mbGov?.source?.selected;const mbTxt=sel?(' · '+(sel==='final'?'ผลทางการ':'Realtime')):(mbGov===null?' · mbackend ✕':'');
+    const sel=govStat?.source?.selected;const mbTxt=sel?(' · '+(sel==='final'?'ผลทางการ':'Realtime')):'';
     const sk=Object.keys(skgData).length;
     $('ect-status').textContent='● ECT Live · '+cands.length+' ผู้สมัคร'+pctTxt+mbTxt+(sk?(' · ส.ก. '+sk+' เขต'):'')+(govEstimated?' · ผู้ว่าฯ รายเขตประมาณการ':'');
   }catch(e){$('ect-status').textContent='✕ '+e.message;console.error('ECT error:',e);}
