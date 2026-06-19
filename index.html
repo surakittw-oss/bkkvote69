@@ -1604,8 +1604,8 @@ function mbStatsCard(icon,title,s){
   const cell=(lbl,val,cls)=>`<div class="mb-stat-cell"><div class="mb-stat-cell-lbl">${lbl}</div><div class="mb-stat-cell-val ${cls||''}">${val}</div></div>`;
   return `<div class="mb-stat"><div class="mb-stat-hd">${icon} ${title}</div>
     <div class="mb-stat-grid">
-      ${cell('คะแนนนับแล้ว',(st.totalVotes||0).toLocaleString()+' <small>ใบ</small>')}
-      ${cell('ผู้มาใช้สิทธิ',(st.goodVotes||0).toLocaleString()+' <small>คน</small>')}
+      ${cell('ผู้มาใช้สิทธิ',(st.totalVotes||0).toLocaleString()+' <small>คน</small>')}
+      ${cell('คะแนนที่ถูกต้อง',(st.goodVotes||0).toLocaleString()+' <small>ใบ</small>')}
       ${cell('ผู้มีสิทธิเลือกตั้ง',(st.eligibleVoters||0).toLocaleString()+' <small>คน</small>')}
       ${cell('% ผู้มาใช้สิทธิ',(st.voterTurnoutPercentage!=null?st.voterTurnoutPercentage.toFixed(2):'—')+'<small>%</small>','accent')}
     </div>
