@@ -356,14 +356,15 @@ body.ov-bottombar #ov-bar{display:flex}
 .ovb-gc-votes{font-size:26px;font-weight:900;font-family:var(--font-num);font-variant-numeric:tabular-nums;line-height:1.05;color:#fff;white-space:nowrap}
 .ovb-gc-pct{font-size:11px;font-weight:500;color:rgba(255,255,255,.85);margin-top:2px}
 /* ส.ก. party seats */
-.ovb-skg{gap:0;padding:40px 0 0}
-.ovb-pc{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;position:relative;overflow:hidden;background:transparent;padding:6px 8px 16px;gap:3px}
-.ovb-pc+.ovb-pc::before{content:'';position:absolute;left:0;top:10px;bottom:10px;width:2px;background:rgba(255,255,255,.13);transform:skewX(-12deg)}
-.ovb-pc-bar{position:absolute;left:0;bottom:0;height:4px;width:100%}
+.ovb-skg{gap:0;padding:38px 10px 8px 18px;justify-content:center;align-items:stretch}
+.ovb-pc{flex:1;min-width:0;position:relative;height:100%;overflow:hidden;background:transparent;display:flex;align-items:center;gap:0}
+.ovb-pc-logo{width:72px;height:72px;border-radius:50%;object-fit:contain;flex-shrink:0;background:rgba(255,255,255,.1);border:3px solid var(--pc-color,rgba(255,255,255,.2))}
+.ovb-pc-logo-fb{width:72px;height:72px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;font-size:22px;font-weight:800;color:#fff;border:3px solid var(--pc-color,rgba(255,255,255,.2))}
+.ovb-pc-rank{position:absolute;left:6px;bottom:6px;z-index:4;width:38px;height:38px;display:grid;place-items:center;border-radius:8px;background:var(--brand);font-weight:900;font-size:28px;line-height:1;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.45)}
+.ovb-pc-body{position:absolute;left:53.5%;right:2.5%;top:44%;bottom:6%;display:flex;flex-direction:column;justify-content:center;gap:2px;z-index:2}
 .ovb-pc-name{font-size:13px;font-weight:800;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;line-height:1.2}
-.ovb-pc-seat{font-size:38px;font-weight:900;line-height:1;font-family:var(--font-num)}
-.ovb-pc-seatlbl{font-size:10px;color:rgba(255,255,255,.7);font-weight:600}
-.ovb-pc-votes{font-size:10px;color:rgba(255,255,255,.55);font-family:var(--font-num)}
+.ovb-pc-votes{font-size:26px;font-weight:900;font-family:var(--font-num);font-variant-numeric:tabular-nums;line-height:1.05;color:#fff;white-space:nowrap}
+.ovb-pc-pct{font-size:11px;font-weight:500;color:rgba(255,255,255,.85);margin-top:2px}
 .ovb-empty{flex:1;display:grid;place-items:center;color:rgba(255,255,255,.6);font-size:13px}
 .ovb-ctl{display:none!important}
 #ov-bar:hover .ovb-ctl,#ov-bar.show-ctl .ovb-ctl{opacity:1;pointer-events:auto}
@@ -457,6 +458,7 @@ body.ov-stat #ov-stat{display:flex}
 #ov-stat,#ov-bar,#ov-side{background-size:cover;background-position:center;background-repeat:no-repeat}
 #ov-stat[data-art]{background-image:url('bg-stat.png')}
 #ov-bar[data-art]{background-image:url('bg-bottombar.png')}
+#ov-bar[data-art][data-bar="skg"]{background-image:url('bg-skg.png')}
 #ov-side,#ov-side[data-side="skg"]{background-image:url('bg-side-skg.png')}
 #ov-side[data-side="gov"]{background-image:url('bg-side-gov.png')}
 /* เมื่อตรวจพบไฟล์ Art (data-art) → ใช้ PNG ล้วน ซ่อน mock เดิม (กรอบ lime / หัวแท็บ / พื้น gradient ที่ฝังในภาพแล้ว) */
@@ -1498,9 +1500,10 @@ function ovPartySeats(){
   const pm={};
   Object.keys(skgData||{}).forEach(dn=>{const arr=skgData[dn];if(!Array.isArray(arr))return;
     arr.forEach(c=>{const p=c.party||'อิสระ';
-      if(!pm[p])pm[p]={name:p,seats:0,votes:0,color:c.color||PALETTE[Object.keys(pm).length%PALETTE.length]};
+      if(!pm[p])pm[p]={name:p,seats:0,votes:0,color:c.color||PALETTE[Object.keys(pm).length%PALETTE.length],logo:''};
       pm[p].votes+=parseInt(c.votes)||0;if(c.elected)pm[p].seats++;if(c.color)pm[p].color=c.color;});
   });
+  if(skgPartyLogoMap){Object.values(pm).forEach(p=>{const l=skgPartyLogoMap[p.name];if(l)p.logo=l;});}
   return Object.values(pm).sort((a,b)=>b.seats-a.seats||b.votes-a.votes);
 }
 function ovPhoto(cls,fbcls,avatar,init,color){
@@ -1539,14 +1542,23 @@ function renderBottomBar(){
   }).join('');
   const parties=ovPartySeats();
   const totalSeats=parties.reduce((s,p)=>s+p.seats,0);
+  const totalPVotes=parties.reduce((s,p)=>s+p.votes,0)||1;
   const skgCards=parties.length
-    ?parties.slice(0,6).map(p=>`<div class="ovb-pc">
-        <span class="ovb-pc-bar" style="background:${p.color}"></span>
-        <div class="ovb-pc-name" style="color:${p.color}">${p.name}</div>
-        <div class="ovb-pc-seat" style="color:${p.color}">${p.seats}</div>
-        <div class="ovb-pc-seatlbl">ที่นั่ง</div>
-        <div class="ovb-pc-votes">${fmt(p.votes)} คะแนน</div>
-      </div>`).join('')
+    ?parties.slice(0,5).map((p,i)=>{
+      const pc=(p.votes/totalPVotes*100).toFixed(1);
+      const init=(p.name||'?').trim().slice(0,1);
+      const logoHtml=p.logo
+        ?`<img class="ovb-pc-logo" src="${p.logo}" onerror="this.outerHTML='<div class=\\'ovb-pc-logo-fb\\' style=\\'background:${p.color}\\'>${init}</div>'">`
+        :`<div class="ovb-pc-logo-fb" style="background:${p.color}">${init}</div>`;
+      return `<div class="ovb-pc" style="--pc-color:${p.color}">
+        ${logoHtml}
+        <div class="ovb-pc-rank">${i+1}</div>
+        <div class="ovb-pc-body">
+          <div class="ovb-pc-name">${p.name}</div>
+          <div class="ovb-pc-votes">${fmt(p.votes)}</div>
+          <div class="ovb-pc-pct">คน</div>
+        </div></div>`;
+    }).join('')
     :'<div class="ovb-empty">ยังไม่มีผล ส.ก.</div>';
   const hasSkg=parties.length>0;
   el.innerHTML=`
@@ -1580,7 +1592,7 @@ function renderBottomBar(){
   }
 }
 function ovBarApply(){
-  const gv=$('ovb-view-gov'),sv=$('ovb-view-skg'),t=$('ovb-title');if(!gv)return;
+  const gv=$('ovb-view-gov'),sv=$('ovb-view-skg'),t=$('ovb-title'),bar=$('ov-bar');if(!gv)return;
   const b=document.body;
   if(ovBarView===2){
     gv.classList.remove('on');if(sv)sv.classList.remove('on');
@@ -1590,6 +1602,7 @@ function ovBarApply(){
     b.classList.remove('ov-stat');b.classList.add('ov-bottombar');
     gv.classList.toggle('on',ovBarView===0);if(sv)sv.classList.toggle('on',ovBarView===1);
   }
+  if(bar)bar.setAttribute('data-bar',ovBarView===1?'skg':'gov');
   if(t)t.textContent=ovBarView===0?'ผลการเลือกตั้ง ผู้ว่าฯ กทม.':ovBarView===1?'ผลการเลือกตั้ง สก.':'สถิติการนับคะแนน';
   const pp=$('ovb-pp');if(pp)pp.innerHTML=ovBarPaused?OV_ICO_PLAY:OV_ICO_PAUSE;
 }
@@ -1846,6 +1859,27 @@ async function loadSkgImgSheet(url){
     const dRaw=cl(r,iD);if(dRaw)lastDist=dRaw;
     const no=parseInt(cl(r,iNo));if(!no||!lastDist)return;
     m[normName(lastDist)+'|'+no]={avatar:gdrive(cl(r,iAv)),color:norm(cl(r,iCo)),name:cl(r,iNm)};
+  });
+  return m;
+}
+async function loadSkgPartyLogoSheet(url){
+  const res=await fetch(sheetURLtoCSV(url));if(!res.ok)throw new Error('HTTP '+res.status);
+  const lines=(await res.text()).split('\n').filter(l=>l.trim());if(lines.length<2)return{};
+  let hi=-1;
+  for(let i=0;i<Math.min(lines.length,8);i++){
+    const L=parseCSVLine(lines[i]).map(c=>c.toLowerCase().replace(/^"+|"+$/g,'').trim());
+    if(L.some(c=>/party|พรรค|name/.test(c))&&L.some(c=>/logo|โลโก|image|รูป/.test(c))){hi=i;break;}
+  }
+  if(hi<0)return{};
+  const hdr=parseCSVLine(lines[hi]).map(h=>h.toLowerCase().replace(/^"+|"+$/g,'').trim());
+  const gi=t=>hdr.findIndex(h=>t.some(x=>h.includes(x)));
+  const iNm=gi(['party','พรรค','name','ชื่อ']),iLogo=gi(['logo','โลโก','image','รูป']);
+  if(iNm<0||iLogo<0)return{};
+  const cl=(r,i)=>i>=0?(r[i]||'').replace(/^"+|"+$/g,'').trim():'';
+  const m={};
+  lines.slice(hi+1).map(parseCSVLine).forEach(r=>{
+    const nm=cl(r,iNm);const logo=gdrive(cl(r,iLogo));
+    if(nm&&logo)m[nm]=logo;
   });
   return m;
 }
@@ -2113,7 +2147,7 @@ async function fbSave(){
 let ECT_KEY='';const ECT_BASE='https://media.election.in.th';
 const ECT_GOVERNOR_SLUG='bkk-governor-2026';
 const ECT_COUNCIL_SLUG='bkk-council-2026';
-let ectTimer=null,ectImageMap=null,ovImgMap=null,skgImgMap=null,govSideMap=null;
+let ectTimer=null,ectImageMap=null,ovImgMap=null,skgImgMap=null,govSideMap=null,skgPartyLogoMap=null;
 // คืน data (envelope { success, data, correlationId }) — โยน error ที่อ่านง่ายเมื่อ 401/403/404
 async function ectGet(path){
   const h=ECT_KEY?{Authorization:'Bearer '+ECT_KEY}:{};
@@ -2579,6 +2613,8 @@ function probeArt(){
     im.onload=()=>{if(im.naturalWidth>1)el.setAttribute('data-art','');};
     im.src=src;
   });
+  // probe bg-skg.png สำหรับ bottombar สก.
+  const skgIm=new Image();skgIm.src='bg-skg.png';
 }
 function init(){
   buildSample(1);
@@ -2608,6 +2644,12 @@ function init(){
       renderAll();
     }).catch(()=>{});
     // รูป portrait ผู้ว่าฯ (คีย์ เบอร์) สำหรับ side panel — แยกจาก avatar composite ของ bottombar
+    const SKG_PARTY_LOGO_SHEET='https://docs.google.com/spreadsheets/d/1M3_JgQ9CVxkU6GQ1pMGpERsVmXlFx-ftyQsKYt713yw/edit?gid=398211398#gid=398211398';
+    loadSkgPartyLogoSheet(SKG_PARTY_LOGO_SHEET).then(map=>{
+      if(!map||!Object.keys(map).length)return;
+      skgPartyLogoMap=map;
+      renderAll();
+    }).catch(()=>{});
     const GOV_SIDE_SHEET='https://docs.google.com/spreadsheets/d/1M3_JgQ9CVxkU6GQ1pMGpERsVmXlFx-ftyQsKYt713yw/edit?gid=0#gid=0';
     loadGovSideSheet(GOV_SIDE_SHEET).then(map=>{
       if(!map||!Object.keys(map).length)return;
