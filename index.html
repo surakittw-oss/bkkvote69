@@ -693,7 +693,7 @@ body.ctrl #ctrl-panel{display:block}
     <div id="skgParties" class="skg-parties"></div>
   </section>
 
-  <div class="mb-panel" id="mbPanel"></div>
+  <div class="mb-panel" id="mbPanel" style="margin-top:32px"></div>
 </div>
 
 
@@ -1524,6 +1524,8 @@ const OV_BALLOT='<svg viewBox="0 0 24 24" fill="none"><rect x="3" y="8" width="1
 function ovTurnout(){return DISTRICTS.reduce((s,d)=>s+(d.counted?(d.cast||0):0),0);}
 const SVG_PROGRESS=`<svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--brand)"><rect x="1" y="9" width="3" height="6" rx="1" fill="currentColor" opacity=".45"/><rect x="6.5" y="5" width="3" height="10" rx="1" fill="currentColor" opacity=".7"/><rect x="12" y="1" width="3" height="14" rx="1" fill="currentColor"/></svg>`;
 const SVG_TARGET=`<svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--brand)"><circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="8" r="3.5" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/></svg>`;
+const SVG_GOV=`<svg width="15" height="15" viewBox="0 0 16 16" fill="none" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--t2)"><rect x="2" y="8" width="12" height="7" rx="1" fill="currentColor" opacity=".65"/><rect x="5" y="10" width="2" height="2" rx=".4" fill="var(--bg1)"/><rect x="9" y="10" width="2" height="2" rx=".4" fill="var(--bg1)"/><rect x="6" y="13" width="4" height="2" rx=".4" fill="var(--bg1)"/><path d="M1 8.5L8 2l7 6.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity=".9"/></svg>`;
+const SVG_SKG=`<svg width="15" height="15" viewBox="0 0 16 16" fill="none" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--t2)"><rect x="3" y="1" width="10" height="14" rx="1.5" stroke="currentColor" stroke-width="1.5" fill="none" opacity=".65"/><path d="M6 5.5l1.5 1.5L11 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><line x1="5.5" y1="9" x2="10.5" y2="9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity=".7"/><line x1="5.5" y1="11.5" x2="9" y2="11.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity=".5"/></svg>`;
 function renderDashSummary(){
   const el=$('dashSummary');if(!el||OVERLAY)return;
   const govCov=mbStats?.gov?.data?.coverage;
@@ -1643,7 +1645,7 @@ function renderMbPanel(){
   const el=$('mbPanel');if(!el||OVERLAY)return;
   if(!mbStats||(!mbStats.gov&&!mbStats.skg)){el.innerHTML='';el.style.display='none';return;}
   el.style.display='';
-  el.innerHTML=`<div class="mb-2col mb-stats-row">${mbStatsCard('🏛️','ผู้ว่าฯ กทม.',mbStats.gov)}${mbStatsCard('🗳️','ส.ก. กทม.',mbStats.skg)}</div>`;
+  el.innerHTML=`<div class="mb-2col mb-stats-row">${mbStatsCard(SVG_GOV,'ผู้ว่าฯ กทม.',mbStats.gov)}${mbStatsCard(SVG_SKG,'ส.ก. กทม.',mbStats.skg)}</div>`;
 }
 function renderStat(){
   const el=$('ov-stat');if(!el)return;
