@@ -2264,12 +2264,26 @@ async function loadFromECT(){
     const areaVotes={}; // areaNumber → { candIndex: votes }
     cands.forEach((c,ci)=>{(c._raw?.votesByAreaDetails||[]).forEach(a=>{const an=a.areaNumber;if(!an)return;(areaVotes[an]=areaVotes[an]||{})[ci]=a.votes||0;});});
     const govAreaList=(govAreas?.electionAreas||govAreas?.areas||(Array.isArray(govAreas)?govAreas:[]));
+    // map areaNumber → coverage% จาก govAreaList (ใช้ตัดสิน "นับครบ" หรือยัง)
+    const areaCovPct={};
+    govAreaList.forEach(a=>{
+      const an=a.areaNumber||a.number; if(!an)return;
+      const cov=a.coverage||{};
+      let pct=null;
+      if(typeof cov.percentage==='number')pct=cov.percentage;
+      else if(cov.totalStations>0)pct=((cov.stationsReported||0)/cov.totalStations)*100;
+      else if(typeof a.progress==='number')pct=a.progress;
+      areaCovPct[an]=pct;
+    });
     let districts, govEstimated=false;
     if(Object.keys(areaVotes).length){
       // มีคะแนนผู้ว่าฯ แยกรายเขตจริง (votesByAreaDetails)
       districts=Object.keys(areaVotes).map(an=>{
         const nm=govAreaMap[an]||BKK_DISTRICTS[an-1]||('เขต '+an);
-        const row={district:nm,counted:1};const av=areaVotes[an];
+        const pct=areaCovPct[an];
+        // counted = 1 เฉพาะเมื่อ coverage ครบ 100% หรือไม่มีข้อมูล coverage เลย (ถือว่าครบ)
+        const counted=(pct==null||pct>=100)?1:0;
+        const row={district:nm,counted};const av=areaVotes[an];
         Object.keys(av).forEach(ci=>row['votes_'+(+ci+1)]=av[ci]);
         return row;
       });
@@ -2281,10 +2295,11 @@ async function loadFromECT(){
       districts=govAreaList.map(a=>{
         const an=a.areaNumber||a.number;
         const nm=govAreaMap[an]||BKK_DISTRICTS[an-1]||(a.name||'เขต '+an);
-        const counted=((a.coverage&&a.coverage.percentage)||a.progress||0)>0?1:0;
+        const pct=areaCovPct[an];
+        const counted=(pct!=null&&pct>=100)?1:((pct==null&&(a.goodVotes||a.totalVotes||0)>0)?1:0);
         const cast=a.goodVotes||a.totalVotes||0;
         const row={district:nm,counted};
-        if(counted)cands.forEach((c,ci)=>row['votes_'+(ci+1)]=Math.round(shares[ci]*cast));
+        if(cast>0)cands.forEach((c,ci)=>row['votes_'+(ci+1)]=Math.round(shares[ci]*cast));
         return row;
       });
     } else { districts=undefined; }
