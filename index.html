@@ -130,6 +130,58 @@ body.ov #top-logo{display:none}
 .dash-kpi-val span{font-size:13px;font-weight:500;color:var(--t3);margin-left:4px}
 .dash-kpi-bar{height:4px;border-radius:2px;background:var(--bg3);overflow:hidden;margin-top:2px}
 .dash-kpi-bar i{display:block;height:100%;border-radius:2px;background:linear-gradient(90deg,var(--brand),var(--brand-l));width:0;transition:width 1.2s cubic-bezier(.2,.8,.2,1)}
+/* ── central-backend monitoring panel ── */
+.mb-panel{margin-bottom:24px;display:flex;flex-direction:column;gap:16px}
+.mb-sec{background:var(--bg1);border:1px solid var(--line);border-radius:13px;padding:16px 18px}
+.mb-sec-hd{font-size:14px;font-weight:800;color:var(--t1);margin-bottom:13px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.mb-sec-hd small{font-size:11px;font-weight:500;color:var(--t4)}
+.mb-2col{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:680px){.mb-2col{grid-template-columns:1fr}}
+.mb-dec{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:13px 15px}
+.mb-dec-hd{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;font-weight:700;color:var(--t1);margin-bottom:10px}
+.mb-badge{font-size:11px;font-weight:800;padding:3px 10px;border-radius:20px;white-space:nowrap}
+.mb-badge.final{background:rgba(34,177,76,.16);color:#3ddc7a;border:1px solid rgba(34,177,76,.4)}
+.mb-badge.rt{background:rgba(255,170,0,.16);color:#ffb830;border:1px solid rgba(255,170,0,.4)}
+.mb-badge.off{background:var(--bg3);color:var(--t4)}
+.mb-dec-row{display:flex;justify-content:space-between;font-size:12px;color:var(--t2);margin-bottom:6px}
+.mb-dec-row b{font-family:var(--font-num);font-variant-numeric:tabular-nums;color:var(--t1);font-size:14px}
+.mb-dec-bar{position:relative;height:8px;border-radius:5px;background:var(--bg3);overflow:visible;margin-bottom:6px}
+.mb-dec-bar i{display:block;height:100%;border-radius:5px;transition:width 1s cubic-bezier(.2,.8,.2,1)}
+.mb-dec-th{position:absolute;top:-2px;width:2px;height:12px;background:#ff5a4d;border-radius:1px}
+.mb-dec-foot{display:flex;justify-content:space-between;font-size:11px;color:var(--t4)}
+.mb-gauge{background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:14px;text-align:center;display:flex;flex-direction:column;align-items:center}
+.mb-gauge-svg{width:100%;max-width:230px;height:auto}
+.mb-gauge-pct{font-family:var(--font-num);font-variant-numeric:tabular-nums;font-weight:800;font-size:38px;fill:var(--t1)}
+.mb-gauge-pctsign{font-size:18px;fill:var(--t3)}
+.mb-gauge-lbl{font-size:11px;color:var(--t4);margin-top:-6px}
+.mb-gauge-stations{font-family:var(--font-num);font-variant-numeric:tabular-nums;font-size:22px;font-weight:800;color:var(--t1);margin:4px 0}
+.mb-gauge-stations span{color:var(--t4);font-weight:500}
+.mb-gauge-ttl{font-size:12px;font-weight:700;color:var(--t2);margin-top:4px}
+.mb-gauge-empty{color:var(--t4);padding:30px 0;font-size:13px}
+.mb-stats-row{align-items:stretch}
+.mb-stat{background:var(--bg1);border:1px solid var(--line);border-radius:13px;padding:16px 18px}
+.mb-stat-hd{font-size:14px;font-weight:800;color:var(--t1);margin-bottom:12px}
+.mb-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+.mb-stat-cell-lbl{font-size:11px;color:var(--t4);font-weight:600;margin-bottom:2px}
+.mb-stat-cell-val{font-size:18px;font-weight:800;color:var(--t1);font-family:var(--font-num);font-variant-numeric:tabular-nums;line-height:1.2}
+.mb-stat-cell-val small{font-size:11px;font-weight:500;color:var(--t3)}
+.mb-stat-cell-val.accent{color:var(--brand-l)}
+.mb-stat-foot{margin-top:12px;padding-top:10px;border-top:1px solid var(--line2);font-size:12px;color:var(--t3)}
+.mb-stat-foot b{color:#3ddc7a;font-family:var(--font-num);font-variant-numeric:tabular-nums}
+.mb-tbl-tabs{display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.mb-tbl-tab{padding:6px 14px;border-radius:8px;border:1.5px solid var(--line);background:transparent;color:var(--t2);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:.15s}
+.mb-tbl-tab:hover{border-color:var(--t3);color:#fff}
+.mb-tbl-tab.on{border-color:var(--brand);background:var(--brand);color:#fff}
+.mb-tbl-sum{margin-left:auto;font-size:11px;color:var(--t4)}
+.mb-tbl-scroll{max-height:340px;overflow-y:auto;border:1px solid var(--line2);border-radius:9px}
+.mb-tbl-scroll::-webkit-scrollbar{width:6px}.mb-tbl-scroll::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+.mb-tbl{width:100%;border-collapse:collapse;font-size:13px}
+.mb-tbl th{position:sticky;top:0;background:var(--bg2);color:var(--t4);font-weight:600;font-size:11px;text-align:left;padding:9px 12px;border-bottom:1px solid var(--line)}
+.mb-tbl td{padding:9px 12px;border-bottom:1px solid var(--line2);color:var(--t2)}
+.mb-tbl tr:last-child td{border-bottom:none}
+.mb-tbl-area{color:var(--t4);font-family:var(--font-num);font-variant-numeric:tabular-nums;width:42px}
+.mb-tbl-num{text-align:right;font-family:var(--font-num);font-variant-numeric:tabular-nums}
+.mb-tbl-num.pos{color:#3ddc7a}.mb-tbl-num.neg{color:#ff6b60}
 .prog{flex:1;min-width:120px;height:5px;border-radius:3px;background:var(--bg3);overflow:hidden}
 .prog > i{display:block;height:100%;background:linear-gradient(90deg,var(--brand),var(--brand-l));width:0;transition:width 1.2s cubic-bezier(.2,.8,.2,1)}
 /* สลับเลเยอร์แผนที่: ผู้ว่าฯ / ส.ก. */
@@ -595,6 +647,8 @@ body.ctrl #ctrl-panel{display:block}
   <div class="hr"></div>
 
   <div class="dash-summary" id="dashSummary"></div>
+
+  <div class="mb-panel" id="mbPanel"></div>
 
   <div class="grid">
     <section id="totals-col">
@@ -1370,7 +1424,7 @@ function setMode(m){MODE=m;renderModes();renderMap();postHeight();}
 /* ════════════ RENDER ALL ════════════ */
 function renderAll(){
   $('counted').textContent=countedDistricts;
-  renderDashSummary();renderTotals();renderLegend();renderModes();renderMap();renderSkgOverview();
+  renderDashSummary();renderMbPanel();renderTotals();renderLegend();renderModes();renderMap();renderSkgOverview();
   if(OVERLAY==='live')renderLiveScene();
   else if(OV_IS_SIDE){if(ctrlState.side==='on')renderSidePanel();}
   else if(OV_IS_FOOTER){if(ctrlState.footer==='bottombar')renderBottomBar();else if(ctrlState.footer==='stat')renderStat();}
@@ -1482,6 +1536,92 @@ function renderDashSummary(){
       <div class="dash-kpi-label">คะแนนรวมทั้งหมด</div>
       <div class="dash-kpi-val">${totalVotes.toLocaleString()}<span>คะแนน</span></div>
     </div>`;
+}
+/* ── central-backend monitoring panel: Data Source Decision + coverage gauge + สถิติ + ตาราง RT/Final ── */
+let mbTableSel='gov';
+function mbGaugeSvg(pct,color){
+  const p=Math.max(0,Math.min(100,pct||0));const r=85,len=Math.PI*r;
+  return `<svg viewBox="0 0 200 118" class="mb-gauge-svg">
+    <path d="M15 100 A 85 85 0 0 1 185 100" fill="none" stroke="rgba(120,120,120,.22)" stroke-width="16" stroke-linecap="round"/>
+    <path d="M15 100 A 85 85 0 0 1 185 100" fill="none" stroke="${color}" stroke-width="16" stroke-linecap="round" stroke-dasharray="${(len*p/100).toFixed(2)} ${len.toFixed(2)}"/>
+    <text x="100" y="92" text-anchor="middle" class="mb-gauge-pct">${p.toFixed(1)}<tspan class="mb-gauge-pctsign">%</tspan></text>
+  </svg>`;
+}
+function mbDecisionCard(icon,title,s){
+  if(!s||!s.source){return `<div class="mb-dec"><div class="mb-dec-hd"><span>${icon} ${title}</span><span class="mb-badge off">ไม่มีข้อมูล</span></div></div>`;}
+  const src=s.source;const sel=src.selected;const fp=+src.finalProgress||0;const rp=+src.realtimeProgress||0;const th=+src.threshold||20;
+  const useFinal=sel==='final';
+  return `<div class="mb-dec">
+    <div class="mb-dec-hd"><span>${icon} ${title}</span><span class="mb-badge ${useFinal?'final':'rt'}">${useFinal?'✓ ใช้ Final':'⚡ ใช้ Realtime'}</span></div>
+    <div class="mb-dec-row"><span>ผลทางการ (Final) ครอบคลุม</span><b>${fp.toFixed(2)}%</b></div>
+    <div class="mb-dec-bar"><i style="width:${Math.min(100,fp)}%;background:${useFinal?'#22b14c':'#9aa'}"></i><span class="mb-dec-th" style="left:${Math.min(100,th)}%" title="เกณฑ์สลับ ${th}%"></span></div>
+    <div class="mb-dec-foot"><span>Realtime: ${rp.toFixed(2)}%</span><span>เกณฑ์สลับ ${th}%</span></div>
+  </div>`;
+}
+function mbGaugeCard(icon,title,s){
+  const cov=s?.data?.coverage;
+  if(!cov||!cov.totalStations)return `<div class="mb-gauge"><div class="mb-gauge-ttl">${icon} ${title}</div><div class="mb-gauge-empty">—</div></div>`;
+  return `<div class="mb-gauge">${mbGaugeSvg(cov.percentage,'#22b14c')}
+    <div class="mb-gauge-lbl">หน่วยรายงาน</div>
+    <div class="mb-gauge-stations"><b>${(cov.stationsReported||0).toLocaleString()}</b> <span>/ ${(cov.totalStations||0).toLocaleString()}</span></div>
+    <div class="mb-gauge-ttl">${icon} ${title}</div></div>`;
+}
+function mbStatsCard(icon,title,s){
+  const d=s?.data;const st=d?.statistics;
+  if(!st)return `<div class="mb-stat"><div class="mb-stat-hd">${icon} ${title}</div><div class="mb-gauge-empty">ไม่มีข้อมูลสถิติ</div></div>`;
+  const cov=d.coverage||{};
+  const cell=(lbl,val,cls)=>`<div class="mb-stat-cell"><div class="mb-stat-cell-lbl">${lbl}</div><div class="mb-stat-cell-val ${cls||''}">${val}</div></div>`;
+  return `<div class="mb-stat"><div class="mb-stat-hd">${icon} ${title}</div>
+    <div class="mb-stat-grid">
+      ${cell('คะแนนนับแล้ว (บัตรดี)',(st.goodVotes||0).toLocaleString()+' <small>ใบ</small>')}
+      ${cell('บัตรทั้งหมด',(st.totalVotes||0).toLocaleString()+' <small>ใบ</small>')}
+      ${cell('บัตรเสีย',(st.invalidVotes||0).toLocaleString()+' <small>ใบ</small>')}
+      ${cell('ไม่ประสงค์ลงคะแนน',(st.noVotes||0).toLocaleString()+' <small>ใบ</small>')}
+      ${cell('ผู้มีสิทธิเลือกตั้ง',(st.eligibleVoters||0).toLocaleString()+' <small>คน</small>')}
+      ${cell('% ผู้มาใช้สิทธิ',(st.voterTurnoutPercentage!=null?st.voterTurnoutPercentage.toFixed(2):'—')+'%','accent')}
+    </div>
+    <div class="mb-stat-foot">หน่วยรายงานแล้ว <b>${(cov.stationsReported||0).toLocaleString()} / ${(cov.totalStations||0).toLocaleString()}</b> (${cov.percentage!=null?cov.percentage.toFixed(2):'—'}%)</div>
+  </div>`;
+}
+function mbConstTable(){
+  const co=(mbTableSel==='skg'?mbStats.skgConst:mbStats.govConst);
+  const rows=co?.data?.constituencies;
+  const sum=co?.data?.summary;
+  const head=`<div class="mb-tbl-tabs">
+    <button class="mb-tbl-tab ${mbTableSel==='gov'?'on':''}" onclick="mbTableSel='gov';renderMbPanel()">🏛️ ผู้ว่าฯ</button>
+    <button class="mb-tbl-tab ${mbTableSel==='skg'?'on':''}" onclick="mbTableSel='skg';renderMbPanel()">🗳️ ส.ก.</button>
+    ${sum?`<span class="mb-tbl-sum">RT ${sum.realtimeCount} · Final ${sum.finalCount} · ครบทั้งคู่ ${sum.bothCount}</span>`:''}
+  </div>`;
+  if(!rows||!rows.length)return `<div class="mb-tbl-wrap">${head}<div class="mb-gauge-empty" style="padding:24px">ไม่มีข้อมูลรายเขต</div></div>`;
+  const sorted=[...rows].sort((a,b)=>Math.abs(b.difference||0)-Math.abs(a.difference||0));
+  const body=sorted.map(r=>{
+    const diff=r.difference||0;const dcls=diff>0?'pos':(diff<0?'neg':'');
+    return `<tr><td class="mb-tbl-area">${r.areaNumber||''}</td><td>${(r.name||'').replace(/^เขต/,'เขต')}</td>
+      <td class="mb-tbl-num">${(r.realtimeVotes||0).toLocaleString()}</td>
+      <td class="mb-tbl-num">${(r.finalVotes||0).toLocaleString()}</td>
+      <td class="mb-tbl-num ${dcls}">${diff>0?'+':''}${diff.toLocaleString()}</td></tr>`;
+  }).join('');
+  return `<div class="mb-tbl-wrap">${head}
+    <div class="mb-tbl-scroll"><table class="mb-tbl">
+      <thead><tr><th>เขต</th><th>ชื่อเขต</th><th class="mb-tbl-num">Realtime</th><th class="mb-tbl-num">Final</th><th class="mb-tbl-num">ต่าง</th></tr></thead>
+      <tbody>${body}</tbody></table></div></div>`;
+}
+function renderMbPanel(){
+  const el=$('mbPanel');if(!el||OVERLAY)return;
+  if(!mbStats||(!mbStats.gov&&!mbStats.skg)){el.innerHTML='';el.style.display='none';return;}
+  el.style.display='';
+  const G='🏛️ ผู้ว่าฯ กทม.',S='🗳️ ส.ก. กทม.';
+  el.innerHTML=`
+    <div class="mb-sec">
+      <div class="mb-sec-hd">🎯 Data Source Decision <small>เลือกแหล่งข้อมูลอัตโนมัติ — ใช้ Final เมื่อผลทางการครอบคลุม ≥ 20% ของเขต</small></div>
+      <div class="mb-2col">${mbDecisionCard('🏛️','ผู้ว่าฯ กทม.',mbStats.gov)}${mbDecisionCard('🗳️','ส.ก. กทม.',mbStats.skg)}</div>
+    </div>
+    <div class="mb-sec">
+      <div class="mb-sec-hd">📊 ความคืบหน้าการรายงานผล <small>สัดส่วนหน่วยเลือกตั้งที่รายงานผลแล้ว</small></div>
+      <div class="mb-2col">${mbGaugeCard('🏛️','ผู้ว่าฯ กทม.',mbStats.gov)}${mbGaugeCard('🗳️','ส.ก. กทม.',mbStats.skg)}</div>
+    </div>
+    <div class="mb-2col mb-stats-row">${mbStatsCard('🏛️','ผู้ว่าฯ กทม.',mbStats.gov)}${mbStatsCard('🗳️','ส.ก. กทม.',mbStats.skg)}</div>
+    <div class="mb-sec"><div class="mb-sec-hd">📍 รายเขต · Realtime เทียบ Final</div>${mbConstTable()}</div>`;
 }
 function renderStat(){
   const el=$('ov-stat');if(!el)return;
@@ -2128,7 +2268,7 @@ function startFbListener(){
       return; // ไม่ override ข้อมูลตัวอย่างด้วยข้อมูลเปล่า
     }
     currentSource='firebase';
-    applyExternal(data,'Firebase (Live)');setSrcDot('on');
+    applyExternal(data,'Firebase (Live)');mbRestoreFromFb(data.mbstats);setSrcDot('on');
     if($('fb-status'))$('fb-status').textContent='● Sync แล้ว '+(Array.isArray(data.candidates)?data.candidates.length:Object.keys(data.candidates).length)+' ผู้สมัคร';
   });
 }
@@ -2138,7 +2278,7 @@ async function fbLoad(){
   $('fb-status').textContent='กำลังโหลด...';
   try{const snap=await fbDb.ref('election').get();const data=snap.val();
     if(!data||!data.candidates){$('fb-status').textContent='✕ ยังไม่มีข้อมูลใน Cloud';return}
-    currentSource='firebase';applyExternal(data,'Firebase');setSrcDot('on');
+    currentSource='firebase';applyExternal(data,'Firebase');mbRestoreFromFb(data.mbstats);setSrcDot('on');
     $('fb-status').textContent='✓ โหลดสำเร็จ';closeSrc();
   }catch(e){$('fb-status').textContent='✕ '+e.message}
 }
@@ -2151,6 +2291,7 @@ async function fbSave(){
     await fbDb.ref('election/candidates').set(candPayload);
     await fbDb.ref('election/districts').set(distPayload);
     if(skgData&&Object.keys(skgData).length)await fbDb.ref('election/skg').set(skgData);
+    if(mbStats&&(mbStats.gov||mbStats.skg))await fbDb.ref('election/mbstats').set(JSON.parse(JSON.stringify(mbStats)));
     await fbDb.ref('election/meta').update({updatedAt:new Date().toISOString()});
     setSrcDot('on');$('fb-status').textContent='✓ บันทึกขึ้น Firebase สำเร็จ';
   }catch(e){setSrcDot('');$('fb-status').textContent='✕ '+e.message}
@@ -2162,6 +2303,29 @@ async function fbSave(){
 let ECT_KEY='';const ECT_BASE='https://media.election.in.th';
 const ECT_GOVERNOR_SLUG='bkk-governor-2026';
 const ECT_COUNCIL_SLUG='bkk-council-2026';
+/* ── central backend (mbackend) — สถิติ/coverage/source-decision จริง (ไม่มีข้อมูลรายผู้สมัคร) ── */
+const MB_BASE='https://mbackend.election.in.th';
+let mbStats={gov:null,skg:null,govConst:null,skgConst:null}; // {data,source,meta} ต่อ election + ตาราง constituencies
+let mbMode='auto'; // auto | final | realtime
+// เรียก mbackend: ส่ง Bearer key (ช่อง API key เดิม) + credentials เผื่อ cookie-auth ของ partner — คืน { data, source, meta }
+async function mbGet(path){
+  const h=ECT_KEY?{Authorization:'Bearer '+ECT_KEY}:{};
+  const res=await fetch(MB_BASE+path,{headers:h,credentials:'include'});
+  if(!res.ok)throw new Error('HTTP '+res.status);
+  const j=await res.json();
+  if(j&&j.success===false)throw new Error(j.error?.message||j.message||'mbackend error');
+  return {data:j.data!==undefined?j.data:j,source:j.source||null,meta:j.meta||null};
+}
+function mbStatistics(electionId,mode){return mbGet(`/api/dashboard/statistics/${electionId}?mode=${mode||mbMode||'auto'}`);}
+function mbConstituencies(electionId){return mbGet(`/api/dashboard/constituencies?electionId=${electionId}`);}
+// คืนค่า mbStats จากที่บันทึกไว้บน Firebase (สำหรับ dashboard สาธารณะที่โหลดจาก Firebase)
+function mbRestoreFromFb(saved){
+  if(!saved||(!saved.gov&&!saved.skg)){mbStats={gov:null,skg:null,govConst:null,skgConst:null};renderMbPanel();return;}
+  mbStats={gov:saved.gov||null,skg:saved.skg||null,govConst:saved.govConst||null,skgConst:saved.skgConst||null};
+  const c=mbStats.gov?.data?.coverage;
+  if(c&&typeof c.percentage==='number')ectCovPct=c.percentage;
+  renderMbPanel();
+}
 let ectTimer=null,ectImageMap=null,ovImgMap=null,skgImgMap=null,govSideMap=null,skgPartyLogoMap=null;
 let autoSaveTimer=null;
 async function fbAutoSave(){
@@ -2173,6 +2337,7 @@ async function fbAutoSave(){
     await fbDb.ref('election/candidates').set(candPayload);
     await fbDb.ref('election/districts').set(distPayload);
     if(skgData&&Object.keys(skgData).length)await fbDb.ref('election/skg').set(skgData);
+    if(mbStats&&(mbStats.gov||mbStats.skg))await fbDb.ref('election/mbstats').set(JSON.parse(JSON.stringify(mbStats)));
     const ts=new Date().toISOString();
     await fbDb.ref('election/meta').update({updatedAt:ts,autoSavedAt:ts});
     const snap={ts,source:currentSource,totalVotes:CANDS.reduce((s,c)=>s+c.votes,0),candidates:candPayload.map(c=>({no:c.no,votes:c.votes}))};
@@ -2320,18 +2485,31 @@ async function loadFromECT(){
     autoFirebase=false;currentSource='ect';
     applyExternal({candidates:cands,districts,skg:Object.keys(skg).length?skg:undefined},'ECT API (Live)');setSrcDot('on');
 
-    // ── สถานะ/ความคืบหน้า ──
-    const cov=govStat?.coverage||govC.meta?.coverage||{};
+    // ── central backend (mbackend): สถิติ/coverage/source-decision จริง + ตารางรายเขต RT/Final ──
+    const [mbGov,mbCouncil,mbGovCo,mbCouncilCo]=await Promise.all([
+      mbStatistics(G).catch(()=>null),
+      mbStatistics(C).catch(()=>null),
+      mbConstituencies(G).catch(()=>null),
+      mbConstituencies(C).catch(()=>null),
+    ]);
+    mbStats={gov:mbGov,skg:mbCouncil,govConst:mbGovCo,skgConst:mbCouncilCo};
+
+    // ── สถานะ/ความคืบหน้า: ใช้ coverage สถานีจริงจาก mbackend ก่อน แล้วค่อย fallback ──
+    const mbCov=mbGov?.data?.coverage;
+    const cov=(mbCov&&typeof mbCov.percentage==='number'?mbCov:null)||govStat?.coverage||govC.meta?.coverage||{};
     if(typeof cov.percentage==='number')ectCovPct=cov.percentage;
     else if(cov.areasReported!=null&&cov.totalAreas)ectCovPct=(cov.areasReported/cov.totalAreas)*100;
     else if(cov.stationsReported&&cov.totalStations)ectCovPct=(cov.stationsReported/cov.totalStations)*100;
     else ectCovPct=null;
+    renderMbPanel();
     let pctTxt='';
     if(typeof cov.percentage==='number')pctTxt=' · นับ '+cov.percentage.toFixed(1)+'%';
     else if(cov.areasReported!=null&&cov.totalAreas)pctTxt=' · นับ '+cov.areasReported+'/'+cov.totalAreas+' เขต';
     else if(cov.stationsReported!=null&&cov.totalStations)pctTxt=' · '+cov.stationsReported+'/'+cov.totalStations+' หน่วย';
+    if(mbCov&&mbCov.totalStations)pctTxt+=' ('+mbCov.stationsReported+'/'+mbCov.totalStations+' หน่วย)';
+    const sel=mbGov?.source?.selected;const mbTxt=sel?(' · '+(sel==='final'?'ผลทางการ':'Realtime')):(mbGov===null?' · mbackend ✕':'');
     const sk=Object.keys(skgData).length;
-    $('ect-status').textContent='● ECT Live · '+cands.length+' ผู้สมัคร'+pctTxt+(sk?(' · ส.ก. '+sk+' เขต'):'')+(govEstimated?' · ผู้ว่าฯ รายเขตประมาณการ':'');
+    $('ect-status').textContent='● ECT Live · '+cands.length+' ผู้สมัคร'+pctTxt+mbTxt+(sk?(' · ส.ก. '+sk+' เขต'):'')+(govEstimated?' · ผู้ว่าฯ รายเขตประมาณการ':'');
   }catch(e){$('ect-status').textContent='✕ '+e.message;console.error('ECT error:',e);}
 }
 async function ectStart(){
@@ -2350,7 +2528,7 @@ async function ectStart(){
   }
   clearInterval(ectTimer);await loadFromECT();ectTimer=setInterval(loadFromECT,20000);startAutoSave();
 }
-function ectStop(){clearInterval(ectTimer);ectTimer=null;stopAutoSave();ectCovPct=null;$('ect-status').textContent='■ หยุดแล้ว'}
+function ectStop(){clearInterval(ectTimer);ectTimer=null;stopAutoSave();ectCovPct=null;mbStats={gov:null,skg:null,govConst:null,skgConst:null};renderMbPanel();$('ect-status').textContent='■ หยุดแล้ว'}
 
 /* ════════════ IFRAME / EMBED ════════════ */
 function postHeight(){try{const p=new URLSearchParams(location.search);const fid=p.get('fid')||p.get('section')||'full';parent.postMessage({type:'bkkvote-height',height:document.body.scrollHeight,fid:fid},'*')}catch(e){}}
