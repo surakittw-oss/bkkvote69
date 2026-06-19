@@ -804,7 +804,7 @@ body.ctrl #ctrl-panel{display:block}
         <div class="fld"><label>URL Sheet สี/รูปบาร์ผู้สมัคร — คอลัมน์ <code>no</code>, <code>color</code> (hex), <code>avatar</code>, <code>name</code> (ใส่หรือไม่ก็ได้)</label><input class="inp" id="ect-img" placeholder="วางลิงก์ Sheet สี/รูป (#gid=)"></div>
         <div class="fld"><label>URL Sheet รูป ส.ก. รายเขต — คอลัมน์ <code>district</code>, <code>no</code>, <code>color</code>, <code>avatar_url</code> (ใส่หรือไม่ก็ได้)</label><input class="inp" id="ect-skg-img" placeholder="วางลิงก์ Sheet รูป ส.ก. (#gid=)"></div>
         <div class="srcrow"><button class="btn btn-p" onclick="ectStart()">▶ เริ่ม Live</button><button class="btn btn-s" onclick="ectStop()">■ หยุด</button></div>
-        <p class="srcnote">ERS2026 Media API · <code>bkk-governor-2026</code> (level=province) + <code>bkk-council-2026</code> ส.ก. (level=area) · auto-refresh 20 วิ · auto-save Firebase 15 วิ · <b>สีบาร์</b>ดึงจาก Sheet ตามเบอร์ (no) ถ้ามี ไม่งั้นใช้สีจาก API</p>
+        <p class="srcnote">ERS2026 Media API · <code>bkk-governor-2026</code> (level=province) + <code>bkk-council-2026</code> ส.ก. (level=area) · auto-refresh 30 วิ · auto-save Firebase 15 วิ · snapshot ทุก 30 นาที · <b>สีบาร์</b>ดึงจาก Sheet ตามเบอร์ (no) ถ้ามี ไม่งั้นใช้สีจาก API</p>
         <div class="srcstatus" id="ect-status">—</div>
       </div>
     </div>
@@ -1522,15 +1522,21 @@ function renderDashSummary(){
   const el=$('dashSummary');if(!el||OVERLAY)return;
   const counted=countedDistricts||0;
   const cntPct=(counted/50*100).toFixed(1);
-  const turnout=ovTurnout();
-  const totalVoters=DISTRICTS.reduce((s,d)=>s+(d.voters||0),0);
-  const turnPct=totalVoters>0?(turnout/totalVoters*100).toFixed(1):'—';
-  const totalVotes=CANDS.reduce((s,c)=>s+c.votes,0);
+  // ใช้ mbackend statistics ถ้ามี ไม่อย่างนั้น fallback ECT
+  const mbSt=mbStats?.gov?.data?.statistics;
+  const mbCov=mbStats?.gov?.data?.coverage;
+  const turnout=mbSt?(mbSt.totalVotes||0):ovTurnout();
+  const eligibleVoters=mbSt?(mbSt.eligibleVoters||0):DISTRICTS.reduce((s,d)=>s+(d.voters||0),0);
+  const turnPct=mbSt?(mbSt.voterTurnoutPercentage!=null?mbSt.voterTurnoutPercentage.toFixed(1):'—'):(eligibleVoters>0?(turnout/eligibleVoters*100).toFixed(1):'—');
+  const totalVotes=mbSt?(mbSt.goodVotes||0):CANDS.reduce((s,c)=>s+c.votes,0);
+  // coverage bar: ใช้ mbackend stations ถ้ามี ไม่อย่างนั้นใช้ district %
+  const covPct=mbCov?.percentage!=null?mbCov.percentage.toFixed(1):cntPct;
+  const covLabel=mbCov?.totalStations?`${(mbCov.stationsReported||0).toLocaleString()} / ${mbCov.totalStations.toLocaleString()} หน่วย (${covPct}%)`:`${counted} / 50 เขต (${covPct}%)`;
   el.innerHTML=`
     <div class="dash-kpi">
       <div class="dash-kpi-label">นับคะแนนแล้ว</div>
-      <div class="dash-kpi-val">${counted}<span>/ 50 เขต (${cntPct}%)</span></div>
-      <div class="dash-kpi-bar"><i style="width:${cntPct}%"></i></div>
+      <div class="dash-kpi-val">${mbCov?.totalStations?(mbCov.stationsReported||0).toLocaleString():counted}<span>${mbCov?.totalStations?'/ '+mbCov.totalStations.toLocaleString()+' หน่วย ('+covPct+'%)':'/ 50 เขต ('+covPct+'%)'}</span></div>
+      <div class="dash-kpi-bar"><i style="width:${covPct}%"></i></div>
     </div>
     <div class="dash-kpi">
       <div class="dash-kpi-label">ผู้มาใช้สิทธิ์</div>
@@ -2342,7 +2348,7 @@ function mbRestoreFromFb(saved){
   renderMbPanel();
 }
 let ectTimer=null,ectImageMap=null,ovImgMap=null,skgImgMap=null,govSideMap=null,skgPartyLogoMap=null;
-let autoSaveTimer=null;
+let autoSaveTimer=null,lastSnapshotAt=0;
 async function fbAutoSave(){
   if(!fbReady||!fbDb)return;
   if(currentSource!=='ect'&&currentSource!=='firebase')return;
@@ -2355,12 +2361,16 @@ async function fbAutoSave(){
     if(mbStats&&(mbStats.gov||mbStats.skg))await fbDb.ref('election/mbstats').set(JSON.parse(JSON.stringify(mbStats)));
     const ts=new Date().toISOString();
     await fbDb.ref('election/meta').update({updatedAt:ts,autoSavedAt:ts});
-    const snap={ts,source:currentSource,totalVotes:CANDS.reduce((s,c)=>s+c.votes,0),candidates:candPayload.map(c=>({no:c.no,votes:c.votes}))};
-    const snapsRef=fbDb.ref('election/snapshots');
-    await snapsRef.push(snap);
-    const all=await snapsRef.orderByKey().once('value');
-    const keys=Object.keys(all.val()||{});
-    if(keys.length>200){const del={};keys.slice(0,keys.length-200).forEach(k=>del[k]=null);await snapsRef.update(del);}
+    const now=Date.now();
+    if(now-lastSnapshotAt>=1800000){
+      const snap={ts,source:currentSource,totalVotes:CANDS.reduce((s,c)=>s+c.votes,0),candidates:candPayload.map(c=>({no:c.no,votes:c.votes}))};
+      const snapsRef=fbDb.ref('election/snapshots');
+      await snapsRef.push(snap);
+      lastSnapshotAt=now;
+      const all=await snapsRef.orderByKey().once('value');
+      const keys=Object.keys(all.val()||{});
+      if(keys.length>200){const del={};keys.slice(0,keys.length-200).forEach(k=>del[k]=null);await snapsRef.update(del);}
+    }
     const el=$('fb-save-status');if(el){el.style.display='';$('fb-save-icon').textContent='💾';$('fb-save-text').textContent='Auto-save ล่าสุด: '+new Date(ts).toLocaleTimeString('th-TH');el.style.color='#6fca6f';}
   }catch(e){console.warn('auto-save err',e);const el=$('fb-save-status');if(el){el.style.display='';$('fb-save-icon').textContent='⚠️';$('fb-save-text').textContent='บันทึกไม่สำเร็จ';el.style.color='#e88';}}
 }
@@ -2541,7 +2551,7 @@ async function ectStart(){
     try{const m=await loadSkgImgSheet(skgImg);if(m&&Object.keys(m).length){skgImgMap=m;applySkgImgMap();renderAll();$('ect-status').textContent+=' ✓ ส.ก. '+Object.keys(m).length+' คน';}}
     catch(e){$('ect-status').textContent+=' ⚠ ส.ก.: '+e.message;}
   }
-  clearInterval(ectTimer);await loadFromECT();ectTimer=setInterval(loadFromECT,20000);startAutoSave();
+  clearInterval(ectTimer);await loadFromECT();ectTimer=setInterval(loadFromECT,30000);startAutoSave();
 }
 function ectStop(){clearInterval(ectTimer);ectTimer=null;stopAutoSave();ectCovPct=null;mbStats={gov:null,skg:null,govConst:null,skgConst:null};renderMbPanel();$('ect-status').textContent='■ หยุดแล้ว'}
 
