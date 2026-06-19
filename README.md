@@ -84,30 +84,92 @@ https://bkkvote69.vercel.app/
 
 ---
 
-## การย้ายขึ้น Domain จริง
+## การย้ายขึ้น Domain จริง (thestandard.co)
 
 ข้อมูลทั้งหมด (คะแนน / โลโก้ / สถานะ) อยู่ใน Firebase project → **ย้ายตามไปอัตโนมัติ ไม่หาย**
 
-### 🔴 ต้องแก้เมื่อเปลี่ยน domain
+### ขั้นตอนที่ 1 — ส่งไฟล์ให้ทีม Web/IT
 
-1. **Google Cloud Console → OAuth Client → Authorized JavaScript origins**
-   เพิ่ม domain ใหม่ (ไม่งั้นปุ่ม login พัง)
-   Client ID: `854069548103-...apps.googleusercontent.com`
+ส่งไฟล์ทั้งหมดต่อไปนี้ให้วางไว้ใน **folder เดียวกัน** บน web server:
 
-2. **Firebase Console → Authentication → Settings → Authorized domains**
-   เพิ่ม domain ใหม่ (ไม่งั้น `signInWithCredential` ล้มเหลว)
+```
+index.html
+controller.html
+bg-bottombar.png
+bg-side-gov.png
+bg-side-skg.png
+bg-stat.png
+logo-bkk-election-2569.webp
+```
 
-3. **`controller.html`** (ถ้าใช้ไฟล์นี้แยก) — แก้ URL hardcoded:
-   ```js
-   const OVERLAY_URL='https://bkkvote69.vercel.app/?overlay=live';
-   ```
+**สิ่งที่ต้องแจ้งทีม web:**
+- เป็น **Static HTML** — ไม่ต้อง build, ไม่ต้อง Node.js
+- ทุกไฟล์ต้องอยู่ **ระดับเดียวกัน** (ห้ามแยก subfolder) เพราะโค้ดอ้างไฟล์แบบ relative path
+- ต้องเป็น **HTTPS เท่านั้น** — Firebase Auth ไม่ทำงานบน HTTP
 
-4. **`vercel.json`** — แก้ค่า host `ctrl.thestandard.co` ถ้าเปลี่ยน subdomain
+### ขั้นตอนที่ 2 — Firebase Console (ต้องทำทุกครั้งที่เปลี่ยน domain)
 
-### 🟢 ไม่ต้องแตะ
+#### 2.1 เพิ่ม Authorized domain
+**Firebase Console** → Project `bkk-election-vote` → **Authentication** → **Settings** → **Authorized domains** → **Add domain**
 
-- `index.html` — ใช้ URL แบบ relative (`location.origin`) ทำงานทุก domain
-- `firebaseConfig` — ผูกกับ Firebase project ไม่ใช่ hosting domain
+เพิ่ม domain ที่จะใช้จริง เช่น:
+- `vote.thestandard.co`
+- `thestandard.co`
+
+> ถ้าไม่เพิ่ม → ปุ่ม Login Google จะ error `auth/unauthorized-domain`
+
+#### 2.2 ตรวจ Google OAuth Provider
+**Authentication** → **Sign-in method** → **Google** → ต้องเป็น **Enabled**
+
+#### 2.3 ตรวจ Realtime Database Rules
+**Realtime Database** → **Rules** ต้องเป็น:
+```json
+{
+  "rules": {
+    ".read": true,
+    ".write": "auth != null && auth.token.email_verified == true && auth.token.email.matches(/.*@thestandard[.]co$/)"
+  }
+}
+```
+
+#### 2.4 Google Cloud Console — Authorized JavaScript origins
+**Google Cloud Console** → **APIs & Services** → **Credentials** → เลือก OAuth Client ID → เพิ่มใน **Authorized JavaScript origins**:
+- `https://vote.thestandard.co` (หรือ domain จริงที่ใช้)
+
+Client ID ที่ใช้: `854069548103-...apps.googleusercontent.com`
+
+> ถ้าไม่เพิ่ม → ปุ่ม Login พัง แม้ Firebase จะ authorize แล้ว
+
+### ขั้นตอนที่ 3 — แก้ไขโค้ด (ถ้าจำเป็น)
+
+| ไฟล์ | แก้อะไร | เมื่อไหร่ |
+|---|---|---|
+| `controller.html` | URL hardcoded `OVERLAY_URL='https://bkkvote69.vercel.app/?overlay=live'` | ถ้าใช้ไฟล์นี้แยก |
+| `vercel.json` | host `ctrl.thestandard.co` | ถ้าเปลี่ยน subdomain |
+| `index.html` | **ไม่ต้องแก้** ใช้ relative URL | — |
+| `firebaseConfig` | **ไม่ต้องแก้** ผูก Firebase project ไม่ใช่ domain | — |
+
+### ขั้นตอนที่ 4 — ตรวจสอบหลัง deploy
+
+เปิดบน domain จริงแล้วเช็ค:
+
+1. `https://vote.thestandard.co/` → Dashboard โหลด + Firebase Live status ขึ้น
+2. `https://vote.thestandard.co/?control=1` → กด Login Google ด้วย email `@thestandard.co` ต้องเข้าได้
+3. `https://vote.thestandard.co/?overlay=live` → Overlay แสดงผลไม่มี error
+4. เปิด **F12 → Console** → ไม่มี error `unauthorized-domain` หรือ `CORS`
+
+### Checklist สรุป
+
+| รายการ | ทำที่ไหน | สถานะ |
+|---|---|---|
+| Upload ไฟล์ทั้งหมดในระดับเดียวกัน | Web server | ☐ |
+| HTTPS เท่านั้น | Web server | ☐ |
+| เพิ่ม Authorized domain | Firebase Console → Auth → Settings | ☐ |
+| Google OAuth enabled | Firebase Console → Auth → Sign-in method | ☐ |
+| Database Rules `@thestandard.co` | Firebase Console → Realtime DB → Rules | ☐ |
+| เพิ่ม JS origin | Google Cloud Console → OAuth Credentials | ☐ |
+| Google Sheets เปิด public view | Google Sheets (ECT + ส.ก. image sheet) | ☐ |
+| แก้ `OVERLAY_URL` ใน controller.html | Code editor | ☐ (ถ้าใช้) |
 
 ---
 
