@@ -2662,6 +2662,13 @@ async function loadFromECT(){
         return row;
       });
     }
+    // Recompute global totals จาก per-area sum เสมอ (ให้ top bar ตรงกับ district table)
+    if(!govEstimated&&Object.keys(areaVotes).length){
+      cands.forEach((c,ci)=>{
+        const tot=Object.values(areaVotes).reduce((s,av)=>s+(av[ci]||0),0);
+        if(tot>0)c.votes=tot;
+      });
+    }
     cands=cands.map(c=>{const{_raw,...rest}=c;return rest;});
 
     // ── ส.ก. รายเขต: จับกลุ่มผู้สมัครตาม areaNumber — รองรับ snake_case (electionAreas) ──
