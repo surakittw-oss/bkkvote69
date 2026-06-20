@@ -2639,7 +2639,8 @@ async function loadFromECT(){
     const candNoMap={};
     cands.forEach((c,ci)=>{if(c.no)candNoMap[c.no]=ci;});
     // DEBUG: ลอง endpoint อื่นๆ หาช่องดึง per-area gov candidate votes
-    const _nj3=_gA?.find?.(a=>a.areaNumber===3);
+    const _gA=(Array.isArray(govAreasA)?govAreasA:(govAreasA?.electionAreas||govAreasA?.areas||[]));
+    const _nj3=_gA.find(a=>a.areaNumber===3);
     const _aId=_nj3?.id;
     const _try=async(p)=>{try{const r=await ectGet(p);console.log('[TRY]',p,'→',JSON.stringify(r).slice(0,800));}catch(e){console.log('[TRY]',p,'❌',e.message);}};
     await Promise.all([
