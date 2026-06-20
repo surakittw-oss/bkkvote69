@@ -774,18 +774,18 @@ body.ctrl #ctrl-panel{display:block}
       <button class="srchd-close" onclick="closeSrc()">✕</button>
     </div>
     <div class="srctabs">
-      <button class="stab on" onclick="srcTab('sample',this)">ตัวอย่าง</button>
-      <button class="stab" onclick="srcTab('firebase',this)">Firebase</button>
+      <button class="stab" data-admin-only onclick="srcTab('sample',this)">ตัวอย่าง</button>
+      <button class="stab on" onclick="srcTab('firebase',this)">Firebase</button>
       <button class="stab" data-admin-only onclick="srcTab('sheets',this)">Sheets</button>
       <button class="stab" data-admin-only onclick="srcTab('ect',this)">ECT API</button>
     </div>
     <div class="srcbody">
-      <div class="srcpane on" id="pane-sample">
+      <div class="srcpane" id="pane-sample" data-admin-only>
         <p class="srcnote">ใช้ข้อมูลตัวอย่าง (ผลจริงปี 2565) เลือกสัดส่วนการนับได้จากเมนู "นับแล้ว %" ด้านบน</p>
         <div class="srcrow"><button class="btn btn-p" onclick="useSample()">ใช้ข้อมูลตัวอย่าง</button></div>
       </div>
 
-      <div class="srcpane" id="pane-firebase">
+      <div class="srcpane on" id="pane-firebase">
         <p class="srcnote">Realtime Database — sync อัตโนมัติเมื่อมีข้อมูลที่ node <code>election</code> (candidates / districts)</p>
         <div class="srcrow">
           <button class="btn btn-p" onclick="fbLoad()">📥 โหลดจาก Firebase</button>
