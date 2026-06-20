@@ -2507,6 +2507,9 @@ async function loadFromECT(){
       ectCandidates(C,'area').catch(()=>({candidates:[]})),
       ectGet(`/api/media/elections/${C}/auto/electionAreas?level=area&limit=100`).catch(()=>null),
     ]);
+    // DEBUG: ดู coverage per area
+    const _da=(Array.isArray(govAreas)?govAreas:(govAreas?.electionAreas||govAreas?.areas||[]));
+    if(_da[0])console.log('[ECT area[0]]',JSON.stringify(Object.keys(_da[0])),'coverage=',_da[0].coverage,'percentage=',_da[0].percentage,'stations_reported=',_da[0].stations_reported);
     // ── ผู้ว่าฯ: candidates — รองรับทั้ง camelCase (/auto/candidates) และ snake_case (/auto/electionAreas) ──
     const cl=govC.candidates||[];
     if(!cl.length)throw new Error('ไม่พบผู้สมัครผู้ว่าฯ (ตรวจ token/level=province)');
