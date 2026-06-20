@@ -2727,7 +2727,11 @@ async function loadFromECT(){
         });
       });
     }
-    Object.keys(skg).forEach(d=>skg[d].sort((a,b)=>b.votes-a.votes));
+    Object.keys(skg).forEach(d=>{
+      skg[d].sort((a,b)=>b.votes-a.votes);
+      // ถ้าไม่มีใครถูกมาร์ค elected จาก API → มาร์คคนคะแนนสูงสุดเป็นผู้ได้รับเลือก (1 ที่นั่ง/เขต) เทียบกับ skgWin
+      if(!skg[d].some(c=>c.elected)&&skg[d][0]&&skg[d][0].votes>0)skg[d][0].elected=true;
+    });
 
     autoFirebase=false;currentSource='ect';
     applyExternal({candidates:cands,districts,skg:Object.keys(skg).length?skg:undefined},'ECT API (Live)');setSrcDot('on');
