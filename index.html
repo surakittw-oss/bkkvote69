@@ -776,8 +776,8 @@ body.ctrl #ctrl-panel{display:block}
     <div class="srctabs">
       <button class="stab on" onclick="srcTab('sample',this)">ตัวอย่าง</button>
       <button class="stab" onclick="srcTab('firebase',this)">Firebase</button>
-      <button class="stab" onclick="srcTab('sheets',this)">Sheets</button>
-      <button class="stab" onclick="srcTab('ect',this)">ECT API</button>
+      <button class="stab" data-admin-only onclick="srcTab('sheets',this)">Sheets</button>
+      <button class="stab" data-admin-only onclick="srcTab('ect',this)">ECT API</button>
     </div>
     <div class="srcbody">
       <div class="srcpane on" id="pane-sample">
@@ -789,13 +789,13 @@ body.ctrl #ctrl-panel{display:block}
         <p class="srcnote">Realtime Database — sync อัตโนมัติเมื่อมีข้อมูลที่ node <code>election</code> (candidates / districts)</p>
         <div class="srcrow">
           <button class="btn btn-p" onclick="fbLoad()">📥 โหลดจาก Firebase</button>
-          <button class="btn btn-s" onclick="fbSave()">☁️ บันทึกข้อมูลปัจจุบันขึ้น Firebase</button>
+          <button class="btn btn-s" data-admin-only onclick="fbSave()">☁️ บันทึกข้อมูลปัจจุบันขึ้น Firebase</button>
         </div>
         <div class="srcstatus" id="fb-status">—</div>
         <div id="fb-save-status" style="margin-top:8px;padding:6px 10px;border-radius:6px;background:rgba(255,255,255,.06);font-size:.85em;color:#999;display:none"><span id="fb-save-icon">💾</span> <span id="fb-save-text">—</span></div>
       </div>
 
-      <div class="srcpane" id="pane-sheets">
+      <div class="srcpane" id="pane-sheets" data-admin-only>
         <div class="fld"><label>URL Google Sheets — ผู้สมัคร (มีคอลัมน์ no, name, party, votes, color)</label><input class="inp" id="gs-cand" placeholder="วางลิงก์ Sheet (tab ผู้สมัคร) ที่มี #gid="></div>
         <div class="fld"><label>URL — รายเขต (district, counted, votes_1, votes_2, ...) — ใส่หรือไม่ก็ได้</label><input class="inp" id="gs-dist" placeholder="วางลิงก์ Sheet (tab เขต)"></div>
         <div class="fld"><label>URL — ส.ก. รายเขต (district, no, name, party, votes, elected, color) — ใส่หรือไม่ก็ได้</label><input class="inp" id="gs-skg" placeholder="วางลิงก์ Sheet (tab ส.ก.)"></div>
@@ -804,7 +804,7 @@ body.ctrl #ctrl-panel{display:block}
         <div class="srcstatus" id="gs-status">—</div>
       </div>
 
-      <div class="srcpane" id="pane-ect">
+      <div class="srcpane" id="pane-ect" data-admin-only>
         <div class="fld"><label>API Key (Bearer token) — <b>จำเป็น</b> มิฉะนั้นได้ 401/403</label><input class="inp" id="ect-key" placeholder="วาง partner API token"></div>
         <div class="fld"><label>URL Sheet สี/รูปบาร์ผู้สมัคร — คอลัมน์ <code>no</code>, <code>color</code> (hex), <code>avatar</code>, <code>name</code> (ใส่หรือไม่ก็ได้)</label><input class="inp" id="ect-img" placeholder="วางลิงก์ Sheet สี/รูป (#gid=)"></div>
         <div class="fld"><label>URL Sheet รูป ส.ก. รายเขต — คอลัมน์ <code>district</code>, <code>no</code>, <code>color</code>, <code>avatar_url</code> (ใส่หรือไม่ก็ได้)</label><input class="inp" id="ect-skg-img" placeholder="วางลิงก์ Sheet รูป ส.ก. (#gid=)"></div>
@@ -2189,9 +2189,16 @@ async function gFirebaseSignIn(idToken){
 function showSrcBox(){
   $('srcAuthGate').style.display='none';
   $('srcBox').style.display='flex';
+  const admin=isAdminUser();
+  document.querySelectorAll('[data-admin-only]').forEach(el=>{el.style.display=admin?'':'none';});
+  if(!admin&&($('pane-sheets').classList.contains('on')||$('pane-ect').classList.contains('on'))){
+    srcTab('firebase',document.querySelector('.stab[onclick*="firebase"]'));
+  }
   if(gUser){
     const pic=gUser.picture?`<img src="${gUser.picture}" onerror="this.style.display='none'">`:'';
     $('srcUserBadge').innerHTML=`${pic}<span>${gUser.name}</span><button class="srchd-signout" onclick="gSignOut()">ออกจากระบบ</button>`;
+  }else{
+    $('srcUserBadge').innerHTML=`<button class="srchd-signout" onclick="showAdminLogin()">เข้าสู่ระบบ Admin</button>`;
   }
 }
 function gSignOut(){
@@ -2207,18 +2214,28 @@ function gRenderBtn(){
   google.accounts.id.renderButton($('g_signin_btn'),{type:'standard',shape:'pill',theme:'filled_black',size:'large',text:'signin_with',locale:'th'});
   return true;
 }
+function isAdminUser(){return !!(gUser&&(gUser.email||'').endsWith('@thestandard.co'))}
 
 /* ════════════ SOURCE MODAL ════════════ */
 function openSrc(){
   $('srcModal').classList.add('on');
-  if(gUser){showSrcBox();return;}
+  showSrcBox();
+}
+function showAdminLogin(){
   $('srcAuthGate').style.display='flex';
   $('srcBox').style.display='none';
   $('g_signin_btn').innerHTML='';
   if(!gRenderBtn())setTimeout(()=>gRenderBtn(),600);
 }
 function closeSrc(){$('srcModal').classList.remove('on')}
-function srcTab(k,btn){document.querySelectorAll('.srcpane').forEach(p=>p.classList.remove('on'));document.querySelectorAll('.stab').forEach(b=>b.classList.remove('on'));$('pane-'+k).classList.add('on');if(btn)btn.classList.add('on');if(k==='firebase')ensureFirebase();}
+function srcTab(k,btn){
+  if((k==='sheets'||k==='ect')&&!isAdminUser()){showAdminLogin();return;}
+  document.querySelectorAll('.srcpane').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.stab').forEach(b=>b.classList.remove('on'));
+  $('pane-'+k).classList.add('on');
+  if(btn)btn.classList.add('on');
+  if(k==='firebase')ensureFirebase();
+}
 function setSrcDot(state){const d=$('srcdot');d.className='dot'+(state?' '+state:'')}
 
 /* ════════════ GOOGLE SHEETS ════════════ */
@@ -2317,7 +2334,7 @@ function startFbListener(){
   if(!fbDb)return;
   logoSetupFbListener();
   ctrlSetupListener();
-  fbDb.ref('election').on('value',snap=>{
+  fbDb.ref('election').on('value',async snap=>{
     const data=snap.val();
     if(!data||!data.candidates){if($('fb-status'))$('fb-status').textContent='● เชื่อมต่อ — ยังไม่มีข้อมูล';return}
     // อัปเดตอัตโนมัติเฉพาะเมื่อ user ไม่ได้เลือกแหล่งอื่น และข้อมูลสมบูรณ์ (มีคะแนนจริง)
@@ -2326,6 +2343,15 @@ function startFbListener(){
     let totalV=arr.reduce((s,c)=>s+(parseInt(c.votes)||0),0);
     if(!totalV&&data.districts){const da=Array.isArray(data.districts)?data.districts:Object.values(data.districts);da.forEach(d=>{if(d)Object.keys(d).forEach(k=>{if(k.startsWith('votes_'))totalV+=parseInt(d[k])||0})})}
     if(currentSource!=='firebase'&&totalV<=0){
+      const restored=await fbLatestNonzeroSnapshot(data);
+      if(restored){
+        currentSource='firebase';
+        applyExternal(restored.data,'Firebase (Snapshot)');
+        mbRestoreFromFb(restored.data.mbstats);
+        setSrcDot('on');
+        if($('fb-status'))$('fb-status').textContent='● Sync จาก snapshot ล่าสุด '+new Date(restored.ts).toLocaleString('th-TH');
+        return;
+      }
       if($('fb-status'))$('fb-status').textContent='● เชื่อมต่อ — ยังไม่มีคะแนน (คงข้อมูลตัวอย่างไว้)';
       return; // ไม่ override ข้อมูลตัวอย่างด้วยข้อมูลเปล่า
     }
@@ -2334,18 +2360,52 @@ function startFbListener(){
     if($('fb-status'))$('fb-status').textContent='● Sync แล้ว '+(Array.isArray(data.candidates)?data.candidates.length:Object.keys(data.candidates).length)+' ผู้สมัคร';
   });
 }
+async function fbLatestNonzeroSnapshot(baseData){
+  if(!fbDb)return null;
+  try{
+    const snap=await fbDb.ref('election/snapshots').limitToLast(30).get();
+    const rows=Object.values(snap.val()||{}).filter(s=>s&&parseInt(s.totalVotes)>0&&Array.isArray(s.candidates));
+    const latest=rows.sort((a,b)=>String(a.ts||'').localeCompare(String(b.ts||''))).pop();
+    if(!latest)return null;
+    const data=JSON.parse(JSON.stringify(baseData));
+    const cands=Array.isArray(data.candidates)?data.candidates:Object.values(data.candidates||{});
+    const byNo=new Map(latest.candidates.map(c=>[parseInt(c.no),parseInt(c.votes)||0]));
+    cands.forEach(c=>{const no=parseInt(c.no);if(byNo.has(no))c.votes=byNo.get(no);});
+    data.candidates=cands;
+    data.meta=Object.assign({},data.meta,{snapshotAt:latest.ts,snapshotTotalVotes:latest.totalVotes});
+    return {data,ts:latest.ts};
+  }catch(e){
+    console.warn('snapshot fallback err',e);
+    return null;
+  }
+}
 async function fbLoad(){
   autoFirebase=true;
   const ok=await ensureFirebase();if(!ok)return;
   $('fb-status').textContent='กำลังโหลด...';
   try{const snap=await fbDb.ref('election').get();const data=snap.val();
     if(!data||!data.candidates){$('fb-status').textContent='✕ ยังไม่มีข้อมูลใน Cloud';return}
+    const arr=Array.isArray(data.candidates)?data.candidates:Object.values(data.candidates);
+    const totalV=arr.reduce((s,c)=>s+(parseInt(c.votes)||0),0);
+    if(totalV<=0){
+      const restored=await fbLatestNonzeroSnapshot(data);
+      if(restored){
+        currentSource='firebase';applyExternal(restored.data,'Firebase (Snapshot)');mbRestoreFromFb(restored.data.mbstats);setSrcDot('on');
+        $('fb-status').textContent='✓ โหลด snapshot ล่าสุด '+new Date(restored.ts).toLocaleString('th-TH');closeSrc();
+        return;
+      }
+    }
     currentSource='firebase';applyExternal(data,'Firebase');mbRestoreFromFb(data.mbstats);setSrcDot('on');
     $('fb-status').textContent='✓ โหลดสำเร็จ';closeSrc();
   }catch(e){$('fb-status').textContent='✕ '+e.message}
 }
 async function fbSave(){
   const ok=await ensureFirebase();if(!ok)return;
+  if(!isAdminUser()){
+    $('fb-status').textContent='✕ ต้องเข้าสู่ระบบ Admin @thestandard.co ก่อนบันทึก';
+    showAdminLogin();
+    return;
+  }
   setSrcDot('saving');$('fb-status').textContent='กำลังบันทึก...';
   try{
     const candPayload=CANDS.map((c,i)=>({no:c.no,originalIndex:c.idx??i,name:c.name,short:c.short,party:c.party,color:c.color,votes:c.votes,avatar:c.avatar||''}));
@@ -2559,7 +2619,6 @@ async function loadFromECT(){
     }
 
     const councilAreaListRaw=(Array.isArray(councilAreas)?councilAreas:(councilAreas?.electionAreas||councilAreas?.areas||[]));
-    const councilAreaMap=buildAreaNameMap(councilAreaListRaw);
 
     let districts, govEstimated=false;
     if(Object.keys(areaVotes).some(an=>Object.keys(areaVotes[an]).length)){
@@ -2576,7 +2635,6 @@ async function loadFromECT(){
         const cast=a?(a.total_votes||a.totalVotes||0):0;
         const av=areaVotes[an]||{};
         const totalV=Object.values(av).reduce((s,v)=>s+v,0);
-<<<<<<< HEAD
 
         let aPct=a?(a.percentage??a.coverage?.percentage??null):null;
         let aRep=a?(a.stations_reported??a.stationsReported??a.coverage?.stations_reported??a.coverage?.stationsReported??null):null;
@@ -2590,14 +2648,6 @@ async function loadFromECT(){
         }
 
         const row={district:nm,counted:(totalV>0||cast>0)?1:0,_cast:cast||totalV,pct:aPct,stationsReported:aRep,totalStations:aTot};
-=======
-        // อ่าน per-district coverage จาก API (สถานี + %)
-        const aPct=a.percentage??a.coverage?.percentage??null;
-        const aRep=a.stations_reported??a.stationsReported??a.coverage?.stations_reported??a.coverage?.stationsReported??null;
-        const aTot=a.total_stations??a.totalStations??a.coverage?.total_stations??a.coverage?.totalStations??null;
-        if(an<=2)console.log('[loadFromECT district]',nm,'an=',an,'a.coverage=',a.coverage,'aPct=',aPct,'aRep=',aRep,'aTot=',aTot);
-        const row={district:nm,counted:(totalV>0||cast>0)?1:0,_cast:cast,pct:aPct,stationsReported:aRep,totalStations:aTot};
->>>>>>> b264ee00df73f3b9cbff4b175e479913f79df79d
         Object.keys(av).forEach(ci=>row['votes_'+(+ci+1)]=av[ci]);
         districts.push(row);
       }
