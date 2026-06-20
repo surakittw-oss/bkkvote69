@@ -1197,11 +1197,15 @@ function renderListTable(){
   let sorted=[...DISTRICTS].sort((a,b)=>b.cast-a.cast);
   if(q)sorted=sorted.filter(d=>(d.name||'').toLowerCase().includes(q));
   $('dtable-host').innerHTML=`<table class="dtable"><thead><tr>
-    <th>เขต</th><th>ผู้ชนะ</th><th class="r">คะแนนผู้ชนะ</th><th class="r">รวมคะแนน</th>
+    <th>เขต</th><th>ผู้ชนะ</th><th class="r">คะแนนผู้ชนะ</th><th class="r">รวมคะแนน</th><th class="r">หน่วยรายงาน</th>
   </tr></thead><tbody>${sorted.map(d=>{
-    if(!d.counted||d.win==null)return `<tr><td>${d.name}</td><td style="color:var(--t4)">ยังไม่นับ</td><td class="r">—</td><td class="r">—</td></tr>`;
+    const repS=d.stationsReported!=null?d.stationsReported:null;
+    const totS=d.totalStations!=null?d.totalStations:null;
+    const pctS=d.pct!=null?(+d.pct%1===0?String(+d.pct):(+d.pct).toFixed(1)):null;
+    const covCell=repS!=null&&totS!=null?`<td class="r mono" style="font-size:12px;color:var(--t3)">${repS}/${totS}<br><span style="color:${pctS&&+pctS>=100?'var(--green,#22b14c)':'var(--t4)'};font-size:11px">${pctS??'—'}%</span></td>`:`<td class="r" style="color:var(--t4)">—</td>`;
+    if(!d.counted||d.win==null)return `<tr><td>${d.name}</td><td style="color:var(--t4)">ยังไม่นับ</td><td class="r">—</td><td class="r">—</td>${covCell}</tr>`;
     const c=CANDS[d.win];
-    return `<tr><td>${d.name}</td><td><span class="wdot" style="background:${c.color}"></span>${c.short}</td><td class="r mono">${fmt(d.votes[d.win])}</td><td class="r mono">${fmt(d.cast)}</td></tr>`;
+    return `<tr><td>${d.name}</td><td><span class="wdot" style="background:${c.color}"></span>${c.short}</td><td class="r mono">${fmt(d.votes[d.win])}</td><td class="r mono">${fmt(d.cast)}</td>${covCell}</tr>`;
   }).join('')}</tbody></table>`;
 }
 function renderList(){
@@ -2503,9 +2507,9 @@ async function loadFromECT(){
       ectStatistics(G).catch(()=>null),
       ectStatistics(C).catch(()=>null),
       ectCandidates(G,'province'),
-      ectGet(`/api/media/elections/${G}/auto/electionAreas?level=province&limit=100`).catch(()=>null),
+      ectGet(`/api/media/elections/${G}/auto/electionAreas?source=auto&level=province&limit=1000`).catch(()=>null),
       ectCandidates(C,'area').catch(()=>({candidates:[]})),
-      ectGet(`/api/media/elections/${C}/auto/electionAreas?level=area&limit=100`).catch(()=>null),
+      ectGet(`/api/media/elections/${C}/auto/electionAreas?source=auto&level=area&limit=1000`).catch(()=>null),
     ]);
     // DEBUG: ดู coverage per area
     const _da=(Array.isArray(govAreas)?govAreas:(govAreas?.electionAreas||govAreas?.areas||[]));
