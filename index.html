@@ -1698,11 +1698,16 @@ function renderMbPanel(){
 }
 function renderStat(){
   const el=$('ov-stat');if(!el)return;
+  // คำนวณจากข้อมูลจริงใน CANDS/DISTRICTS เป็นหลัก — fallback mbStats ถ้ายังไม่มี
+  const goodVotesLive=CANDS.reduce((s,c)=>s+c.votes,0);
+  const turnoutLive=DISTRICTS.reduce((s,d)=>s+(d.cast||0),0);
   const govSt=mbStats?.gov?.data?.statistics;
-  const totalVotes=govSt?(govSt.total_votes??govSt.totalVotes??0):0;
-  const goodVotes=govSt?(govSt.good_votes??govSt.goodVotes??0):0;
+  const totalVotesApi=govSt?(govSt.total_votes??govSt.totalVotes??0):0;
+  const goodVotesApi=govSt?(govSt.good_votes??govSt.goodVotes??0):0;
+  const totalVotes=turnoutLive||totalVotesApi;
+  const goodVotes=goodVotesLive||goodVotesApi;
   const cntPct=totalVotes>0?((goodVotes/totalVotes)*100).toFixed(1):'—';
-  const turnout=totalVotes||ovTurnout();
+  const turnout=totalVotes;
   el.innerHTML=`
     <div class="ovst-hd">
       <span class="ovst-hd-title">รายงานความคืบหน้า</span>
