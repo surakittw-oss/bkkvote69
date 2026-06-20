@@ -2557,39 +2557,75 @@ async function loadFromECT(){
         (areaVotes[an]=areaVotes[an]||{})[ci]=a.votes||0;
       });});
     }
+
+    const councilAreaListRaw=(Array.isArray(councilAreas)?councilAreas:(councilAreas?.electionAreas||councilAreas?.areas||[]));
+    const councilAreaMap=buildAreaNameMap(councilAreaListRaw);
+
     let districts, govEstimated=false;
     if(Object.keys(areaVotes).some(an=>Object.keys(areaVotes[an]).length)){
-      districts=govAreaList.map(a=>{
-        const an=a.area_number||a.areaNumber||a.number; if(!an)return null;
-        const nm=govAreaMap[an]||BKK_DISTRICTS[an-1]||('เขต '+an);
-        const cast=a.total_votes||a.totalVotes||0;
+      const govAreaByNo={};
+      (govAreaList||[]).forEach(a=>{const an=a.area_number||a.areaNumber||a.number; if(an)govAreaByNo[an]=a;});
+      const councilAreaByNo={};
+      (councilAreaListRaw||[]).forEach(a=>{const an=a.area_number||a.areaNumber||a.number; if(an)councilAreaByNo[an]=a;});
+
+      districts=[];
+      for(let an=1;an<=50;an++){
+        const nm=BKK_DISTRICTS[an-1];
+        const a=govAreaByNo[an];
+        const ca=councilAreaByNo[an];
+        const cast=a?(a.total_votes||a.totalVotes||0):0;
         const av=areaVotes[an]||{};
         const totalV=Object.values(av).reduce((s,v)=>s+v,0);
-        // อ่าน per-district coverage จาก API (สถานี + %)
-        const aPct=a.percentage??a.coverage?.percentage??null;
-        const aRep=a.stations_reported??a.stationsReported??a.coverage?.stations_reported??a.coverage?.stationsReported??null;
-        const aTot=a.total_stations??a.totalStations??a.coverage?.total_stations??a.coverage?.totalStations??null;
-        const row={district:nm,counted:(totalV>0||cast>0)?1:0,_cast:cast,pct:aPct,stationsReported:aRep,totalStations:aTot};
+
+        let aPct=a?(a.percentage??a.coverage?.percentage??null):null;
+        let aRep=a?(a.stations_reported??a.stationsReported??a.coverage?.stations_reported??a.coverage?.stationsReported??null):null;
+        let aTot=a?(a.total_stations??a.totalStations??a.coverage?.total_stations??a.coverage?.totalStations??null):null;
+
+        // Fallback to council (S.K.) coverage if governor coverage is null/missing
+        if((aRep==null||aTot==null)&&ca){
+          if(aRep==null)aRep=ca.stations_reported??ca.stationsReported??ca.coverage?.stations_reported??ca.coverage?.stationsReported??null;
+          if(aTot==null)aTot=ca.total_stations??ca.totalStations??ca.coverage?.total_stations??ca.coverage?.totalStations??null;
+          if(aPct==null)aPct=ca.percentage??ca.coverage?.percentage??null;
+        }
+
+        const row={district:nm,counted:(totalV>0||cast>0)?1:0,_cast:cast||totalV,pct:aPct,stationsReported:aRep,totalStations:aTot};
         Object.keys(av).forEach(ci=>row['votes_'+(+ci+1)]=av[ci]);
-        return row;
-      }).filter(Boolean);
+        districts.push(row);
+      }
     } else {
       govEstimated=true;
       const provTotal=cands.reduce((s,c)=>s+c.votes,0)||1;
       const shares=cands.map(c=>c.votes/provTotal);
-      districts=govAreaList.map(a=>{
-        const an=a.area_number||a.areaNumber||a.number;
-        const nm=govAreaMap[an]||BKK_DISTRICTS[an-1]||(a.area_name||a.name||'เขต '+an);
-        const cast=a.total_votes||a.totalVotes||a.good_votes||a.goodVotes||0;
-        const row={district:nm,counted:cast>0?1:0};
+      const govAreaByNo={};
+      (govAreaList||[]).forEach(a=>{const an=a.area_number||a.areaNumber||a.number; if(an)govAreaByNo[an]=a;});
+      const councilAreaByNo={};
+      (councilAreaListRaw||[]).forEach(a=>{const an=a.area_number||a.areaNumber||a.number; if(an)councilAreaByNo[an]=a;});
+
+      districts=[];
+      for(let an=1;an<=50;an++){
+        const nm=BKK_DISTRICTS[an-1];
+        const a=govAreaByNo[an];
+        const ca=councilAreaByNo[an];
+        const cast=a?(a.total_votes||a.totalVotes||a.good_votes||a.goodVotes||0):0;
+
+        let aPct=a?(a.percentage??a.coverage?.percentage??null):null;
+        let aRep=a?(a.stations_reported??a.stationsReported??a.coverage?.stations_reported??a.coverage?.stationsReported??null):null;
+        let aTot=a?(a.total_stations??a.totalStations??a.coverage?.total_stations??a.coverage?.totalStations??null):null;
+
+        if((aRep==null||aTot==null)&&ca){
+          if(aRep==null)aRep=ca.stations_reported??ca.stationsReported??ca.coverage?.stations_reported??ca.coverage?.stationsReported??null;
+          if(aTot==null)aTot=ca.total_stations??ca.totalStations??ca.coverage?.total_stations??ca.coverage?.totalStations??null;
+          if(aPct==null)aPct=ca.percentage??ca.coverage?.percentage??null;
+        }
+
+        const row={district:nm,counted:cast>0?1:0,_cast:cast,pct:aPct,stationsReported:aRep,totalStations:aTot};
         if(cast>0)cands.forEach((c,ci)=>row['votes_'+(ci+1)]=Math.round(shares[ci]*cast));
-        return row;
-      });
+        districts.push(row);
+      }
     }
     cands=cands.map(c=>{const{_raw,...rest}=c;return rest;});
 
     // ── ส.ก. รายเขต: จับกลุ่มผู้สมัครตาม areaNumber — รองรับ snake_case (electionAreas) ──
-    const councilAreaListRaw=(Array.isArray(councilAreas)?councilAreas:(councilAreas?.electionAreas||councilAreas?.areas||[]));
     const councilAreaMap=buildAreaNameMap(councilAreaListRaw);
     let skg={};
     // path 1: councilC.candidates[] มี area_number (candidates endpoint with area info)
