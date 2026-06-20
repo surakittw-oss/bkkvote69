@@ -628,6 +628,10 @@ body.ctrl #ctrl-panel{display:block}
 .cp-dist-chk input{accent-color:var(--brand);cursor:pointer;margin:0}
 .cp-dist-chk.on{color:#fff;font-weight:600}
 .cp-dist-toggle{font-size:11px;color:var(--brand);cursor:pointer;text-decoration:underline;background:none;border:none;font-family:inherit;padding:0}
+.cp-dist-search{width:100%;background:rgba(255,255,255,.07);border:1px solid var(--line);border-radius:6px;padding:5px 9px;color:var(--t1);font-size:12px;font-family:inherit;outline:none;margin:6px 0 2px;box-sizing:border-box}
+.cp-dist-search:focus{border-color:var(--brand);background:rgba(255,255,255,.1)}
+.cp-dist-search::placeholder{color:var(--t4)}
+.cp-dist-no{font-size:10px;font-weight:700;color:var(--t4);min-width:16px;text-align:right;font-family:var(--font-num);line-height:1}
 </style>
 </head>
 <body>
@@ -2785,6 +2789,27 @@ function cpToggleDistPick(type,di){
 }
 function cpPickAll(type){pvwState[type==='gov'?'govPick':'skgPick']='';renderControlPanel();cpPushPreview();}
 function cpPickNone(type){pvwState[type==='gov'?'govPick':'skgPick']='-1';renderControlPanel();cpPushPreview();}
+// filter checkboxes in-place — ไม่ re-render (ป้องกัน focus loss บน search input)
+function cpDistSearch(type,val){
+  window['_cpDistSrch'+type]=val.toLowerCase().trim();
+  const grid=document.querySelector(`[data-cpkey="${type}-dist"] .cp-dist-grid`);
+  if(!grid)return;
+  grid.querySelectorAll('label.cp-dist-chk').forEach(lbl=>{
+    lbl.style.display=(!window['_cpDistSrch'+type]||lbl.textContent.toLowerCase().includes(window['_cpDistSrch'+type]))?'':'none';
+  });
+}
+// re-apply filter หลัง re-render (เรียกจาก renderControlPanel)
+function cpDistReapplySearch(){
+  ['gov','skg'].forEach(t=>{
+    const q=window['_cpDistSrch'+t];
+    if(!q)return;
+    const grid=document.querySelector(`[data-cpkey="${t}-dist"] .cp-dist-grid`);
+    if(!grid)return;
+    grid.querySelectorAll('label.cp-dist-chk').forEach(lbl=>{
+      lbl.style.display=lbl.textContent.toLowerCase().includes(q)?'':'none';
+    });
+  });
+}
 /* ── listen side (overlay/controller ฟังสถานะ program) ── */
 function ctrlSetupListener(){
   if(!fbDb)return;
@@ -2931,8 +2956,9 @@ function renderControlPanel(){
       }).filter(Boolean).join('');
       const govGCnt=govAll?DISTRICTS.length:(govPkSet?govPkSet.size:0);
       const skgGCnt=skgAll?DISTRICTS.length:(skgPkSet?skgPkSet.size:0);
-      const govChks=DISTRICTS.map((d,di)=>{const ck=govAll||govPkSet?.has(di);return `<label class="cp-dist-chk${ck?' on':''}"><input type="checkbox" ${ck?'checked':''} onchange="cpToggleDistPick('gov',${di})">${'เขต'+(d.name||'').replace(/^เขต/,'')}</label>`;}).join('');
-      const skgChks=DISTRICTS.map((d,di)=>{const ck=skgAll||skgPkSet?.has(di);return `<label class="cp-dist-chk${ck?' on':''}"><input type="checkbox" ${ck?'checked':''} onchange="cpToggleDistPick('skg',${di})">${'เขต'+(d.name||'').replace(/^เขต/,'')}</label>`;}).join('');
+      // เรียงตาม di (= area_number-1) + แสดงเลขนำหน้า
+      const govChks=DISTRICTS.map((d,di)=>({d,di})).sort((a,b)=>a.di-b.di).map(({d,di})=>{const ck=govAll||govPkSet?.has(di);return `<label class="cp-dist-chk${ck?' on':''}"><input type="checkbox" ${ck?'checked':''} onchange="cpToggleDistPick('gov',${di})"><span class="cp-dist-no">${di+1}</span>${(d.name||'').replace(/^เขต/,'')}</label>`;}).join('');
+      const skgChks=DISTRICTS.map((d,di)=>({d,di})).sort((a,b)=>a.di-b.di).map(({d,di})=>{const ck=skgAll||skgPkSet?.has(di);return `<label class="cp-dist-chk${ck?' on':''}"><input type="checkbox" ${ck?'checked':''} onchange="cpToggleDistPick('skg',${di})"><span class="cp-dist-no">${di+1}</span>${(d.name||'').replace(/^เขต/,'')}</label>`;}).join('');
       sub=`<div class="cp-side-sec">
         <div class="cp-side-sec-hd">
           <span class="cp-side-sec-title">ผู้ว่าฯ รายเขต</span>
@@ -2942,7 +2968,8 @@ function renderControlPanel(){
           <button class="cp-btn" onclick="cpStageSideStep(1)" title="Next">▶</button>
         </div>
         <details data-cpkey="gov-dist"><summary style="font-size:12px;color:var(--t3);cursor:pointer">เลือกเขตที่จะโชว์ (${govGCnt}/${DISTRICTS.length})</summary>
-          <div style="display:flex;gap:6px;margin:6px 0"><button class="cp-dist-toggle" onclick="cpPickAll('gov')">เลือกทั้งหมด</button><button class="cp-dist-toggle" onclick="cpPickNone('gov')">ยกเลิกทั้งหมด</button></div>
+          <input class="cp-dist-search" placeholder="ค้นหาเขต…" value="${window._cpDistSrchgov||''}" oninput="cpDistSearch('gov',this.value)">
+          <div style="display:flex;gap:6px;margin:4px 0 6px"><button class="cp-dist-toggle" onclick="cpPickAll('gov')">เลือกทั้งหมด</button><button class="cp-dist-toggle" onclick="cpPickNone('gov')">ยกเลิกทั้งหมด</button></div>
           <div class="cp-dist-grid">${govChks}</div>
         </details>
       </div>
@@ -2955,7 +2982,8 @@ function renderControlPanel(){
           <button class="cp-btn" onclick="cpStageSideStep(1)" title="Next">▶</button>
         </div>
         <details data-cpkey="skg-dist"><summary style="font-size:12px;color:var(--t3);cursor:pointer">เลือกเขตที่จะโชว์ (${skgGCnt}/${DISTRICTS.length})</summary>
-          <div style="display:flex;gap:6px;margin:6px 0"><button class="cp-dist-toggle" onclick="cpPickAll('skg')">เลือกทั้งหมด</button><button class="cp-dist-toggle" onclick="cpPickNone('skg')">ยกเลิกทั้งหมด</button></div>
+          <input class="cp-dist-search" placeholder="ค้นหาเขต…" value="${window._cpDistSrchskg||''}" oninput="cpDistSearch('skg',this.value)">
+          <div style="display:flex;gap:6px;margin:4px 0 6px"><button class="cp-dist-toggle" onclick="cpPickAll('skg')">เลือกทั้งหมด</button><button class="cp-dist-toggle" onclick="cpPickNone('skg')">ยกเลิกทั้งหมด</button></div>
           <div class="cp-dist-grid">${skgChks}</div>
         </details>
       </div>
@@ -3016,6 +3044,7 @@ function renderControlPanel(){
       ลิงค์แยกแต่ละอันโชว์เฉพาะเลเยอร์ของตัวเอง · มีแต่ <code>?overlay=live</code> ที่รวมทุกเลเยอร์พร้อมกัน</div>`;
   // คืน open state ของ <details> ที่เปิดอยู่ก่อนหน้า
   if(_openDetails.size)$('cp-ctrls').querySelectorAll('details[data-cpkey]').forEach(d=>{if(_openDetails.has(d.dataset.cpkey))d.open=true;});
+  cpDistReapplySearch();
   cpScalePreview();
 }
 function cpRenderSignin(){
