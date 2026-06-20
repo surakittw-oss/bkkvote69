@@ -2581,9 +2581,14 @@ async function loadFromECT(){
       ectCandidates(C,'area').catch(()=>({candidates:[]})),
       ectGet(`/api/media/elections/${C}/auto/electionAreas?source=auto&level=area&limit=1000`).catch(()=>null),
     ]);
-    // DEBUG: ดู coverage per area
+    // DEBUG: ดู coverage per area + ตรวจสอบ duplicate area_number + ดู area 1 (พระนคร) เต็มๆ
     const _da=(Array.isArray(govAreas)?govAreas:(govAreas?.electionAreas||govAreas?.areas||[]));
     if(_da[0])console.log('[ECT area[0]]',JSON.stringify(Object.keys(_da[0])),'coverage=',_da[0].coverage,'percentage=',_da[0].percentage,'stations_reported=',_da[0].stations_reported);
+    const _anCount={}; _da.forEach(a=>{const an=a.area_number||a.areaNumber||a.number; if(an){_anCount[an]=(_anCount[an]||0)+1;}});
+    const _dups=Object.keys(_anCount).filter(k=>_anCount[k]>1);
+    console.log('[ECT gov] total areas=',_da.length,'unique area_numbers=',Object.keys(_anCount).length,'duplicates=',_dups);
+    const _a1=_da.filter(a=>(a.area_number||a.areaNumber||a.number)===1);
+    console.log('[ECT gov area=1 entries]',_a1.length,_a1.map(a=>({name:a.area_name||a.areaName,total:a.total_votes,cands:(a.candidates||[]).map(c=>({no:c.candidate_number,v:c.votes}))})));
     // ── ผู้ว่าฯ: candidates — รองรับทั้ง camelCase (/auto/candidates) และ snake_case (/auto/electionAreas) ──
     const cl=govC.candidates||[];
     if(!cl.length)throw new Error('ไม่พบผู้สมัครผู้ว่าฯ (ตรวจ token/level=province)');
@@ -2661,13 +2666,6 @@ async function loadFromECT(){
         const row={district:nm,counted:cast>0?1:0};
         if(cast>0)cands.forEach((c,ci)=>row['votes_'+(ci+1)]=Math.round(shares[ci]*cast));
         return row;
-      });
-    }
-    // Recompute global totals จาก per-area sum เสมอ (ให้ top bar ตรงกับ district table)
-    if(!govEstimated&&Object.keys(areaVotes).length){
-      cands.forEach((c,ci)=>{
-        const tot=Object.values(areaVotes).reduce((s,av)=>s+(av[ci]||0),0);
-        if(tot>0)c.votes=tot;
       });
     }
     cands=cands.map(c=>{const{_raw,...rest}=c;return rest;});
