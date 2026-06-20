@@ -1866,7 +1866,14 @@ function ovSidePaint(){
   const sideEl=$('ov-side');if(sideEl)sideEl.setAttribute('data-side',scene.t==='gov'?'gov':'skg');
   const dname='เขต'+(scene.name||'').replace(/^เขต/,'');
   const d=DISTRICTS.find(x=>x.name===scene.name||normName(x.name)===normName(scene.name));
-  const pct=d&&d.counted?100:0;
+  // ใช้ % จริงจาก API ถ้ามี (DISTRICTS.pct → mbStats.govConst/skgConst fallback) — สุดท้าย fallback binary
+  let pctSrc=(d&&d.pct!=null)?+d.pct:null;
+  if(pctSrc==null){
+    const mc=(scene.t==='gov'?mbStats?.govConst:mbStats?.skgConst)?.data?.constituencies;
+    if(mc){const hit=mc.find(c=>normName((c.name||'').replace(/^เขต/,''))===normName(scene.name));if(hit&&hit.percentage!=null)pctSrc=+hit.percentage;}
+  }
+  const pctNum=pctSrc!=null?pctSrc:(d&&d.counted?100:0);
+  const pct=(pctNum%1===0)?String(pctNum):pctNum.toFixed(1);
   b.classList.remove('on');a.classList.add('on');
   if(scene.t==='gov'){
     const ranked=(d?d.votes.map((v,ci)=>({c:CANDS[ci],v:v||0})):[]).filter(x=>x.c).sort((x,y)=>y.v-x.v).slice(0,5);
@@ -1999,7 +2006,10 @@ function applyExternal(data,label){
         if(isCounted)counted++;
       }
       const cast=votes.reduce((a,b)=>a+b,0);
-      return{name:d[0],col:d[1],row:d[2],voters,cast,votes,counted:isCounted};
+      const pct=r&&r.pct!=null?+r.pct:null;
+      const sRep=r&&r.stationsReported!=null?+r.stationsReported:null;
+      const sTot=r&&r.totalStations!=null?+r.totalStations:null;
+      return{name:d[0],col:d[1],row:d[2],voters,cast,votes,counted:isCounted,pct,stationsReported:sRep,totalStations:sTot};
     });
     countedDistricts=counted;
     // ถ้าผู้สมัครไม่มีคะแนนรวม → คำนวณจากเขต
@@ -2329,7 +2339,7 @@ async function fbSave(){
   setSrcDot('saving');$('fb-status').textContent='กำลังบันทึก...';
   try{
     const candPayload=CANDS.map((c,i)=>({no:c.no,originalIndex:c.idx??i,name:c.name,short:c.short,party:c.party,color:c.color,votes:c.votes,avatar:c.avatar||''}));
-    const distPayload=DISTRICTS.map(d=>{const o={district:d.name,counted:d.counted?1:0};CANDS.forEach((c,ci)=>o['votes_'+((c.idx??ci)+1)]=d.votes[ci]||0);return o});
+    const distPayload=DISTRICTS.map(d=>{const o={district:d.name,counted:d.counted?1:0};if(d.pct!=null)o.pct=d.pct;if(d.stationsReported!=null)o.stationsReported=d.stationsReported;if(d.totalStations!=null)o.totalStations=d.totalStations;CANDS.forEach((c,ci)=>o['votes_'+((c.idx??ci)+1)]=d.votes[ci]||0);return o});
     await fbDb.ref('election/candidates').set(candPayload);
     await fbDb.ref('election/districts').set(distPayload);
     if(skgData&&Object.keys(skgData).length)await fbDb.ref('election/skg').set(skgData);
@@ -2372,7 +2382,10 @@ function ectAreasToConst(areasResp){
     const an=a.area_number||a.areaNumber||a.number;
     const nm=(a.area_name||a.areaName||a.name||a.electionArea?.name||'').replace(/^เขต\s*/,'เขต').trim()||('เขต '+an);
     const v=a.total_votes||a.totalVotes||a.good_votes||a.goodVotes||0;
-    return {areaNumber:an,name:nm.startsWith('เขต')?nm:('เขต'+nm),realtimeVotes:v,finalVotes:v,difference:0};
+    const pct=a.percentage??a.coverage?.percentage??null;
+    const rep=a.stations_reported??a.stationsReported??a.coverage?.stations_reported??a.coverage?.stationsReported??null;
+    const tot=a.total_stations??a.totalStations??a.coverage?.total_stations??a.coverage?.totalStations??null;
+    return {areaNumber:an,name:nm.startsWith('เขต')?nm:('เขต'+nm),realtimeVotes:v,finalVotes:v,difference:0,percentage:pct,stationsReported:rep,totalStations:tot};
   }).filter(r=>r.areaNumber);
   const reported=constituencies.filter(r=>r.realtimeVotes>0).length;
   return {data:{constituencies,summary:{realtimeCount:reported,finalCount:reported,bothCount:reported}}};
@@ -2392,7 +2405,7 @@ async function fbAutoSave(){
   if(currentSource!=='ect'&&currentSource!=='firebase')return;
   try{
     const candPayload=CANDS.map((c,i)=>({no:c.no,originalIndex:c.idx??i,name:c.name,short:c.short,party:c.party,color:c.color,votes:c.votes,avatar:c.avatar||''}));
-    const distPayload=DISTRICTS.map(d=>{const o={district:d.name,counted:d.counted?1:0};CANDS.forEach((c,ci)=>o['votes_'+((c.idx??ci)+1)]=d.votes[ci]||0);return o});
+    const distPayload=DISTRICTS.map(d=>{const o={district:d.name,counted:d.counted?1:0};if(d.pct!=null)o.pct=d.pct;if(d.stationsReported!=null)o.stationsReported=d.stationsReported;if(d.totalStations!=null)o.totalStations=d.totalStations;CANDS.forEach((c,ci)=>o['votes_'+((c.idx??ci)+1)]=d.votes[ci]||0);return o});
     await fbDb.ref('election/candidates').set(candPayload);
     await fbDb.ref('election/districts').set(distPayload);
     if(skgData&&Object.keys(skgData).length)await fbDb.ref('election/skg').set(skgData);
@@ -2539,7 +2552,11 @@ async function loadFromECT(){
         const cast=a.total_votes||a.totalVotes||0;
         const av=areaVotes[an]||{};
         const totalV=Object.values(av).reduce((s,v)=>s+v,0);
-        const row={district:nm,counted:(totalV>0||cast>0)?1:0,_cast:cast};
+        // อ่าน per-district coverage จาก API (สถานี + %)
+        const aPct=a.percentage??a.coverage?.percentage??null;
+        const aRep=a.stations_reported??a.stationsReported??a.coverage?.stations_reported??a.coverage?.stationsReported??null;
+        const aTot=a.total_stations??a.totalStations??a.coverage?.total_stations??a.coverage?.totalStations??null;
+        const row={district:nm,counted:(totalV>0||cast>0)?1:0,_cast:cast,pct:aPct,stationsReported:aRep,totalStations:aTot};
         Object.keys(av).forEach(ci=>row['votes_'+(+ci+1)]=av[ci]);
         return row;
       }).filter(Boolean);
