@@ -406,7 +406,7 @@ body.ov-bottombar #ov-bar{display:flex}
 .ovb-view{position:absolute;inset:0;display:flex;opacity:0;transition:opacity .5s ease;pointer-events:none}
 .ovb-view.on{opacity:1;pointer-events:auto}
 /* Top 5 governor */
-.ovb-gov{gap:0;padding:38px 10px 8px 18px;justify-content:center;align-items:stretch}
+.ovb-gov{gap:0;padding:34px 10px 9px 18px;justify-content:center;align-items:stretch}
 .ovb-gc{position:relative;flex:1;min-width:0;height:100%;overflow:hidden;border-radius:0;background:transparent}
 .ovb-gc-rank{position:absolute;left:6px;bottom:6px;z-index:4;width:38px;height:38px;display:grid;place-items:center;border-radius:8px;background:var(--brand);font-weight:900;font-size:28px;line-height:1;color:#fff;box-shadow:0 2px 8px rgba(0,0,0,.45)}
 .ovb-gc-photo{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center;display:block}
@@ -515,7 +515,8 @@ body.ov-stat #ov-stat{display:flex}
    มีไฟล์ในโฟลเดอร์ → init() จะ probe แล้วใส่ attribute data-art อัตโนมัติ */
 #ov-stat,#ov-bar,#ov-side{background-size:cover;background-position:center;background-repeat:no-repeat}
 #ov-stat[data-art]{background-image:url('bg-stat.png')}
-#ov-bar[data-art]{background-image:url('bg-bottombar.png')}
+#ov-bar[data-art]{position:relative;background-image:url('bg-bottombar.png')}
+#ov-bar[data-art]::before{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:url('bg-bottombar-headline.png') no-repeat top left;background-size:100% auto;pointer-events:none;z-index:1}
 #ov-bar[data-art][data-bar="skg"]{background-image:url('bg-skg.png')}
 #ov-side,#ov-side[data-side="skg"]{background-image:url('bg-side-skg.png')}
 #ov-side[data-side="gov"]{background-image:url('bg-side-gov.png')}
