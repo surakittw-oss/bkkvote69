@@ -1354,7 +1354,7 @@ function renderSkgOverview(){
     const p=c.party||'อิสระ';
     if(!pm[p])pm[p]={name:p,votes:0,seats:0,color:c.color||PALETTE[Object.keys(pm).length%PALETTE.length]};
     pm[p].votes+=parseInt(c.votes)||0;
-    if(c.elected&&(parseInt(c.votes)||0)>0)pm[p].seats++;
+    if(c.elected)pm[p].seats++;
     if(c.color&&pm[p].color===undefined)pm[p].color=c.color;
   }));
   const parties=Object.values(pm).sort((a,b)=>b.seats-a.seats||b.votes-a.votes);
@@ -2576,6 +2576,7 @@ async function loadFromECT(){
         const cast=a?(a.total_votes||a.totalVotes||0):0;
         const av=areaVotes[an]||{};
         const totalV=Object.values(av).reduce((s,v)=>s+v,0);
+<<<<<<< HEAD
 
         let aPct=a?(a.percentage??a.coverage?.percentage??null):null;
         let aRep=a?(a.stations_reported??a.stationsReported??a.coverage?.stations_reported??a.coverage?.stationsReported??null):null;
@@ -2589,6 +2590,14 @@ async function loadFromECT(){
         }
 
         const row={district:nm,counted:(totalV>0||cast>0)?1:0,_cast:cast||totalV,pct:aPct,stationsReported:aRep,totalStations:aTot};
+=======
+        // อ่าน per-district coverage จาก API (สถานี + %)
+        const aPct=a.percentage??a.coverage?.percentage??null;
+        const aRep=a.stations_reported??a.stationsReported??a.coverage?.stations_reported??a.coverage?.stationsReported??null;
+        const aTot=a.total_stations??a.totalStations??a.coverage?.total_stations??a.coverage?.totalStations??null;
+        if(an<=2)console.log('[loadFromECT district]',nm,'an=',an,'a.coverage=',a.coverage,'aPct=',aPct,'aRep=',aRep,'aTot=',aTot);
+        const row={district:nm,counted:(totalV>0||cast>0)?1:0,_cast:cast,pct:aPct,stationsReported:aRep,totalStations:aTot};
+>>>>>>> b264ee00df73f3b9cbff4b175e479913f79df79d
         Object.keys(av).forEach(ci=>row['votes_'+(+ci+1)]=av[ci]);
         districts.push(row);
       }
