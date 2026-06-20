@@ -1714,11 +1714,19 @@ function ovPartySeats(){
       pm[p].votes+=skgVotes(c);if(skgIsElected(c))pm[p].seats++;if(c.color)pm[p].color=c.color;});
   });
   if(skgPartyLogoMap){
-    console.log('[SKG logo] map keys=',Object.keys(skgPartyLogoMap),'party names=',Object.values(pm).map(p=>p.name));
+    const normPname=n=>(n||'').replace(/^(กลุ่ม|พรรค)\s*/,'').replace(/\s+/g,' ').trim().toLowerCase();
     Object.values(pm).forEach(p=>{
-      let l=skgPartyLogoMap[p.name];
-      if(!l){const k=Object.keys(skgPartyLogoMap).find(n=>p.name.includes(n)||n.includes(p.name));if(k){l=skgPartyLogoMap[k];console.log('[SKG logo] fuzzy',p.name,'→',k);}}
-      if(l)p.logo=l; else console.warn('[SKG logo] NO MATCH for',p.name);
+      let l=skgPartyLogoMap[p.name]; // exact match
+      if(!l){// includes match
+        const k=Object.keys(skgPartyLogoMap).find(n=>p.name.includes(n)||n.includes(p.name));
+        if(k)l=skgPartyLogoMap[k];
+      }
+      if(!l){// normalize prefix กลุ่ม/พรรค + whitespace แล้ว match
+        const np=normPname(p.name);
+        const k=Object.keys(skgPartyLogoMap).find(n=>normPname(n)===np||normPname(n).includes(np)||np.includes(normPname(n)));
+        if(k)l=skgPartyLogoMap[k];
+      }
+      if(l)p.logo=l;
     });
   }
   return Object.values(pm).sort((a,b)=>b.seats-a.seats||b.votes-a.votes);
