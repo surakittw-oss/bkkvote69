@@ -2039,7 +2039,7 @@ function applyExternal(data,label){
     const byName={};rows.forEach(r=>byName[normName(r.district||r.name)]=r);
     let counted=0;
     DISTRICTS=DLAYOUT.map((d,i)=>{
-      const seedR=rng(i*97+13);const voters=90000+Math.floor(seedR()*120000);
+      const seedR=rng(i*97+13);
       const r=byName[normName(d[0])];
       let votes=CANDS.map(()=>0),isCounted=false;
       if(r){
@@ -2048,7 +2048,10 @@ function applyExternal(data,label){
         if(votes.some(v=>v>0)&&r.counted===undefined)isCounted=true;
         if(isCounted)counted++;
       }
-      const cast=votes.reduce((a,b)=>a+b,0);
+      // voters = ผู้มีสิทธิเลือกตั้ง (eligibleVoters) จาก API ถ้ามี — fallback random เมื่อยังไม่มี data
+      const voters=r&&r.voters!=null?+r.voters:(90000+Math.floor(seedR()*120000));
+      // cast = ผู้มาใช้สิทธิ/รวมคะแนน (totalVotes จาก API) ถ้ามี — fallback sum of candidate votes
+      const cast=r&&r._cast!=null?+r._cast:votes.reduce((a,b)=>a+b,0);
       const pct=r&&r.pct!=null?+r.pct:null;
       const sRep=r&&r.stationsReported!=null?+r.stationsReported:null;
       const sTot=r&&r.totalStations!=null?+r.totalStations:null;
@@ -2441,7 +2444,7 @@ async function fbSave(){
   setSrcDot('saving');$('fb-status').textContent='กำลังบันทึก...';
   try{
     const candPayload=CANDS.map((c,i)=>({no:c.no,originalIndex:c.idx??i,name:c.name,short:c.short,party:c.party,color:c.color,votes:c.votes,avatar:c.avatar||''}));
-    const distPayload=DISTRICTS.map(d=>{const o={district:d.name,counted:d.counted?1:0};if(d.pct!=null)o.pct=d.pct;if(d.stationsReported!=null)o.stationsReported=d.stationsReported;if(d.totalStations!=null)o.totalStations=d.totalStations;CANDS.forEach((c,ci)=>o['votes_'+((c.idx??ci)+1)]=d.votes[ci]||0);return o});
+    const distPayload=DISTRICTS.map(d=>{const o={district:d.name,counted:d.counted?1:0};if(d.pct!=null)o.pct=d.pct;if(d.stationsReported!=null)o.stationsReported=d.stationsReported;if(d.totalStations!=null)o.totalStations=d.totalStations;if(d.voters!=null)o.voters=d.voters;if(d.cast!=null)o._cast=d.cast;CANDS.forEach((c,ci)=>o['votes_'+((c.idx??ci)+1)]=d.votes[ci]||0);return o});
     await fbDb.ref('election/candidates').set(candPayload);
     await fbDb.ref('election/districts').set(distPayload);
     if(skgData&&Object.keys(skgData).length)await fbDb.ref('election/skg').set(skgData);
@@ -2507,7 +2510,7 @@ async function fbAutoSave(){
   if(currentSource!=='ect'&&currentSource!=='firebase')return;
   try{
     const candPayload=CANDS.map((c,i)=>({no:c.no,originalIndex:c.idx??i,name:c.name,short:c.short,party:c.party,color:c.color,votes:c.votes,avatar:c.avatar||''}));
-    const distPayload=DISTRICTS.map(d=>{const o={district:d.name,counted:d.counted?1:0};if(d.pct!=null)o.pct=d.pct;if(d.stationsReported!=null)o.stationsReported=d.stationsReported;if(d.totalStations!=null)o.totalStations=d.totalStations;CANDS.forEach((c,ci)=>o['votes_'+((c.idx??ci)+1)]=d.votes[ci]||0);return o});
+    const distPayload=DISTRICTS.map(d=>{const o={district:d.name,counted:d.counted?1:0};if(d.pct!=null)o.pct=d.pct;if(d.stationsReported!=null)o.stationsReported=d.stationsReported;if(d.totalStations!=null)o.totalStations=d.totalStations;if(d.voters!=null)o.voters=d.voters;if(d.cast!=null)o._cast=d.cast;CANDS.forEach((c,ci)=>o['votes_'+((c.idx??ci)+1)]=d.votes[ci]||0);return o});
     await fbDb.ref('election/candidates').set(candPayload);
     await fbDb.ref('election/districts').set(distPayload);
     if(skgData&&Object.keys(skgData).length)await fbDb.ref('election/skg').set(skgData);
@@ -2686,7 +2689,8 @@ async function loadFromECT(){
           if(aPct==null)aPct=ca.percentage??ca.coverage?.percentage??null;
         }
 
-        const row={district:nm,counted:(totalV>0||cast>0)?1:0,_cast:cast||totalV,pct:aPct,stationsReported:aRep,totalStations:aTot};
+        const voters=a.eligible_voters??a.eligibleVoters??null;
+        const row={district:nm,counted:(totalV>0||cast>0)?1:0,_cast:cast||totalV,voters,pct:aPct,stationsReported:aRep,totalStations:aTot};
         Object.keys(av).forEach(ci=>row['votes_'+(+ci+1)]=av[ci]);
         return row;
       }).filter(Boolean);
