@@ -2222,7 +2222,8 @@ function isAdminUser(){return !!(gUser&&(gUser.email||'').endsWith('@thestandard
 /* ════════════ SOURCE MODAL ════════════ */
 function openSrc(){
   $('srcModal').classList.add('on');
-  showSrcBox();
+  if(!isAdminUser())showAdminLogin();
+  else showSrcBox();
 }
 function showAdminLogin(){
   $('srcAuthGate').style.display='flex';
