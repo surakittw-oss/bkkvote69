@@ -847,8 +847,6 @@ const DLAYOUT=[
 ];
 // รายชื่อ 50 เขต (ใช้ fallback map areaNumber→ชื่อเขต เมื่อ API ไม่ส่งชื่อเขตจริง)
 const BKK_DISTRICTS=DLAYOUT.map(d=>d[0]);
-// เลขเขตทางการ กทม. 1-50 (ตามประกาศ กกต.)
-const BKK_AREA_NO={'พระนคร':1,'ดุสิต':2,'หนองจอก':3,'บางรัก':4,'บางเขน':5,'บางกะปิ':6,'ปทุมวัน':7,'ป้อมปราบศัตรูพ่าย':8,'พระโขนง':9,'มีนบุรี':10,'ลาดกระบัง':11,'ยานนาวา':12,'สัมพันธวงศ์':13,'พญาไท':14,'ธนบุรี':15,'บางกอกใหญ่':16,'ห้วยขวาง':17,'คลองสาน':18,'ตลิ่งชัน':19,'บางกอกน้อย':20,'บางขุนเทียน':21,'ภาษีเจริญ':22,'หนองแขม':23,'ราษฎร์บูรณะ':24,'บางพลัด':25,'ดินแดง':26,'บึงกุ่ม':27,'สาทร':28,'บางซื่อ':29,'จตุจักร':30,'บางคอแหลม':31,'ประเวศ':32,'คลองเตย':33,'สวนหลวง':34,'จอมทอง':35,'ดอนเมือง':36,'ราชเทวี':37,'ลาดพร้าว':38,'วัฒนา':39,'บางแค':40,'หลักสี่':41,'สายไหม':42,'คันนายาว':43,'สะพานสูง':44,'วังทองหลาง':45,'คลองสามวา':46,'บางนา':47,'ทวีวัฒนา':48,'ทุ่งครุ':49,'บางบอน':50};
 
 /* ════════════ STATE ════════════ */
 let CANDS=[], DISTRICTS=[], countedDistricts=50, pctBase=SAMPLE_PCT_BASE, ectCovPct=null;
@@ -2958,9 +2956,9 @@ function renderControlPanel(){
       }).filter(Boolean).join('');
       const govGCnt=govAll?DISTRICTS.length:(govPkSet?govPkSet.size:0);
       const skgGCnt=skgAll?DISTRICTS.length:(skgPkSet?skgPkSet.size:0);
-      // เรียงตาม area_number จริง (BKK_AREA_NO) + แสดงเลขนำหน้า
-      const govChks=DISTRICTS.map((d,di)=>({d,di,no:BKK_AREA_NO[normName(d.name)]||di+1})).sort((a,b)=>a.no-b.no).map(({d,di,no})=>{const ck=govAll||govPkSet?.has(di);return `<label class="cp-dist-chk${ck?' on':''}"><input type="checkbox" ${ck?'checked':''} onchange="cpToggleDistPick('gov',${di})"><span class="cp-dist-no">${no}</span>${(d.name||'').replace(/^เขต/,'')}</label>`;}).join('');
-      const skgChks=DISTRICTS.map((d,di)=>({d,di,no:BKK_AREA_NO[normName(d.name)]||di+1})).sort((a,b)=>a.no-b.no).map(({d,di,no})=>{const ck=skgAll||skgPkSet?.has(di);return `<label class="cp-dist-chk${ck?' on':''}"><input type="checkbox" ${ck?'checked':''} onchange="cpToggleDistPick('skg',${di})"><span class="cp-dist-no">${no}</span>${(d.name||'').replace(/^เขต/,'')}</label>`;}).join('');
+      // เรียงตาม di (= area_number-1) + แสดงเลขนำหน้า
+      const govChks=DISTRICTS.map((d,di)=>({d,di})).sort((a,b)=>a.di-b.di).map(({d,di})=>{const ck=govAll||govPkSet?.has(di);return `<label class="cp-dist-chk${ck?' on':''}"><input type="checkbox" ${ck?'checked':''} onchange="cpToggleDistPick('gov',${di})"><span class="cp-dist-no">${di+1}</span>${(d.name||'').replace(/^เขต/,'')}</label>`;}).join('');
+      const skgChks=DISTRICTS.map((d,di)=>({d,di})).sort((a,b)=>a.di-b.di).map(({d,di})=>{const ck=skgAll||skgPkSet?.has(di);return `<label class="cp-dist-chk${ck?' on':''}"><input type="checkbox" ${ck?'checked':''} onchange="cpToggleDistPick('skg',${di})"><span class="cp-dist-no">${di+1}</span>${(d.name||'').replace(/^เขต/,'')}</label>`;}).join('');
       sub=`<div class="cp-side-sec">
         <div class="cp-side-sec-hd">
           <span class="cp-side-sec-title">ผู้ว่าฯ รายเขต</span>
