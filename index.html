@@ -2601,10 +2601,11 @@ async function loadFromECT(){
   $('ect-status').textContent='กำลังโหลดจาก ECT...';
   try{
     const G=ECT_GOVERNOR_SLUG, C=ECT_COUNCIL_SLUG;
-    const [govStat,councilStat,govC,govAreas,councilC,councilAreas]=await Promise.all([
+    const [govStat,councilStat,govC,govCArea,govAreas,councilC,councilAreas]=await Promise.all([
       ectStatistics(G).catch(()=>null),
       ectStatistics(C).catch(()=>null),
       ectCandidates(G,'province'),
+      ectCandidates(G,'area').catch(()=>({candidates:[]})),
       ectGet(`/api/media/elections/${G}/auto/electionAreas?source=auto&level=province&limit=1000`).catch(()=>null),
       ectCandidates(C,'area').catch(()=>({candidates:[]})),
       ectGet(`/api/media/elections/${C}/auto/electionAreas?source=auto&level=area&limit=1000`).catch(()=>null),
@@ -2637,17 +2638,27 @@ async function loadFromECT(){
     // สร้าง map candidate_number → index ใน cands
     const candNoMap={};
     cands.forEach((c,ci)=>{if(c.no)candNoMap[c.no]=ci;});
-    // อ่านคะแนนรายเขตจาก candidates[] ใน electionAreas (ดีที่สุด — ตรงตาม spec)
-    govAreaList.forEach(a=>{
-      const an=a.area_number||a.areaNumber||a.number; if(!an)return;
-      areaVotes[an]={};
-      (a.candidates||[]).forEach(c=>{
-        const cn=c.candidate_number||c.number||c.no;
-        const ci=candNoMap[cn]??-1; if(ci<0)return;
-        areaVotes[an][ci]=c.votes||0;
-      });
+    // path A: /candidates?level=area — ส่ง 1 entry ต่อ (ผู้สมัคร × เขต) มี area_number ติดมา (ดีที่สุด)
+    (govCArea?.candidates||[]).forEach(c=>{
+      const an=c.area_number||c.areaNumber||c.electionArea?.number||c.electionArea?.areaNumber;
+      if(!an)return;
+      const cn=c.candidate_number||c.number||c.no;
+      const ci=candNoMap[cn]??-1; if(ci<0)return;
+      (areaVotes[an]=areaVotes[an]||{})[ci]=c.votes||c.totalVotes||0;
     });
-    // fallback: ถ้า electionAreas ไม่มี candidates → ลองจาก votesByAreaDetails บน candidate (camelCase)
+    // path B: electionAreas.candidates[] (เผื่อ schema มี — ปกติ gov ไม่มี)
+    if(!Object.keys(areaVotes).some(an=>Object.keys(areaVotes[an]).length)){
+      govAreaList.forEach(a=>{
+        const an=a.area_number||a.areaNumber||a.number; if(!an)return;
+        areaVotes[an]={};
+        (a.candidates||[]).forEach(c=>{
+          const cn=c.candidate_number||c.number||c.no;
+          const ci=candNoMap[cn]??-1; if(ci<0)return;
+          areaVotes[an][ci]=c.votes||0;
+        });
+      });
+    }
+    // path C fallback: votesByAreaDetails บน candidate (camelCase)
     if(!Object.keys(areaVotes).some(an=>Object.keys(areaVotes[an]).length)){
       cands.forEach((c,ci)=>{(c._raw?.votesByAreaDetails||[]).forEach(a=>{
         const an=a.areaNumber||a.area_number; if(!an)return;
