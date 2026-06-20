@@ -520,7 +520,7 @@ body.ov-stat #ov-stat{display:flex}
 #ov-bar[data-art]{background-image:url('bg-bottombar.png')}
 #ov-bar[data-art]::before{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:url('bg-bottombar-headline.png') no-repeat top left;background-size:100% auto;pointer-events:none;z-index:1}
 #ov-bar[data-art][data-bar="skg"]::before{background:url('bg-skg-headline.png') no-repeat top left;background-size:100% auto}
-#ov-bar[data-art][data-bar="skg"]{background-image:url('bg-skg.png')}
+#ov-bar[data-art][data-bar="skg"]{background-image:url('bg-skg.png');position:fixed;bottom:0}
 #ov-side,#ov-side[data-side="skg"]{background-image:url('bg-side-skg.png')}
 #ov-side[data-side="gov"]{background-image:url('bg-side-gov.png')}
 /* เมื่อตรวจพบไฟล์ Art (data-art) → ใช้ PNG ล้วน ซ่อน mock เดิม (กรอบ lime / หัวแท็บ / พื้น gradient ที่ฝังในภาพแล้ว) */
@@ -1713,11 +1713,14 @@ function ovPartySeats(){
       if(!pm[p])pm[p]={name:p,seats:0,votes:0,color:c.color||PALETTE[Object.keys(pm).length%PALETTE.length],logo:''};
       pm[p].votes+=skgVotes(c);if(skgIsElected(c))pm[p].seats++;if(c.color)pm[p].color=c.color;});
   });
-  if(skgPartyLogoMap){Object.values(pm).forEach(p=>{
-    let l=skgPartyLogoMap[p.name];
-    if(!l){const k=Object.keys(skgPartyLogoMap).find(n=>p.name.includes(n)||n.includes(p.name));if(k)l=skgPartyLogoMap[k];}
-    if(l)p.logo=l;
-  });}
+  if(skgPartyLogoMap){
+    console.log('[SKG logo] map keys=',Object.keys(skgPartyLogoMap),'party names=',Object.values(pm).map(p=>p.name));
+    Object.values(pm).forEach(p=>{
+      let l=skgPartyLogoMap[p.name];
+      if(!l){const k=Object.keys(skgPartyLogoMap).find(n=>p.name.includes(n)||n.includes(p.name));if(k){l=skgPartyLogoMap[k];console.log('[SKG logo] fuzzy',p.name,'→',k);}}
+      if(l)p.logo=l; else console.warn('[SKG logo] NO MATCH for',p.name);
+    });
+  }
   return Object.values(pm).sort((a,b)=>b.seats-a.seats||b.votes-a.votes);
 }
 function ovPhoto(cls,fbcls,avatar,init,color){
