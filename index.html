@@ -2547,7 +2547,7 @@ async function ectGet(path){
 async function ectCandidates(slug,level){
   let page=1,all=[],guard=0;
   while(guard++<20){
-    const d=await ectGet(`/api/media/elections/${slug}/auto/candidates?level=${level}&page=${page}&limit=1000`);
+    const d=await ectGet(`/api/media/elections/${slug}/auto/candidates?source=auto&level=${level}&page=${page}&limit=1000`);
     const arr=d?.candidates||d?.results||(Array.isArray(d)?d:[]);
     all=all.concat(arr);
     const pg=d?.pagination; if(!pg||!pg.hasMore){return {candidates:all,meta:d};}
