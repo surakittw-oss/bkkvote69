@@ -2864,12 +2864,13 @@ function cpCutAll(){pvwState={footer:'off',side:'off',full:'off',sideIdx:0,sideP
 /* footer sub-control: ปรับสด บน program */
 function ctrlBarView(v){ctrlWrite({barView:v,barPlaying:false});}
 function ctrlBarAuto(){ctrlWrite({barPlaying:!ctrlState.barPlaying});}
-/* side: เลือกเขต/โหมด → stage เข้า preview (ยังไม่ออกอากาศ จนกว่าจะ TAKE) */
-function cpStageSideIdx(i){pvwState.sideIdx=parseInt(i)||0;pvwState.sidePlaying=false;renderControlPanel();cpPushPreview();}
-function cpStageSideStep(d){const n=ovSideScenes(pvwState.sideFilter).length||1;pvwState.sideIdx=(((pvwState.sideIdx||0)+d)%n+n)%n;renderControlPanel();cpPushPreview();}
-function cpStageSideAuto(){pvwState.sidePlaying=!pvwState.sidePlaying;renderControlPanel();cpPushPreview();}
-function cpStageSideAutoGov(){pvwState.sideFilter='gov';pvwState.sideIdx=0;pvwState.sidePlaying=true;renderControlPanel();cpPushPreview();}
-function cpStageSideAutoSkg(){pvwState.sideFilter='skg';pvwState.sideIdx=0;pvwState.sidePlaying=true;renderControlPanel();cpPushPreview();}
+/* side: ทุก action ออกอากาศทันที (ไม่ต้องกด TAKE) */
+function cpSideLive(filter,idx,playing){pvwState.sideFilter=filter;pvwState.sideIdx=idx|0;pvwState.sidePlaying=playing;if(pvwState.side==='on')cpTake('side');else renderControlPanel();}
+function cpStageSideIdx(i){cpSideLive(pvwState.sideFilter||'both',parseInt(i)||0,false);}
+function cpStageSideStep(d){const f=pvwState.sideFilter||ctrlState.sideFilter||'both';const n=ovSideScenes(f).length||1;cpSideLive(f,(((pvwState.sideIdx||0)+d)%n+n)%n,false);}
+function cpStageSideAuto(){cpSideLive(pvwState.sideFilter||'both',pvwState.sideIdx|0,!pvwState.sidePlaying);}
+function cpStageSideAutoGov(){cpSideLive('gov',0,true);}
+function cpStageSideAutoSkg(){cpSideLive('skg',0,true);}
 function cpToggleDistPick(type,di){
   const key=type==='gov'?'govPick':'skgPick';
   const cur=pvwState[key]?new Set(pvwState[key].split(',').map(Number)):new Set();
@@ -2997,13 +2998,7 @@ function renderControlPanel(){
   const base=location.origin+location.pathname;
   // scaffold สร้างครั้งเดียว — iframe preview จะไม่ถูกโหลดใหม่ทุกครั้งที่ render (ไม่งั้นเขตที่เลือกหลุด)
   if(!$('cp-ctrls')){
-    el.innerHTML=`
-      <div id="cp-static"></div>
-      <div class="cp-pane">
-        <div class="cp-pane-lbl pvw">PREVIEW <small>· Staged scene — not on air until you press TAKE</small></div>
-        <div class="cp-preview-wrap"><iframe id="cp-pvw-frame" src="${base}?overlay=live&pvw=1" scrolling="no" allowtransparency="true" onload="cpPushPreview()"></iframe></div>
-      </div>
-      <div id="cp-ctrls"></div>`;
+    el.innerHTML=`<div id="cp-static"></div><div id="cp-ctrls"></div>`;
   }
   const anyLive=s.footer!=='off'||s.side!=='off'||s.full!=='off';
   const sideModeLbl={gov:'ผู้ว่าฯ',skg:'ส.ก.',both:'ทั้งคู่'}[s.sideFilter||'both'];
@@ -3021,11 +3016,18 @@ function renderControlPanel(){
     }).join('');
     let sub='';
     if(L.key==='footer'&&pgm==='bottombar'){
-      sub=`<div class="cp-sub"><span class="cp-sub-lbl">Bottom Bar View:</span>
-        <button class="cp-btn ${!s.barPlaying&&s.barView===0?'on':''}" onclick="ctrlBarView(0)">Governor</button>
-        <button class="cp-btn ${!s.barPlaying&&s.barView===1?'on':''}" onclick="ctrlBarView(1)">Councilors</button>
-        <button class="cp-btn ${!s.barPlaying&&s.barView===2?'on':''}" onclick="ctrlBarView(2)">Count Stats</button>
-        <button class="cp-btn ${s.barPlaying?'on':''}" onclick="ctrlBarAuto()">${s.barPlaying?'⏸ Pause':'▶ Auto-rotate'}</button></div>`;
+      const autoOn=s.barPlaying;
+      sub=`<div class="cp-sub">
+        <span class="cp-sub-lbl">ล็อคหน้า:</span>
+        <button class="cp-btn${!autoOn&&s.barView===0?' on':''}" onclick="ctrlBarView(0)">Governor</button>
+        <button class="cp-btn${!autoOn&&s.barView===1?' on':''}" onclick="ctrlBarView(1)">Councilors</button>
+        <button class="cp-btn${!autoOn&&s.barView===2?' on':''}" onclick="ctrlBarView(2)">Count Stats</button>
+      </div>
+      <div class="cp-sub">
+        <span class="cp-sub-lbl">Auto-rotate:</span>
+        <button class="cp-btn${autoOn?' on':''}" onclick="ctrlBarAuto()">${autoOn?'⏸ หยุด Auto':'▶ เปิด Auto'}</button>
+        ${autoOn?`<span style="font-size:11px;color:var(--t3)">กำลังวนอัตโนมัติ — กด ล็อคหน้า หรือ ⏸ หยุด Auto เพื่อหยุด</span>`:''}
+      </div>`;
     }else if(L.key==='side'&&pvw==='on'){
       const pf=pvwState.sideFilter||'both';
       const govPk=pvwState.govPick||'';
@@ -3055,9 +3057,9 @@ function renderControlPanel(){
         <div class="cp-side-sec-hd">
           <span class="cp-side-sec-title">ผู้ว่าฯ รายเขต</span>
           <button class="cp-btn ${pf==='gov'&&pvwState.sidePlaying?'on':''}" onclick="cpStageSideAutoGov()">▶ Auto</button>
-          <select class="cp-select" onchange="pvwState.sideFilter='gov';pvwState.sidePlaying=false;cpStageSideIdx(this.value)">${govSelOpts||'<option>ไม่มีเขตที่เลือก</option>'}</select>
-          <button class="cp-btn" onclick="cpStageSideStep(-1)" title="Previous">◀</button>
-          <button class="cp-btn" onclick="cpStageSideStep(1)" title="Next">▶</button>
+          <select class="cp-select" onchange="pvwState.sideFilter='gov';cpStageSideIdx(this.value)">${govSelOpts||'<option>ไม่มีเขตที่เลือก</option>'}</select>
+          <button class="cp-btn" onclick="pvwState.sideFilter='gov';cpStageSideStep(-1)" title="Previous">◀</button>
+          <button class="cp-btn" onclick="pvwState.sideFilter='gov';cpStageSideStep(1)" title="Next">▶</button>
         </div>
         <details data-cpkey="gov-dist"><summary style="font-size:12px;color:var(--t3);cursor:pointer">เลือกเขตที่จะโชว์ (${govGCnt}/${DISTRICTS.length})</summary>
           <input class="cp-dist-search" placeholder="ค้นหาเขต…" value="${window._cpDistSrchgov||''}" oninput="cpDistSearch('gov',this.value)">
@@ -3069,9 +3071,9 @@ function renderControlPanel(){
         <div class="cp-side-sec-hd">
           <span class="cp-side-sec-title">ส.ก. รายเขต</span>
           <button class="cp-btn ${pf==='skg'&&pvwState.sidePlaying?'on':''}" onclick="cpStageSideAutoSkg()">▶ Auto</button>
-          <select class="cp-select" onchange="pvwState.sideFilter='skg';pvwState.sidePlaying=false;cpStageSideIdx(this.value)">${skgSelOpts||'<option>ไม่มีเขตที่เลือก</option>'}</select>
-          <button class="cp-btn" onclick="cpStageSideStep(-1)" title="Previous">◀</button>
-          <button class="cp-btn" onclick="cpStageSideStep(1)" title="Next">▶</button>
+          <select class="cp-select" onchange="pvwState.sideFilter='skg';cpStageSideIdx(this.value)">${skgSelOpts||'<option>ไม่มีเขตที่เลือก</option>'}</select>
+          <button class="cp-btn" onclick="pvwState.sideFilter='skg';cpStageSideStep(-1)" title="Previous">◀</button>
+          <button class="cp-btn" onclick="pvwState.sideFilter='skg';cpStageSideStep(1)" title="Next">▶</button>
         </div>
         <details data-cpkey="skg-dist"><summary style="font-size:12px;color:var(--t3);cursor:pointer">เลือกเขตที่จะโชว์ (${skgGCnt}/${DISTRICTS.length})</summary>
           <input class="cp-dist-search" placeholder="ค้นหาเขต…" value="${window._cpDistSrchskg||''}" oninput="cpDistSearch('skg',this.value)">
@@ -3080,8 +3082,8 @@ function renderControlPanel(){
         </details>
       </div>
       <div class="cp-sub" style="margin-top:8px">
-        <button class="cp-btn ${pf==='both'&&pvwState.sidePlaying?'on':''}" onclick="pvwState.sideFilter='both';pvwState.sideIdx=0;pvwState.sidePlaying=true;renderControlPanel();cpPushPreview()">▶ Auto ทั้งคู่</button>
-        <button class="cp-btn ${!pvwState.sidePlaying?'on':''}" onclick="cpStageSideAuto()">${pvwState.sidePlaying?'⏸ หยุด':'⏸ หยุดอยู่'}</button>
+        <button class="cp-btn ${pf==='both'&&pvwState.sidePlaying?'on':''}" onclick="cpSideLive('both',0,true)">▶ Auto ทั้งคู่</button>
+        <button class="cp-btn ${!pvwState.sidePlaying?'on':''}" onclick="cpSideLive(pvwState.sideFilter||'both',pvwState.sideIdx|0,false)">⏹ หยุด Auto</button>
       </div>`;
     }
     return `<div class="cp-layer${pgm!=='off'?' on':''}">
