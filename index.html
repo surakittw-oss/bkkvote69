@@ -2680,6 +2680,13 @@ async function loadFromECT(){
     // ── ส.ก. รายเขต: จับกลุ่มผู้สมัครตาม areaNumber — รองรับ snake_case (electionAreas) ──
     const councilAreaMap=buildAreaNameMap(councilAreaListRaw);
     let skg={};
+    // helper: ตัดสิน elected — ใช้ field จาก API ก่อน ถ้าไม่มีใช้ rank=1 + coverage ≥ 75%
+    const skgElected=(c,aPct)=>{
+      if(c.elected===true||c.elected===1||c.is_elected===true||c.is_elected===1)return true;
+      const votes=c.votes||c.totalVotes||0;
+      if(c.rank===1&&votes>0){return aPct==null||aPct>=75;}
+      return false;
+    };
     // path 1: councilC.candidates[] มี area_number (candidates endpoint with area info)
     if((councilC.candidates||[]).length){
       (councilC.candidates||[]).forEach(c=>{
@@ -2688,12 +2695,14 @@ async function loadFromECT(){
         const enm=(c.area_name||c.areaName||c.electionArea?.name||'').replace(/^เขต\s*/,'').trim();
         if(BKK_DISTRICTS.includes(enm))dn=enm;
         const votes=c.votes||c.totalVotes||0;
+        const areaD=councilAreaByNo[an]||{};
+        const aPct=areaD.percentage??areaD.coverage?.percentage??null;
         (skg[dn]=skg[dn]||[]).push({
           no:c.candidate_number||c.number||0,
           name:(c.candidate_name||c.name||'').trim(),
           party:(c.party_name||c.party?.name||'').trim()||'อิสระ',
           votes,
-          elected:c.rank===1&&votes>0,
+          elected:skgElected(c,aPct),
           color:c.party_color||c.party?.color||'',
           avatar:c.candidate_photo_url||c.photoUrl||c.imageUrl||''
         });
@@ -2704,6 +2713,7 @@ async function loadFromECT(){
       councilAreaListRaw.forEach(a=>{
         const an=a.area_number||a.areaNumber||a.number; if(!an)return;
         let dn=councilAreaMap[an]||BKK_DISTRICTS[an-1]||('เขต '+an);
+        const aPct=a.percentage??a.coverage?.percentage??null;
         (a.candidates||[]).forEach(c=>{
           const votes=c.votes||c.totalVotes||0;
           (skg[dn]=skg[dn]||[]).push({
@@ -2711,7 +2721,7 @@ async function loadFromECT(){
             name:(c.candidate_name||c.name||'').trim(),
             party:(c.party_name||c.party?.name||'').trim()||'อิสระ',
             votes,
-            elected:c.rank===1&&votes>0,
+            elected:skgElected(c,aPct),
             color:c.party_color||c.party?.color||'',
             avatar:c.candidate_photo_url||c.photoUrl||c.imageUrl||''
           });
