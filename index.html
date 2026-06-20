@@ -2638,12 +2638,14 @@ async function loadFromECT(){
     // สร้าง map candidate_number → index ใน cands
     const candNoMap={};
     cands.forEach((c,ci)=>{if(c.no)candNoMap[c.no]=ci;});
-    // DEBUG: ดู gov candidates ระดับเขต — entry แรก + ของหนองจอก
-    if(govCArea?.candidates?.[0]){
-      console.log('[ECT gov /candidates area] total=',govCArea.candidates.length,'sample0 keys=',JSON.stringify(Object.keys(govCArea.candidates[0])));
-      console.log('[ECT gov /candidates area] sample0=',JSON.stringify(govCArea.candidates[0]));
-      const _nj=govCArea.candidates.filter(c=>{const nm=(c.area_name||c.areaName||c.electionArea?.name||'').replace(/^เขต\s*/,'').trim();return nm==='หนองจอก'||c.area_number===2||c.areaNumber===2;});
-      console.log('[ECT gov /candidates หนองจอก]',_nj.length,'entries:',_nj.map(c=>({no:c.candidate_number||c.number,name:c.candidate_name||c.name,votes:c.votes||c.totalVotes,an:c.area_number||c.areaNumber,src:c.source||c.dataSource})));
+    // DEBUG: ดู gov candidate ระดับ province — keys + อนุชาเต็มๆ
+    if(govC?.candidates?.[0]){
+      console.log('[ECT gov /candidates province] total=',govC.candidates.length,'sample0 keys=',JSON.stringify(Object.keys(govC.candidates[0])));
+      const _an=govC.candidates.find(c=>(c.candidate_name||c.name||'').includes('อนุชา'));
+      if(_an){
+        console.log('[ECT gov /candidates province อนุชา] keys=',JSON.stringify(Object.keys(_an)));
+        console.log('[ECT gov /candidates province อนุชา] full=',JSON.stringify(_an).slice(0,3000));
+      }
     }
     // path A: /candidates?level=area — ส่ง 1 entry ต่อ (ผู้สมัคร × เขต) มี area_number ติดมา (ดีที่สุด)
     (govCArea?.candidates||[]).forEach(c=>{
