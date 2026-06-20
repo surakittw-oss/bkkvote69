@@ -2917,7 +2917,7 @@ function renderControlPanel(){
           <button class="cp-btn" onclick="cpStageSideStep(-1)" title="Previous">◀</button>
           <button class="cp-btn" onclick="cpStageSideStep(1)" title="Next">▶</button>
         </div>
-        <details><summary style="font-size:12px;color:var(--t3);cursor:pointer">เลือกเขตที่จะโชว์ (${govGCnt}/${DISTRICTS.length})</summary>
+        <details data-cpkey="gov-dist"><summary style="font-size:12px;color:var(--t3);cursor:pointer">เลือกเขตที่จะโชว์ (${govGCnt}/${DISTRICTS.length})</summary>
           <div style="display:flex;gap:6px;margin:6px 0"><button class="cp-dist-toggle" onclick="cpPickAll('gov')">เลือกทั้งหมด</button><button class="cp-dist-toggle" onclick="cpPickNone('gov')">ยกเลิกทั้งหมด</button></div>
           <div class="cp-dist-grid">${govChks}</div>
         </details>
@@ -2930,7 +2930,7 @@ function renderControlPanel(){
           <button class="cp-btn" onclick="cpStageSideStep(-1)" title="Previous">◀</button>
           <button class="cp-btn" onclick="cpStageSideStep(1)" title="Next">▶</button>
         </div>
-        <details><summary style="font-size:12px;color:var(--t3);cursor:pointer">เลือกเขตที่จะโชว์ (${skgGCnt}/${DISTRICTS.length})</summary>
+        <details data-cpkey="skg-dist"><summary style="font-size:12px;color:var(--t3);cursor:pointer">เลือกเขตที่จะโชว์ (${skgGCnt}/${DISTRICTS.length})</summary>
           <div style="display:flex;gap:6px;margin:6px 0"><button class="cp-dist-toggle" onclick="cpPickAll('skg')">เลือกทั้งหมด</button><button class="cp-dist-toggle" onclick="cpPickNone('skg')">ยกเลิกทั้งหมด</button></div>
           <div class="cp-dist-grid">${skgChks}</div>
         </details>
@@ -2960,6 +2960,9 @@ function renderControlPanel(){
       <span class="cp-conn">${conn}</span>
     </div>`;
   const spd=s.sideSpeed||7000;
+  // บันทึก open state ของ <details> ก่อน re-render (ป้องกัน checkbox panel ปิดเองเมื่อ state เปลี่ยน)
+  const _openDetails=new Set();
+  $('cp-ctrls').querySelectorAll('details[data-cpkey]').forEach(d=>{if(d.open)_openDetails.add(d.dataset.cpkey);});
   $('cp-ctrls').innerHTML=`
     <div class="cp-global">
       <button class="cp-take cp-take-all" onclick="cpTakeAll()">TAKE ALL ▶</button>
@@ -2987,6 +2990,8 @@ function renderControlPanel(){
       • <b>Side Panel</b>: <code>?overlay=side</code><br>
       • <b>รวมทุกเลเยอร์</b> (Footer + Side + Fullscreen): <code>?overlay=live</code><br>
       ลิงค์แยกแต่ละอันโชว์เฉพาะเลเยอร์ของตัวเอง · มีแต่ <code>?overlay=live</code> ที่รวมทุกเลเยอร์พร้อมกัน</div>`;
+  // คืน open state ของ <details> ที่เปิดอยู่ก่อนหน้า
+  if(_openDetails.size)$('cp-ctrls').querySelectorAll('details[data-cpkey]').forEach(d=>{if(_openDetails.has(d.dataset.cpkey))d.open=true;});
   cpScalePreview();
 }
 function cpRenderSignin(){
