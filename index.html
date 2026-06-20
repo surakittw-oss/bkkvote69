@@ -2569,7 +2569,6 @@ async function loadFromECT(){
         const aPct=a.percentage??a.coverage?.percentage??null;
         const aRep=a.stations_reported??a.stationsReported??a.coverage?.stations_reported??a.coverage?.stationsReported??null;
         const aTot=a.total_stations??a.totalStations??a.coverage?.total_stations??a.coverage?.totalStations??null;
-        if(an<=2)console.log('[loadFromECT district]',nm,'an=',an,'a.coverage=',a.coverage,'aPct=',aPct,'aRep=',aRep,'aTot=',aTot);
         const row={district:nm,counted:(totalV>0||cast>0)?1:0,_cast:cast,pct:aPct,stationsReported:aRep,totalStations:aTot};
         Object.keys(av).forEach(ci=>row['votes_'+(+ci+1)]=av[ci]);
         return row;
