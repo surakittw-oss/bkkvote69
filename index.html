@@ -2638,44 +2638,23 @@ async function loadFromECT(){
     // สร้าง map candidate_number → index ใน cands
     const candNoMap={};
     cands.forEach((c,ci)=>{if(c.no)candNoMap[c.no]=ci;});
-    // DEBUG: ลอง endpoint อื่นๆ หาช่องดึง per-area gov candidate votes
-    const _gA=(Array.isArray(govAreasA)?govAreasA:(govAreasA?.electionAreas||govAreasA?.areas||[]));
-    const _nj3=_gA.find(a=>a.areaNumber===3);
-    const _aId=_nj3?.id;
-    const _try=async(p)=>{try{const r=await ectGet(p);console.log('[TRY]',p,'→',JSON.stringify(r).slice(0,800));}catch(e){console.log('[TRY]',p,'❌',e.message);}};
-    await Promise.all([
-      _try(`/api/media/elections/${G}/auto/electionAreas?source=auto&level=area&include=candidates&limit=2`),
-      _try(`/api/media/elections/${G}/auto/electionAreas?source=auto&level=area&expand=candidates&limit=2`),
-      _try(`/api/media/elections/${G}/auto/candidates?source=auto&level=area&areaNumber=3&limit=20`),
-      _try(`/api/media/elections/${G}/auto/candidates?source=auto&level=area&province=10&limit=20`),
-      _aId?_try(`/api/media/elections/${G}/auto/electionAreas/${_aId}/candidates`):Promise.resolve(),
-      _aId?_try(`/api/media/elections/${G}/auto/electionAreas/${_aId}`):Promise.resolve(),
-      _try(`/api/media/elections/${G}/auto/areaCandidates?limit=2`),
-      _try(`/api/media/elections/${G}/auto/votes?level=area&limit=2`),
-    ]);
-    // path A: electionAreas?level=area — อาจ embedded candidates per area
-    const govAreaListA=_gA;
-    govAreaListA.forEach(a=>{
-      const an=a.area_number||a.areaNumber||a.number; if(!an)return;
-      (a.candidates||[]).forEach(c=>{
-        const cn=c.candidate_number||c.number||c.no;
-        const ci=candNoMap[cn]??-1; if(ci<0)return;
-        (areaVotes[an]=areaVotes[an]||{})[ci]=c.votes||c.totalVotes||0;
-      });
-    });
-    // path B: electionAreas.candidates[] (เผื่อ schema มี — ปกติ gov ไม่มี)
-    if(!Object.keys(areaVotes).some(an=>Object.keys(areaVotes[an]).length)){
-      govAreaList.forEach(a=>{
-        const an=a.area_number||a.areaNumber||a.number; if(!an)return;
-        areaVotes[an]={};
-        (a.candidates||[]).forEach(c=>{
-          const cn=c.candidate_number||c.number||c.no;
+    // ดึงคะแนนผู้ว่ารายเขตจาก /auto/electionAreas/{id} → area.candidateVotes[]
+    const _govAreaIds=(Array.isArray(govAreasA)?govAreasA:(govAreasA?.electionAreas||govAreasA?.areas||[]));
+    if(_govAreaIds.length){
+      const areaDetails=await Promise.all(
+        _govAreaIds.map(a=>ectGet(`/api/media/elections/${G}/auto/electionAreas/${a.id}`).catch(()=>null))
+      );
+      areaDetails.forEach(res=>{
+        if(!res?.area)return;
+        const an=res.area.areaNumber||res.area.area_number; if(!an)return;
+        (res.area.candidateVotes||[]).forEach(c=>{
+          const cn=c.candidateNumber||c.candidate_number||c.number;
           const ci=candNoMap[cn]??-1; if(ci<0)return;
-          areaVotes[an][ci]=c.votes||0;
+          (areaVotes[an]=areaVotes[an]||{})[ci]=c.votes||0;
         });
       });
     }
-    // path C fallback: votesByAreaDetails บน candidate (camelCase)
+    // fallback: votesByAreaDetails บน candidate (camelCase) ถ้า API ไม่ส่ง area detail
     if(!Object.keys(areaVotes).some(an=>Object.keys(areaVotes[an]).length)){
       cands.forEach((c,ci)=>{(c._raw?.votesByAreaDetails||[]).forEach(a=>{
         const an=a.areaNumber||a.area_number; if(!an)return;
