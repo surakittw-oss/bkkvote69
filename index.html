@@ -2108,7 +2108,8 @@ function applySkgImgMap(){
 }
 // โหลดรูปผู้สมัคร ส.ก. จาก Sheet (คอลัมน์ district[merge], no, color, avatar_url) → map { "เขต|เบอร์": {avatar,color,name} }
 async function loadSkgImgSheet(url){
-  const res=await fetch(sheetURLtoCSV(url));if(!res.ok)throw new Error('HTTP '+res.status);
+  const csvUrl=sheetURLtoCSV(url)+'&_t='+Date.now();
+  const res=await fetch(csvUrl,{cache:'no-store'});if(!res.ok)throw new Error('HTTP '+res.status);
   const lines=(await res.text()).split('\n').filter(l=>l.trim());if(lines.length<2)return{};
   let hi=-1;
   for(let i=0;i<Math.min(lines.length,8);i++){
