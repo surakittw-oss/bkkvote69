@@ -2117,6 +2117,7 @@ function applySkgImgMap(){
       const byParty=partyColor[ectParty];
       const avatar=(byName&&byName.entry.avatar)||c.avatar;
       const color=byParty||(byName&&byName.entry.color)||c.color;
+      if(!byName&&currentSource!=='sample')console.log('[SKG miss]',normName(dn),'|ECT:',c.name,'→',ectName,'|party:',c.party,'→',ectParty,'|sheet:',candidates.map(x=>x.sheetName+' ('+normP(x.entry.party)+')'));
       return{...c,avatar,color};
     });
   });
