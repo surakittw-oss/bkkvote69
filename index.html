@@ -2104,8 +2104,17 @@ function applySkgImgMap(){
     const candidates=distNames[normName(dn)]||[];
     skgData[dn]=skgData[dn].map(c=>{
       const ectName=noSp(c.name);
-      const byName=candidates.find(x=>x.sheetName&&ectName.endsWith(x.sheetName));
-      const byParty=partyColor[normP(c.party)];
+      const ectParty=normP(c.party);
+      // 1) ชื่อเต็ม endsWith + พรรคตรง
+      let byName=candidates.find(x=>x.sheetName&&ectName.endsWith(x.sheetName)&&normP(x.entry.party)===ectParty);
+      // 2) ชื่อเต็ม endsWith (ไม่เช็คพรรค)
+      if(!byName)byName=candidates.find(x=>x.sheetName&&ectName.endsWith(x.sheetName));
+      // 3) นามสกุล (คำสุดท้าย) + พรรคตรง
+      if(!byName){
+        const surname=noSp((c.name||'').trim().split(/\s+/).pop()||'');
+        if(surname.length>=3)byName=candidates.find(x=>x.sheetName.endsWith(surname)&&normP(x.entry.party)===ectParty);
+      }
+      const byParty=partyColor[ectParty];
       const avatar=(byName&&byName.entry.avatar)||c.avatar;
       const color=byParty||(byName&&byName.entry.color)||c.color;
       return{...c,avatar,color};
