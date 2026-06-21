@@ -2099,7 +2099,6 @@ function applySkgImgMap(){
     if(v.name){(distNames[dist]=distNames[dist]||[]).push({sheetName:noSp(v.name),entry:v});}
     if(v.party&&v.color&&!partyColor[normP(v.party)])partyColor[normP(v.party)]=v.color;
   });
-  let hit=0,miss=0;const ms=[];
   Object.keys(skgData).forEach(dn=>{
     if(!Array.isArray(skgData[dn]))return;
     const candidates=distNames[normName(dn)]||[];
@@ -2109,12 +2108,9 @@ function applySkgImgMap(){
       const byParty=partyColor[normP(c.party)];
       const avatar=(byName&&byName.entry.avatar)||c.avatar;
       const color=byParty||(byName&&byName.entry.color)||c.color;
-      if(byName&&byName.entry.avatar)hit++;else{miss++;if(ms.length<6)ms.push({dn:normName(dn),ect:ectName,distHasCands:candidates.length,sheetNames:candidates.map(x=>x.sheetName).slice(0,3)});}
       return{...c,avatar,color};
     });
   });
-  console.log('[SKG-IMG]','src:',currentSource,'hit:',hit,'miss:',miss,'distNamesKeys:',Object.keys(distNames).length);
-  console.log('[SKG-IMG miss]',JSON.stringify(ms,null,1));
 }
 // โหลดรูปผู้สมัคร ส.ก. จาก Sheet (คอลัมน์ district[merge], no, color, avatar_url) → map { "เขต|เบอร์": {avatar,color,name} }
 async function loadSkgImgSheet(url){
@@ -2192,9 +2188,9 @@ function normalizeSkg(raw){
   if(!raw)return{};
   let out={};
   if(Array.isArray(raw)){
-    raw.forEach(r=>{const dn=(r.district||r.name_dist||'').replace(/^เขต/,'').trim();if(!dn)return;(out[dn]=out[dn]||[]).push({no:parseInt(r.no)||0,name:r.name||'',party:r.party||'อิสระ',votes:parseInt(r.votes)||0,elected:r.elected===1||r.elected===true||r.elected==='1',color:r.color||'',avatar:r.avatar||''})});
+    raw.forEach(r=>{if(!r)return;const dn=(r.district||r.name_dist||'').replace(/^เขต/,'').trim();if(!dn)return;(out[dn]=out[dn]||[]).push({no:parseInt(r.no)||0,name:r.name||'',party:r.party||'อิสระ',votes:parseInt(r.votes)||0,elected:r.elected===1||r.elected===true||r.elected==='1',color:r.color||'',avatar:r.avatar||''})});
   }else{
-    Object.keys(raw).forEach(dn=>{const arr=Array.isArray(raw[dn])?raw[dn]:Object.values(raw[dn]);out[dn.replace(/^เขต/,'').trim()]=arr.map(c=>({no:parseInt(c.no)||0,name:c.name||'',party:c.party||'อิสระ',votes:parseInt(c.votes)||0,elected:c.elected===1||c.elected===true||c.elected==='1',color:c.color||'',avatar:c.avatar||''}))});
+    Object.keys(raw).forEach(dn=>{const arr=Array.isArray(raw[dn])?raw[dn]:Object.values(raw[dn]);out[dn.replace(/^เขต/,'').trim()]=arr.filter(Boolean).map(c=>({no:parseInt(c.no)||0,name:c.name||'',party:c.party||'อิสระ',votes:parseInt(c.votes)||0,elected:c.elected===1||c.elected===true||c.elected==='1',color:c.color||'',avatar:c.avatar||''}))});
   }
   Object.keys(out).forEach(dn=>{
     out[dn].sort((a,b)=>b.votes-a.votes);
