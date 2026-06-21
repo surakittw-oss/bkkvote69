@@ -1699,16 +1699,15 @@ function renderMbPanel(){
 }
 function renderStat(){
   const el=$('ov-stat');if(!el)return;
-  // คำนวณจากข้อมูลจริงใน CANDS/DISTRICTS เป็นหลัก — fallback mbStats ถ้ายังไม่มี
-  const goodVotesLive=CANDS.reduce((s,c)=>s+c.votes,0);
-  const turnoutLive=DISTRICTS.reduce((s,d)=>s+(d.cast||0),0);
+  // นับคะแนนแล้ว % = coverage.percentage (% หน่วยที่รายงานผลแล้ว) จาก ECT API — fallback countedDistricts/50
+  const govCov=mbStats?.gov?.data?.coverage;
+  const covPct=govCov?.percentage??null;
+  const cntPct=covPct!=null?((+covPct)%1===0?String(+covPct):(+covPct).toFixed(1)):((countedDistricts||0)/50*100).toFixed(0);
+  // ผู้มาใช้สิทธิ = total_votes จาก ECT statistics (คนที่มาลงคะแนนจริง) — fallback sum cast
   const govSt=mbStats?.gov?.data?.statistics;
-  const totalVotesApi=govSt?(govSt.total_votes??govSt.totalVotes??0):0;
-  const goodVotesApi=govSt?(govSt.good_votes??govSt.goodVotes??0):0;
-  const totalVotes=turnoutLive||totalVotesApi;
-  const goodVotes=goodVotesLive||goodVotesApi;
-  const cntPct=totalVotes>0?((goodVotes/totalVotes)*100).toFixed(1):'—';
-  const turnout=totalVotes;
+  const turnoutLive=DISTRICTS.reduce((s,d)=>s+(d.cast||0),0);
+  const turnoutApi=govSt?(govSt.total_votes??govSt.totalVotes??0):0;
+  const turnout=turnoutLive||turnoutApi;
   el.innerHTML=`
     <div class="ovst-hd">
       <span class="ovst-hd-title">รายงานความคืบหน้า</span>
