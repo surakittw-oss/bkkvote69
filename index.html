@@ -2099,6 +2099,7 @@ function applySkgImgMap(){
     if(v.name)nameIdx[dist+'|'+stripTitle(v.name)]=v;
     if(v.party&&v.color&&!partyColor[normP(v.party)])partyColor[normP(v.party)]=v.color;
   });
+  let avHit=0,avMiss=0;const missSamples=[];
   Object.keys(skgData).forEach(dn=>{
     if(!Array.isArray(skgData[dn]))return;
     skgData[dn]=skgData[dn].map(c=>{
@@ -2106,9 +2107,13 @@ function applySkgImgMap(){
       const byParty=partyColor[normP(c.party)];
       const avatar=(byName&&byName.avatar)||c.avatar;
       const color=byParty||(byName&&byName.color)||c.color;
+      if(byName&&byName.avatar)avHit++;else{avMiss++;if(missSamples.length<8)missSamples.push(normName(dn)+'|'+stripTitle(c.name));}
       return{...c,avatar,color};
     });
   });
+  console.log('[SKG-AVATAR] hit:',avHit,'miss:',avMiss,'| mapSize:',Object.keys(skgImgMap).length,'nameIdxSize:',Object.keys(nameIdx).length);
+  console.log('[SKG-AVATAR miss samples]',missSamples);
+  console.log('[SKG-AVATAR nameIdx samples]',Object.keys(nameIdx).slice(0,8));
 }
 // โหลดรูปผู้สมัคร ส.ก. จาก Sheet (คอลัมน์ district[merge], no, color, avatar_url) → map { "เขต|เบอร์": {avatar,color,name} }
 async function loadSkgImgSheet(url){
