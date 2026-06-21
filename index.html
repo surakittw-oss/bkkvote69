@@ -2103,22 +2103,24 @@ function applySkgImgMap(){
     if(!Array.isArray(skgData[dn]))return;
     const candidates=distNames[normName(dn)]||[];
     skgData[dn]=skgData[dn].map(c=>{
-      const ectName=noSp(c.name);
+      const stripT=s=>(s||'').replace(/^(นางสาว|นาง|นาย|ม\.ร\.ว\.|ม\.ล\.)\s*/,'');
+      const clean=stripT(c.name).trim();
+      const ectName=noSp(clean);
       const ectParty=normP(c.party);
-      // 1) ชื่อเต็ม endsWith + พรรคตรง
-      let byName=candidates.find(x=>x.sheetName&&ectName.endsWith(x.sheetName)&&normP(x.entry.party)===ectParty);
-      // 2) ชื่อเต็ม endsWith (ไม่เช็คพรรค)
-      if(!byName)byName=candidates.find(x=>x.sheetName&&ectName.endsWith(x.sheetName));
-      // 3) นามสกุล (คำสุดท้าย) + พรรคตรง
-      if(!byName){
-        const surname=noSp((c.name||'').trim().split(/\s+/).pop()||'');
-        if(surname.length>=3)byName=candidates.find(x=>x.sheetName.endsWith(surname)&&normP(x.entry.party)===ectParty);
-      }
-      // 4) ชื่อต้น (คำแรกหลังคำนำหน้า) + พรรคตรง — สำหรับกรณีนามสกุลสะกดต่าง
-      if(!byName){
-        const words=(c.name||'').trim().split(/\s+/);
-        const firstName=noSp(words.length>1?words[words.length-2]:words[0]||'');
-        if(firstName.length>=3)byName=candidates.find(x=>x.sheetName.startsWith(firstName)&&normP(x.entry.party)===ectParty);
+      const firstName=noSp(clean.split(/\s+/)[0]||'');
+      const surname=noSp(clean.split(/\s+/).pop()||'');
+      // 1) ชื่อเต็ม + พรรคตรง
+      let byName=candidates.find(x=>x.sheetName&&ectName===x.sheetName&&normP(x.entry.party)===ectParty);
+      // 2) ชื่อเต็ม (ไม่เช็คพรรค)
+      if(!byName)byName=candidates.find(x=>x.sheetName&&ectName===x.sheetName);
+      // 3) นามสกุล + พรรคตรง
+      if(!byName&&surname.length>=3)byName=candidates.find(x=>x.sheetName.endsWith(surname)&&normP(x.entry.party)===ectParty);
+      // 4) ชื่อต้น + พรรคตรง — กรณีนามสกุลสะกดต่าง
+      if(!byName&&firstName.length>=3)byName=candidates.find(x=>x.sheetName.startsWith(firstName)&&normP(x.entry.party)===ectParty);
+      // 5) ชื่อต้น + นามสกุล 4 ตัวแรก + พรรคตรง — กรณีสะกดต่างท้ายนามสกุล
+      if(!byName&&firstName.length>=2&&surname.length>=4){
+        const sp=surname.slice(0,4);
+        byName=candidates.find(x=>x.sheetName.startsWith(firstName)&&x.sheetName.includes(sp)&&normP(x.entry.party)===ectParty);
       }
       const byParty=partyColor[ectParty];
       const avatar=(byName&&byName.entry.avatar)||c.avatar;
