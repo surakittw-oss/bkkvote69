@@ -1941,10 +1941,11 @@ function ovSidePaint(){
       const cc=c.color||PALETTE[i%PALETTE.length];const votes=fmt(parseInt(c.votes)||0);
       const rank=`<div class="ovs-acard-rank">${i+1}</div>`;
       const v=`<div class="ovs-acard-votes">${votes}<small>คะแนน</small></div>`;
-      // มีไฟล์ Art (รูป+ชื่อ baked) → ใช้เป็นพื้นการ์ดเต็มใบ + overlay เลข/คะแนน
-      if(c.avatar)return `<div class="ovs-acard${skgIsElected(c)?' win':''}" style="background-image:url('${c.avatar}')">${rank}${v}</div>`;
-      // ยังไม่มีไฟล์ Art → fallback (รูปย่อ + ชื่อ + คะแนน)
-      return `<div class="ovs-acard ovs-acard--plain${skgIsElected(c)?' win':''}" style="--cc:${cc}">${rank}<div class="ovs-acard-fb">${(c.name||'?').trim().slice(0,1)}</div><div class="ovs-acard-name">${c.name||''}</div>${v}</div>`;
+      // มีไฟล์ Art composite (รูป+ชื่อ baked, จาก sheet overlay) → ใช้เป็นพื้นการ์ดเต็มใบ + overlay เลข/คะแนน
+      if(c.sideArt)return `<div class="ovs-acard${skgIsElected(c)?' win':''}" style="background-image:url('${c.sideArt}')">${rank}${v}</div>`;
+      // ไม่มีไฟล์ Art → fallback (รูป portrait ย่อในกรอบ ถ้ามี / ตัวอักษร + ชื่อ + คะแนน)
+      const fb=c.avatar?`<div class="ovs-acard-fb" style="background:transparent;overflow:hidden"><img src="${c.avatar}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentNode.style.background='${cc}';this.parentNode.textContent='${(c.name||'?').trim().slice(0,1)}'"></div>`:`<div class="ovs-acard-fb">${(c.name||'?').trim().slice(0,1)}</div>`;
+      return `<div class="ovs-acard ovs-acard--plain${skgIsElected(c)?' win':''}" style="--cc:${cc}">${rank}${fb}<div class="ovs-acard-name">${c.name||''}</div>${v}</div>`;
     }).join('');
     a.innerHTML=ovsDistbar(dname,pct)+`<div class="ovsg-list">${cards}</div>`;
     if(t)t.textContent='ผลการนับคะแนน\nส.ก. รายเขต';
@@ -2088,13 +2089,14 @@ function applyOvImgMap(){
   applySkgImgMap();
 }
 // merge รูป/สี ส.ก. จาก Sheet (คีย์ เขต|เบอร์) เข้า skgData ทุกครั้งที่ rebuild
-function applySkgImgMap(){
-  if(!skgImgMap||!skgData)return;
+// รวม map รูป/สี ส.ก. เข้า skgData — เขียนรูปลง field ที่ระบุ (avatar = dashboard, sideArt = overlay side)
+function mergeSkgImg(map,imgField){
+  if(!map||!skgData)return;
   const normP=p=>(p||'').replace(/^(พรรค|กลุ่ม)\s*/,'').replace(/\s+/g,'').toLowerCase();
   const noSp=s=>(s||'').replace(/\s+/g,'');
   // index by พรรค (สำหรับสี) + by เขต (สำหรับ avatar จับคู่ชื่อ)
   const partyColor={},distNames={};
-  Object.entries(skgImgMap).forEach(([k,v])=>{
+  Object.entries(map).forEach(([k,v])=>{
     const dist=k.split('|')[0];
     if(v.name){(distNames[dist]=distNames[dist]||[]).push({sheetName:noSp(v.name),entry:v});}
     if(v.party&&v.color&&!partyColor[normP(v.party)])partyColor[normP(v.party)]=v.color;
@@ -2123,11 +2125,17 @@ function applySkgImgMap(){
         byName=candidates.find(x=>x.sheetName.startsWith(firstName)&&x.sheetName.includes(sp)&&normP(x.entry.party)===ectParty);
       }
       const byParty=partyColor[ectParty];
-      const avatar=(byName&&byName.entry.avatar)||c.avatar;
+      const img=(byName&&byName.entry.avatar)||c[imgField];
       const color=byParty||(byName&&byName.entry.color)||c.color;
-      return{...c,avatar,color};
+      return{...c,[imgField]:img,color};
     });
   });
+}
+function applySkgImgMap(){
+  // gid=891915583 → รูป portrait dashboard (.webp) ลง c.avatar
+  if(skgImgMap)mergeSkgImg(skgImgMap,'avatar');
+  // gid=916858386 → ไฟล์ Art composite (Drive) ลง c.sideArt สำหรับ overlay side panel
+  if(skgSideMap)mergeSkgImg(skgSideMap,'sideArt');
 }
 // โหลดรูปผู้สมัคร ส.ก. จาก Sheet (คอลัมน์ district[merge], no, color, avatar_url) → map { "เขต|เบอร์": {avatar,color,name} }
 async function loadSkgImgSheet(url){
@@ -2544,7 +2552,7 @@ function mbRestoreFromFb(saved){
   if(c&&typeof c.percentage==='number')ectCovPct=c.percentage;
   renderMbPanel();
 }
-let ectTimer=null,ectImageMap=null,ovImgMap=null,skgImgMap=null,govSideMap=null,skgPartyLogoMap=null;
+let ectTimer=null,ectImageMap=null,ovImgMap=null,skgImgMap=null,skgSideMap=null,govSideMap=null,skgPartyLogoMap=null;
 let autoSaveTimer=null,lastSnapshotAt=0;
 async function fbAutoSave(){
   if(!fbReady||!fbDb)return;
@@ -3275,6 +3283,14 @@ function init(){
     }).catch(()=>{});
   }
   if(OVERLAY&&!PVW_MODE){
+    // ไฟล์ Art composite ส.ก. (Drive) สำหรับ side panel เต็มใบ — แยกจากรูป portrait dashboard
+    const SKG_SIDE_SHEET='https://docs.google.com/spreadsheets/d/1abANACpNrqcd_Yv7S2qeTe2vdDkJZkoAgRgqQ-DWqcE/edit?gid=916858386#gid=916858386';
+    loadSkgImgSheet(SKG_SIDE_SHEET).then(map=>{
+      if(!map||!Object.keys(map).length)return;
+      skgSideMap=map;
+      applySkgImgMap();
+      renderAll();
+    }).catch(()=>{});
     const OVERLAY_IMG_SHEET='https://docs.google.com/spreadsheets/d/1abANACpNrqcd_Yv7S2qeTe2vdDkJZkoAgRgqQ-DWqcE/edit?gid=1384942493#gid=1384942493';
     loadOverrideSheet(OVERLAY_IMG_SHEET).then(map=>{
       if(!map||!Object.keys(map).length)return;
