@@ -2091,7 +2091,7 @@ function applyOvImgMap(){
 function applySkgImgMap(){
   if(!skgImgMap||!skgData)return;
   const normP=p=>(p||'').replace(/^(พรรค|กลุ่ม)\s*/,'').replace(/\s+/g,'').toLowerCase();
-  const stripTitle=s=>(s||'').replace(/^(นาย|นาง|นางสาว|ม\.ล\.|ม\.ร\.ว\.|พล\.ต\.|พล\.อ\.|ร\.ต\.|ร\.อ\.|พ\.ต\.ท\.|พ\.ต\.อ\.|ดร\.|ศ\.|รศ\.|ผศ\.)\s*/g,'').replace(/\s+/g,'');
+  const stripTitle=s=>(s||'').replace(/^(นางสาว|นาง|นาย|ม\.ร\.ว\.|ม\.ล\.|พล\.ต\.|พล\.อ\.|พ\.ต\.ท\.|พ\.ต\.อ\.|ร\.ต\.|ร\.อ\.|ดร\.|ผศ\.|รศ\.|ศ\.)\s*/,'').replace(/\s+/g,'');
   // index by ชื่อ (สำหรับ avatar) + by พรรค (สำหรับสี)
   const nameIdx={},partyColor={};
   Object.entries(skgImgMap).forEach(([k,v])=>{
