@@ -2099,13 +2099,11 @@ function applySkgImgMap(){
     if(v.name)nameIdx[dist+'|'+stripTitle(v.name)]=v;
     if(v.party&&v.color&&!partyColor[normP(v.party)])partyColor[normP(v.party)]=v.color;
   });
-  console.log('[partyColor keys]',Object.keys(partyColor));
   Object.keys(skgData).forEach(dn=>{
     if(!Array.isArray(skgData[dn]))return;
     skgData[dn]=skgData[dn].map(c=>{
       const byName=nameIdx[normName(dn)+'|'+stripTitle(c.name)];
       const byParty=partyColor[normP(c.party)];
-      if(c.name.includes('ชญา')||c.name.includes('เมธาวี'))console.log('[DBG]',c.name,'| ECT party:',JSON.stringify(c.party),'| normP:',normP(c.party),'| byParty:',byParty,'| byName:',byName?.color);
       const avatar=(byName&&byName.avatar)||c.avatar;
       const color=byParty||(byName&&byName.color)||c.color;
       return{...c,avatar,color};
