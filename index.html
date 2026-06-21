@@ -2096,7 +2096,7 @@ function applySkgImgMap(){
     skgData[dn]=skgData[dn].map(c=>{
       const key=normName(dn)+'|'+c.no;
       const o=skgImgMap[key];
-      if(o){matched++;return{...c,avatar:o.avatar||c.avatar,color:o.color||c.color};}
+      if(o){matched++;if(c.name.includes('ประสพ'))console.log('[SKG-IMG HIT ประสพ]',key,'sheet-color:',JSON.stringify(o.color),'ect-color:',c.color,'result:',o.color||c.color);return{...c,avatar:o.avatar||c.avatar,color:o.color||c.color};}
       missed++;console.log('[SKG-IMG miss]',key,c.name,c.party,c.color);
       return c;
     });
