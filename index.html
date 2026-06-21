@@ -3245,20 +3245,22 @@ function init(){
   }
   // overlay mode → โหลดรูปผู้สมัครจาก Sheet broadcast แยกต่างหาก
   // เก็บไว้ใน ovImgMap เพื่อ re-apply ทุกครั้งที่ Firebase rebuild CANDS
+  // รูปผู้สมัคร ส.ก. รายเขต (คีย์ เขต|เบอร์) — โหลดทุก mode (dashboard + overlay)
+  if(!PVW_MODE){
+    const SKG_IMG_SHEET='https://docs.google.com/spreadsheets/d/1abANACpNrqcd_Yv7S2qeTe2vdDkJZkoAgRgqQ-DWqcE/edit?gid=891915583#gid=891915583';
+    loadSkgImgSheet(SKG_IMG_SHEET).then(map=>{
+      if(!map||!Object.keys(map).length)return;
+      skgImgMap=map;
+      applySkgImgMap();
+      renderAll();
+    }).catch(()=>{});
+  }
   if(OVERLAY&&!PVW_MODE){
     const OVERLAY_IMG_SHEET='https://docs.google.com/spreadsheets/d/1abANACpNrqcd_Yv7S2qeTe2vdDkJZkoAgRgqQ-DWqcE/edit?gid=1384942493#gid=1384942493';
     loadOverrideSheet(OVERLAY_IMG_SHEET).then(map=>{
       if(!map||!Object.keys(map).length)return;
       ovImgMap=map;
       applyOvImgMap();
-      renderAll();
-    }).catch(()=>{});
-    // รูปผู้สมัคร ส.ก. รายเขต (คีย์ เขต|เบอร์) สำหรับ side panel
-    const SKG_IMG_SHEET='https://docs.google.com/spreadsheets/d/1abANACpNrqcd_Yv7S2qeTe2vdDkJZkoAgRgqQ-DWqcE/edit?gid=891915583#gid=891915583';
-    loadSkgImgSheet(SKG_IMG_SHEET).then(map=>{
-      if(!map||!Object.keys(map).length)return;
-      skgImgMap=map;
-      applySkgImgMap();
       renderAll();
     }).catch(()=>{});
     // รูป portrait ผู้ว่าฯ (คีย์ เบอร์) สำหรับ side panel — แยกจาก avatar composite ของ bottombar
