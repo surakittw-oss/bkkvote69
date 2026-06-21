@@ -2099,18 +2099,22 @@ function applySkgImgMap(){
     if(v.name){(distNames[dist]=distNames[dist]||[]).push({sheetName:noSp(v.name),entry:v});}
     if(v.party&&v.color&&!partyColor[normP(v.party)])partyColor[normP(v.party)]=v.color;
   });
+  let hit=0,miss=0;const ms=[];
   Object.keys(skgData).forEach(dn=>{
     if(!Array.isArray(skgData[dn]))return;
     const candidates=distNames[normName(dn)]||[];
     skgData[dn]=skgData[dn].map(c=>{
       const ectName=noSp(c.name);
-      const byName=candidates.find(x=>ectName.endsWith(x.sheetName));
+      const byName=candidates.find(x=>x.sheetName&&ectName.endsWith(x.sheetName));
       const byParty=partyColor[normP(c.party)];
       const avatar=(byName&&byName.entry.avatar)||c.avatar;
       const color=byParty||(byName&&byName.entry.color)||c.color;
+      if(byName&&byName.entry.avatar)hit++;else{miss++;if(ms.length<6)ms.push({dn:normName(dn),ect:ectName,distHasCands:candidates.length,sheetNames:candidates.map(x=>x.sheetName).slice(0,3)});}
       return{...c,avatar,color};
     });
   });
+  console.log('[SKG-IMG]','src:',currentSource,'hit:',hit,'miss:',miss,'distNamesKeys:',Object.keys(distNames).length);
+  console.log('[SKG-IMG miss]',JSON.stringify(ms,null,1));
 }
 // โหลดรูปผู้สมัคร ส.ก. จาก Sheet (คอลัมน์ district[merge], no, color, avatar_url) → map { "เขต|เบอร์": {avatar,color,name} }
 async function loadSkgImgSheet(url){
