@@ -2097,14 +2097,18 @@ function applySkgImgMap(){
     const dist=k.split('|')[0];
     nameIdx[dist+'|'+v.name.replace(/\s+/g,'')]=v;
   });
+  let hit=0,miss=0;
   Object.keys(skgData).forEach(dn=>{
     if(!Array.isArray(skgData[dn]))return;
     skgData[dn]=skgData[dn].map(c=>{
-      const o=nameIdx[normName(dn)+'|'+c.name.replace(/\s+/g,'')];
-      if(o)return{...c,avatar:o.avatar||c.avatar,color:o.color||c.color};
+      const nk=normName(dn)+'|'+c.name.replace(/\s+/g,'');
+      const o=nameIdx[nk];
+      if(o){hit++;return{...c,avatar:o.avatar||c.avatar,color:o.color||c.color};}
+      miss++;console.log('[SKG-NAME miss]',nk,c.name,c.party);
       return c;
     });
   });
+  console.log('[SKG-NAME]','hit:',hit,'miss:',miss,'nameKeys sample:',Object.keys(nameIdx).slice(0,5));
 }
 // โหลดรูปผู้สมัคร ส.ก. จาก Sheet (คอลัมน์ district[merge], no, color, avatar_url) → map { "เขต|เบอร์": {avatar,color,name} }
 async function loadSkgImgSheet(url){
