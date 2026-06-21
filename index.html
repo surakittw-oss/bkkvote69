@@ -2090,10 +2090,18 @@ function applyOvImgMap(){
 // merge รูป/สี ส.ก. จาก Sheet (คีย์ เขต|เบอร์) เข้า skgData ทุกครั้งที่ rebuild
 function applySkgImgMap(){
   if(!skgImgMap||!skgData)return;
+  let matched=0,missed=0;
   Object.keys(skgData).forEach(dn=>{
     if(!Array.isArray(skgData[dn]))return;
-    skgData[dn]=skgData[dn].map(c=>{const o=skgImgMap[normName(dn)+'|'+c.no];return o?{...c,avatar:o.avatar||c.avatar,color:o.color||c.color}:c;});
+    skgData[dn]=skgData[dn].map(c=>{
+      const key=normName(dn)+'|'+c.no;
+      const o=skgImgMap[key];
+      if(o){matched++;return{...c,avatar:o.avatar||c.avatar,color:o.color||c.color};}
+      missed++;console.log('[SKG-IMG miss]',key,c.name,c.party,c.color);
+      return c;
+    });
   });
+  console.log('[SKG-IMG]','matched:',matched,'missed:',missed,'mapKeys:',Object.keys(skgImgMap).length);
 }
 // โหลดรูปผู้สมัคร ส.ก. จาก Sheet (คอลัมน์ district[merge], no, color, avatar_url) → map { "เขต|เบอร์": {avatar,color,name} }
 async function loadSkgImgSheet(url){
