@@ -2090,19 +2090,23 @@ function applyOvImgMap(){
 // merge รูป/สี ส.ก. จาก Sheet (คีย์ เขต|เบอร์) เข้า skgData ทุกครั้งที่ rebuild
 function applySkgImgMap(){
   if(!skgImgMap||!skgData)return;
+  const normP=p=>(p||'').replace(/^(พรรค|กลุ่ม)\s*/,'').replace(/\s+/g,'').toLowerCase();
   const stripTitle=s=>(s||'').replace(/^(นาย|นาง|นางสาว|ม\.ล\.|ม\.ร\.ว\.|พล\.ต\.|พล\.อ\.|ร\.ต\.|ร\.อ\.|พ\.ต\.ท\.|พ\.ต\.อ\.|ดร\.|ศ\.|รศ\.|ผศ\.)\s*/g,'').replace(/\s+/g,'');
-  const nameIdx={};
+  // index by ชื่อ (สำหรับ avatar) + by พรรค (สำหรับสี)
+  const nameIdx={},partyColor={};
   Object.entries(skgImgMap).forEach(([k,v])=>{
-    if(!v.name)return;
     const dist=k.split('|')[0];
-    nameIdx[dist+'|'+stripTitle(v.name)]=v;
+    if(v.name)nameIdx[dist+'|'+stripTitle(v.name)]=v;
+    if(v.party&&v.color&&!partyColor[normP(v.party)])partyColor[normP(v.party)]=v.color;
   });
   Object.keys(skgData).forEach(dn=>{
     if(!Array.isArray(skgData[dn]))return;
     skgData[dn]=skgData[dn].map(c=>{
-      const o=nameIdx[normName(dn)+'|'+stripTitle(c.name)];
-      if(o)return{...c,avatar:o.avatar||c.avatar,color:o.color||c.color};
-      return c;
+      const byName=nameIdx[normName(dn)+'|'+stripTitle(c.name)];
+      const byParty=partyColor[normP(c.party)];
+      const avatar=(byName&&byName.avatar)||c.avatar;
+      const color=byParty||(byName&&byName.color)||c.color;
+      return{...c,avatar,color};
     });
   });
 }
@@ -2119,7 +2123,7 @@ async function loadSkgImgSheet(url){
   if(hi<0)return{};
   const hdr=parseCSVLine(lines[hi]).map(h=>h.toLowerCase().replace(/^"+|"+$/g,'').trim());
   const gi=t=>hdr.findIndex(h=>t.some(x=>h.includes(x)));
-  const iD=gi(['district','เขต']),iNo=gi(['no','ลำดับ','เบอร์']),iAv=gi(['avatar','รูป','photo','image']),iCo=gi(['color','สี','hex']),iNm=gi(['name','ชื่อ']);
+  const iD=gi(['district','เขต']),iNo=gi(['no','ลำดับ','เบอร์']),iAv=gi(['avatar','รูป','photo','image']),iCo=gi(['color','สี','hex']),iNm=gi(['name','ชื่อ']),iPt=gi(['party','พรรค','สังกัด']);
   if(iD<0||iNo<0)return{};
   const cl=(r,i)=>i>=0?(r[i]||'').replace(/^"+|"+$/g,'').trim():'';
   const norm=h=>{h=(h||'').trim();return /^[0-9a-fA-F]{6}$/.test(h)?'#'+h:h;};
@@ -2129,7 +2133,7 @@ async function loadSkgImgSheet(url){
   lines.slice(start).map(parseCSVLine).forEach(r=>{
     const dRaw=cl(r,iD);if(dRaw)lastDist=dRaw;
     const no=parseInt(cl(r,iNo));if(!no||!lastDist)return;
-    m[normName(lastDist)+'|'+no]={avatar:gdrive(cl(r,iAv)),color:norm(cl(r,iCo)),name:cl(r,iNm)};
+    m[normName(lastDist)+'|'+no]={avatar:gdrive(cl(r,iAv)),color:norm(cl(r,iCo)),name:cl(r,iNm),party:cl(r,iPt)};
   });
   return m;
 }
