@@ -2090,25 +2090,21 @@ function applyOvImgMap(){
 // merge รูป/สี ส.ก. จาก Sheet (คีย์ เขต|เบอร์) เข้า skgData ทุกครั้งที่ rebuild
 function applySkgImgMap(){
   if(!skgImgMap||!skgData)return;
-  // สร้าง name-based index: "เขต|ชื่อ(ไม่มีเว้นวรรค)" → entry — เบอร์ใช้ ECT, สี/รูปใช้ sheet
+  const stripTitle=s=>(s||'').replace(/^(นาย|นาง|นางสาว|ม\.ล\.|ม\.ร\.ว\.|พล\.ต\.|พล\.อ\.|ร\.ต\.|ร\.อ\.|พ\.ต\.ท\.|พ\.ต\.อ\.|ดร\.|ศ\.|รศ\.|ผศ\.)\s*/g,'').replace(/\s+/g,'');
   const nameIdx={};
   Object.entries(skgImgMap).forEach(([k,v])=>{
     if(!v.name)return;
     const dist=k.split('|')[0];
-    nameIdx[dist+'|'+v.name.replace(/\s+/g,'')]=v;
+    nameIdx[dist+'|'+stripTitle(v.name)]=v;
   });
-  let hit=0,miss=0;
   Object.keys(skgData).forEach(dn=>{
     if(!Array.isArray(skgData[dn]))return;
     skgData[dn]=skgData[dn].map(c=>{
-      const nk=normName(dn)+'|'+c.name.replace(/\s+/g,'');
-      const o=nameIdx[nk];
-      if(o){hit++;return{...c,avatar:o.avatar||c.avatar,color:o.color||c.color};}
-      miss++;console.log('[SKG-NAME miss]',nk,c.name,c.party);
+      const o=nameIdx[normName(dn)+'|'+stripTitle(c.name)];
+      if(o)return{...c,avatar:o.avatar||c.avatar,color:o.color||c.color};
       return c;
     });
   });
-  console.log('[SKG-NAME]','hit:',hit,'miss:',miss,'nameKeys sample:',Object.keys(nameIdx).slice(0,5));
 }
 // โหลดรูปผู้สมัคร ส.ก. จาก Sheet (คอลัมน์ district[merge], no, color, avatar_url) → map { "เขต|เบอร์": {avatar,color,name} }
 async function loadSkgImgSheet(url){
