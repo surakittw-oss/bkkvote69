@@ -858,6 +858,7 @@ const BKK_AREA_NO={'พระนคร':1,'ดุสิต':2,'หนองจ�
 let CANDS=[], DISTRICTS=[], countedDistricts=50, pctBase=SAMPLE_PCT_BASE, ectCovPct=null;
 let MODE='prop', RATIO=1, currentSource='sample', autoFirebase=true;
 let skgData={};  // ผล ส.ก. รายเขต: { "ชื่อเขต": [ {no,name,party,votes,elected,color,avatar}, ... ] }
+let skgAreaCast={};  // ผู้มาใช้สิทธิ ส.ก. รายเขต: { "ชื่อเขต": totalVotes }
 
 const fmt=n=>Number(n||0).toLocaleString('en-US');
 const $=id=>document.getElementById(id);
@@ -1192,7 +1193,7 @@ function renderListTable(){
     let rows=DISTRICTS.map(d=>{
       const sk=[...skgList(d.name)].sort((a,b)=>skgVotes(b)-skgVotes(a));
       const w=skgWin(d.name);
-      const tot=sk.reduce((s,c)=>s+skgVotes(c),0);
+      const tot=skgAreaCast[d.name]||sk.reduce((s,c)=>s+skgVotes(c),0);
       return {d,w,tot};
     }).sort((a,b)=>b.tot-a.tot);
     if(q)rows=rows.filter(r=>(r.d.name||'').toLowerCase().includes(q));
@@ -2764,6 +2765,15 @@ async function loadFromECT(){
         });
       });
     }
+    // สร้าง skgAreaCast: ผู้มาใช้สิทธิ (totalVotes) ส.ก. รายเขต
+    skgAreaCast={};
+    councilAreaListRaw.forEach(a=>{
+      const an=a.area_number||a.areaNumber||a.number; if(!an)return;
+      const dn=councilAreaMap[an]||BKK_DISTRICTS[an-1]||('เขต '+an);
+      const tv=a.total_votes??a.totalVotes??0;
+      if(tv)skgAreaCast[dn]=tv;
+    });
+
     Object.keys(skg).forEach(d=>{
       skg[d].sort((a,b)=>b.votes-a.votes);
       // ถ้าไม่มีใครถูกมาร์ค elected จาก API → มาร์คคนคะแนนสูงสุดเป็นผู้ได้รับเลือก (1 ที่นั่ง/เขต) เทียบกับ skgWin
