@@ -572,6 +572,8 @@ body.ctrl #ctrl-panel{display:block}
 .cp-color{width:44px;height:32px;border:1px solid var(--line);border-radius:7px;background:transparent;cursor:pointer;padding:2px;flex-shrink:0}
 .cp-color-val{font-size:12px;color:var(--t3);font-family:var(--font-num);font-variant-numeric:tabular-nums}
 .cp-btn{padding:9px 16px;border-radius:8px;border:1.5px solid var(--line);background:transparent;color:var(--t2);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;transition:.15s;display:inline-flex;align-items:center;gap:6px}
+.cp-btn-confirm{background:linear-gradient(135deg,#15a05b,#0a6e3a);border-color:#15a05b;color:#fff}
+.cp-btn-confirm:hover{background:linear-gradient(135deg,#1ec273,#0e8447);border-color:#1ec273}
 .cp-btn:hover{border-color:var(--t3);color:#fff}
 .cp-btn.on{border-color:var(--brand);background:var(--brand);color:#fff}
 .cp-btn svg{width:14px;height:14px}
@@ -2974,6 +2976,13 @@ function cpStageSideStep(d){const f=pvwState.sideFilter||ctrlState.sideFilter||'
 function cpStageSideAuto(){cpSideLive(pvwState.sideFilter||'both',pvwState.sideIdx|0,!pvwState.sidePlaying);}
 function cpStageSideAutoGov(){cpSideLive('gov',0,true);}
 function cpStageSideAutoSkg(){cpSideLive('skg',0,true);}
+/* Confirm เฉพาะ section (gov/skg) — ยิงเขตที่เลือกใน section นั้นขึ้น live โดยไม่วน */
+function cpConfirmSection(filter){
+  pvwState.sideFilter=filter;
+  pvwState.sidePlaying=false;
+  pvwState.side='on';
+  cpTake('side');
+}
 function cpToggleDistPick(type,di){
   const key=type==='gov'?'govPick':'skgPick';
   const cur=pvwState[key]?new Set(pvwState[key].split(',').map(Number)):new Set();
@@ -3175,10 +3184,11 @@ function renderControlPanel(){
       sub=`<div class="cp-side-sec">
         <div class="cp-side-sec-hd">
           <span class="cp-side-sec-title">ผู้ว่าฯ รายเขต</span>
-          <button class="cp-btn ${pf==='gov'&&pvwState.sidePlaying?'on':''}" onclick="cpStageSideAutoGov()">▶ วนอัตโนมัติ</button>
+          <button class="cp-btn ${pf==='gov'&&pvwState.sidePlaying?'on':''}" onclick="cpStageSideAutoGov()" title="วนหลายเขต (หลายเขต)">▶ วนอัตโนมัติ</button>
           <select class="cp-select" onchange="pvwState.sideFilter='gov';cpStageSideIdx(this.value)">${govSelOpts||'<option>ไม่มีเขตที่เลือก</option>'}</select>
           <button class="cp-btn" onclick="pvwState.sideFilter='gov';cpStageSideStep(-1)" title="Previous">◀</button>
           <button class="cp-btn" onclick="pvwState.sideFilter='gov';cpStageSideStep(1)" title="Next">▶</button>
+          <button class="cp-btn cp-btn-confirm" onclick="cpConfirmSection('gov')" title="ยิงเขตที่เลือกขึ้นออกอากาศ (ไม่วน)">✓ Confirm เขตนี้</button>
         </div>
         <details data-cpkey="gov-dist"><summary style="font-size:12px;color:var(--t3);cursor:pointer">เลือกเขตที่จะโชว์ (${govGCnt}/${DISTRICTS.length})</summary>
           <input class="cp-dist-search" placeholder="ค้นหาเขต…" value="${window._cpDistSrchgov||''}" oninput="cpDistSearch('gov',this.value)">
@@ -3189,10 +3199,11 @@ function renderControlPanel(){
       <div class="cp-side-sec">
         <div class="cp-side-sec-hd">
           <span class="cp-side-sec-title">ส.ก. รายเขต</span>
-          <button class="cp-btn ${pf==='skg'&&pvwState.sidePlaying?'on':''}" onclick="cpStageSideAutoSkg()">▶ วนอัตโนมัติ</button>
+          <button class="cp-btn ${pf==='skg'&&pvwState.sidePlaying?'on':''}" onclick="cpStageSideAutoSkg()" title="วนหลายเขต (หลายเขต)">▶ วนอัตโนมัติ</button>
           <select class="cp-select" onchange="pvwState.sideFilter='skg';cpStageSideIdx(this.value)">${skgSelOpts||'<option>ไม่มีเขตที่เลือก</option>'}</select>
           <button class="cp-btn" onclick="pvwState.sideFilter='skg';cpStageSideStep(-1)" title="Previous">◀</button>
           <button class="cp-btn" onclick="pvwState.sideFilter='skg';cpStageSideStep(1)" title="Next">▶</button>
+          <button class="cp-btn cp-btn-confirm" onclick="cpConfirmSection('skg')" title="ยิงเขตที่เลือกขึ้นออกอากาศ (ไม่วน)">✓ Confirm เขตนี้</button>
         </div>
         <details data-cpkey="skg-dist"><summary style="font-size:12px;color:var(--t3);cursor:pointer">เลือกเขตที่จะโชว์ (${skgGCnt}/${DISTRICTS.length})</summary>
           <input class="cp-dist-search" placeholder="ค้นหาเขต…" value="${window._cpDistSrchskg||''}" oninput="cpDistSearch('skg',this.value)">
@@ -3278,7 +3289,8 @@ function probeArt(){
   const skgIm=new Image();skgIm.src='bg-skg.png';
 }
 function init(){
-  buildSample(1);
+  // PREVIEW iframe (pvw=1) ข้าม sample data — รอ Firebase ให้คะแนนตรงกับ PROGRAM ทันที
+  if(!PVW_MODE)buildSample(1);
   renderAll();
   if(OVERLAY)probeArt();
   if(CTRL_MODE){document.body.classList.add('ctrl');renderControlPanel();}
@@ -3330,7 +3342,8 @@ function init(){
     }).catch(()=>{});
   }
   // auto-connect Firebase หลัง paint แรก (ไม่บล็อกการโหลด) — ถ้ามีข้อมูลจะ override อัตโนมัติ
-  setTimeout(()=>{ensureFirebase()},400);
+  // PREVIEW iframe: ไม่ delay เพื่อให้ข้อมูลตรงกับ PROGRAM ทันที (ไม่เห็น flash sample data)
+  if(PVW_MODE)ensureFirebase();else setTimeout(()=>{ensureFirebase()},400);
   setTimeout(postHeight,1600);
 }
 let _rt;addEventListener('resize',()=>{clearTimeout(_rt);_rt=setTimeout(()=>{fitMap();postHeight();cpScalePreview()},120)});
