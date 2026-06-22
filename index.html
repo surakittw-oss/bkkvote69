@@ -503,6 +503,10 @@ body.ov-stat #ov-stat{display:flex}
 .ovst-label{font-size:17px;font-weight:800;color:#fff;letter-spacing:.3px;margin-bottom:4px}
 .ovst-num{font-size:58px;font-weight:900;color:#fff;line-height:1;font-family:var(--font-num);font-variant-numeric:tabular-nums}
 .ovst-num span{font-size:30px;color:rgba(255,255,255,.9)}
+.ovst-body--solo{flex-direction:row;align-items:center;justify-content:space-between;padding:38px 60px 0 60px;gap:24px}
+.ovst-body--solo .ovst-label{font-size:54px;font-weight:900;color:#fff;letter-spacing:.5px;margin:0;text-shadow:0 2px 12px rgba(0,0,0,.35);font-style:italic;text-align:left;flex:0 0 auto}
+.ovst-body--solo .ovst-num.ovst-num--big{font-size:130px;font-weight:900;color:#fff;line-height:1;letter-spacing:1px;text-shadow:0 3px 14px rgba(0,0,0,.4);flex:0 0 auto}
+.ovst-body--solo .ovst-num.ovst-num--big span{font-size:90px;color:#fff;margin-left:2px}
 .ovst-sub{display:none}
 .ovst-bar{display:none}
 .ovst-bar-fill{height:100%;background:var(--brand);transition:width .8s cubic-bezier(.4,0,.2,1)}
@@ -516,7 +520,7 @@ body.ov-stat #ov-stat{display:flex}
    ตัวเลข/รูปผู้สมัครยังเป็น HTML สดวางทับด้านบนเหมือนเดิม
    มีไฟล์ในโฟลเดอร์ → init() จะ probe แล้วใส่ attribute data-art อัตโนมัติ */
 #ov-stat,#ov-bar,#ov-side{background-size:cover;background-position:center;background-repeat:no-repeat}
-#ov-stat[data-art]{background-image:url('bg-stat.png')}
+#ov-stat[data-art]{background-image:url('bg-stats.png')}
 #ov-bar[data-art]{background-image:url('bg-bottombar.png')}
 #ov-bar[data-art]::before{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:url('bg-bottombar-headline.png') no-repeat top left;background-size:100% auto;pointer-events:none;z-index:1}
 #ov-bar[data-art][data-bar="skg"]::before{background:url('bg-skg-headline.png') no-repeat top left;background-size:100% auto}
@@ -1701,29 +1705,17 @@ function renderMbPanel(){
 }
 function renderStat(){
   const el=$('ov-stat');if(!el)return;
-  // นับคะแนนแล้ว % = coverage.percentage (% หน่วยที่รายงานผลแล้ว) จาก ECT API — fallback countedDistricts/50
   const govCov=mbStats?.gov?.data?.coverage;
   const covPct=govCov?.percentage??null;
   const cntPct=covPct!=null?((+covPct)%1===0?String(+covPct):(+covPct).toFixed(1)):((countedDistricts||0)/50*100).toFixed(0);
-  // ผู้มาใช้สิทธิ = total_votes จาก ECT statistics (คนที่มาลงคะแนนจริง) — fallback sum cast
-  const govSt=mbStats?.gov?.data?.statistics;
-  const turnoutLive=DISTRICTS.reduce((s,d)=>s+(d.cast||0),0);
-  const turnoutApi=govSt?(govSt.total_votes??govSt.totalVotes??0):0;
-  const turnout=turnoutLive||turnoutApi;
   el.innerHTML=`
     <div class="ovst-hd">
       <span class="ovst-hd-title">รายงานความคืบหน้า</span>
       <span class="ovst-hd-sub">อย่างไม่เป็นทางการ</span>
     </div>
-    <div class="ovst-body">
-      <div class="ovst-block">
-        <div class="ovst-label">นับคะแนนแล้ว</div>
-        <div class="ovst-num">${cntPct}<span>%</span></div>
-      </div>
-      <div class="ovst-block">
-        <div class="ovst-label">ผู้มาใช้สิทธิเลือกตั้ง</div>
-        <div class="ovst-num" style="font-size:${turnout>=1000000?'44px':'58px'}">${turnout.toLocaleString()}<span> คน</span></div>
-      </div>
+    <div class="ovst-body ovst-body--solo">
+      <div class="ovst-label">นับคะแนนแล้ว</div>
+      <div class="ovst-num ovst-num--big">${cntPct}<span>%</span></div>
     </div>`;
 }
 function ovPartySeats(){
@@ -3312,7 +3304,7 @@ function cpRenderSignin(){
 }
 // ตรวจว่ามีไฟล์ Art PNG ในโฟลเดอร์มั้ย ถ้ามี → ใส่ data-art (CSS จะสลับไปใช้ PNG + ซ่อน mock อัตโนมัติ)
 function probeArt(){
-  [['ov-bar','bg-bottombar.png'],['ov-stat','bg-stat.png']].forEach(([id,src])=>{
+  [['ov-bar','bg-bottombar.png'],['ov-stat','bg-stats.png']].forEach(([id,src])=>{
     const el=document.getElementById(id);if(!el)return;
     const im=new Image();
     im.onload=()=>{if(im.naturalWidth>1)el.setAttribute('data-art','');};
