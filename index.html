@@ -3022,8 +3022,8 @@ function ctrlSetupListener(){
     ctrlState=Object.assign({},CTRL_DEFAULT,snap.val()||{});
     if(!PVW_MODE)applyControlForOverlay(ctrlState);
     if(CTRL_MODE){
-      // seed preview = program ครั้งแรก เพื่อให้ PREVIEW ตรงกับ ON AIR ก่อนเริ่มจัด
-      if(!window._pvwSeeded){window._pvwSeeded=true;['footer','side','full','barView','barPlaying','sideIdx','sidePlaying','sideFilter','govPick','skgPick'].forEach(k=>pvwState[k]=ctrlState[k]);}
+      // seed preview = program ครั้งแรก — seed เฉพาะ state เลเยอร์หลัก (ไม่ seed pick/sideIdx/sideFilter เพื่อให้ user เริ่มเลือกเขตจาก state สะอาด ไม่ติด "-1" ที่ค้างจาก session ก่อน)
+      if(!window._pvwSeeded){window._pvwSeeded=true;['footer','side','full','barView','barPlaying'].forEach(k=>pvwState[k]=ctrlState[k]);}
       renderControlPanel();cpPushPreview();
     }
   });
