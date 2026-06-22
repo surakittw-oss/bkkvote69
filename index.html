@@ -3300,8 +3300,8 @@ function init(){
   }
   // overlay mode → โหลดรูปผู้สมัครจาก Sheet broadcast แยกต่างหาก
   // เก็บไว้ใน ovImgMap เพื่อ re-apply ทุกครั้งที่ Firebase rebuild CANDS
-  // รูปผู้สมัคร ส.ก. รายเขต (คีย์ เขต|เบอร์) — โหลดทุก mode (dashboard + overlay)
-  if(!PVW_MODE){
+  // รูปผู้สมัคร ส.ก. รายเขต — โหลดทุก mode รวมถึง PREVIEW iframe (pvw=1) เพื่อให้ภาพตรงกับ PROGRAM
+  {
     const SKG_IMG_SHEET='https://docs.google.com/spreadsheets/d/1abANACpNrqcd_Yv7S2qeTe2vdDkJZkoAgRgqQ-DWqcE/edit?gid=891915583#gid=891915583';
     loadSkgImgSheet(SKG_IMG_SHEET).then(map=>{
       if(!map||!Object.keys(map).length)return;
@@ -3310,7 +3310,7 @@ function init(){
       renderAll();
     }).catch(()=>{});
   }
-  if(OVERLAY&&!PVW_MODE){
+  if(OVERLAY){
     // ไฟล์ Art composite ส.ก. (Drive) สำหรับ side panel เต็มใบ — แยกจากรูป portrait dashboard
     const SKG_SIDE_SHEET='https://docs.google.com/spreadsheets/d/1abANACpNrqcd_Yv7S2qeTe2vdDkJZkoAgRgqQ-DWqcE/edit?gid=916858386#gid=916858386';
     loadSkgImgSheet(SKG_SIDE_SHEET).then(map=>{
