@@ -2955,6 +2955,12 @@ async function ctrlWrite(patch){
   try{if(!fbReady)await ensureFirebase();await fbDb.ref(CTRL_REF).update(patch);}
   catch(e){alert('Command failed: '+e.message);}
 }
+function cpBgColorLive(v){
+  ctrlState.bgColor=v;
+  const lb=$('cp-bg-label');if(lb)lb.textContent=v||'โปร่งใส (Transparent)';
+  if(fbReady)fbDb.ref(CTRL_REF).update({bgColor:v}).catch(()=>{});
+}
+function cpBgColorCommit(v){ctrlWrite({bgColor:v});}
 /* staging: เลือก scene → ขึ้น preview เท่านั้น (ยังไม่ออกอากาศ) */
 function cpStage(layer,val){pvwState[layer]=val;renderControlPanel();cpPushPreview();}
 /* TAKE: ยืนยัน → push เลเยอร์นั้นออกอากาศจริง (side รวมเขตที่เลือก + โหมดค้าง/วน) */
@@ -3244,8 +3250,8 @@ function renderControlPanel(){
       <div class="cp-sec-lbl">STUDIO SETTINGS</div>
       <div class="cp-sub">
         <span class="cp-sub-lbl">Background:</span>
-        <input type="color" class="cp-color" value="${s.bgColor||'#04ff00'}" oninput="ctrlWrite({bgColor:this.value})">
-        <span class="cp-color-val">${s.bgColor?s.bgColor:'โปร่งใส (Transparent)'}</span>
+        <input type="color" class="cp-color" id="cp-bg-color" value="${s.bgColor||'#04ff00'}" oninput="cpBgColorLive(this.value)" onchange="cpBgColorCommit(this.value)">
+        <span class="cp-color-val" id="cp-bg-label">${s.bgColor?s.bgColor:'โปร่งใส (Transparent)'}</span>
         <button class="cp-btn ${!s.bgColor?'on':''}" onclick="ctrlWrite({bgColor:''})">โปร่งใส</button>
         <button class="cp-btn ${s.bgColor==='#04ff00'?'on':''}" onclick="ctrlWrite({bgColor:'#04ff00'})">🟩 Green</button>
         <button class="cp-btn ${s.bgColor==='#0047ff'?'on':''}" onclick="ctrlWrite({bgColor:'#0047ff'})">🟦 Blue</button>
