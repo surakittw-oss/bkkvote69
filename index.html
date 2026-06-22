@@ -3062,8 +3062,12 @@ function footerApplyControl(s){
   if(s.bgColor)b.style.setProperty('background-color',s.bgColor,'important');
   else b.style.removeProperty('background-color');
   ctrlState.barPick=s.barPick||'';
-  if(s.footer==='bottombar'&&(s.barView|0)===2){renderStat();}
-  else if(s.footer==='bottombar'){ovBarView=s.barView|0;ovBarPaused=!s.barPlaying;renderBottomBar();ovBarStartTimer();}
+  if(s.footer==='bottombar'){
+    ovBarView=s.barView|0;ovBarPaused=!s.barPlaying;
+    renderBottomBar();
+    if(ovBarView===2)renderStat();
+    ovBarStartTimer();
+  }
   else if(s.footer==='stat')renderStat();
 }
 /* ── ลิงค์ side (?overlay=side): โชว์เฉพาะ side panel ตาม controller — ไม่ประกอบเลเยอร์อื่น ── */
@@ -3094,8 +3098,11 @@ function liveApplyControl(s){
 }
 function renderLiveScene(s){
   s=s||ctrlState;
-  if(s.footer==='bottombar'&&(s.barView|0)===2){renderStat();}
-  else if(s.footer==='bottombar'){renderBottomBar();ovBarStartTimer();}
+  if(s.footer==='bottombar'){
+    renderBottomBar();
+    if((s.barView|0)===2)renderStat();
+    ovBarStartTimer();
+  }
   else if(s.footer==='stat')renderStat();
   if(s.side==='on'){renderSidePanel();ovSideStartTimer();}
   if(s.full==='map'||s.full==='bubble')renderMap();
