@@ -471,7 +471,7 @@ body.ov-side #ov-side{display:flex}
 .ovs-acard-rank{position:absolute;left:0;top:0;z-index:3;min-width:46px;height:46px;padding:0 6px;display:grid;place-items:center;background:var(--brand);color:#06241a;font-weight:900;font-size:30px;font-family:var(--font-num);line-height:1}
 .ovs-acard-fb{position:absolute;left:4%;top:50%;transform:translateY(-50%);width:30%;aspect-ratio:1;display:grid;place-items:center;font-size:46px;font-weight:900;color:#fff;background:var(--cc);border-radius:6px}
 .ovs-acard-name{position:absolute;left:38%;top:14%;right:5%;font-size:26px;font-weight:800;color:#fff;line-height:1.2}
-.ovs-acard-name--default{left:6%;right:6%;top:auto;bottom:42%;font-size:28px;text-align:left;text-shadow:0 2px 10px rgba(0,0,0,.65)}
+.ovs-acard-name--shadow{text-shadow:0 2px 10px rgba(0,0,0,.65)}
 .ovs-acard-votes{position:absolute;right:6%;bottom:14%;text-align:right;font-size:42px;font-weight:900;color:#fff;font-family:var(--font-num);font-variant-numeric:tabular-nums;line-height:1;text-shadow:0 2px 10px rgba(0,0,0,.55)}
 .ovs-acard-votes small{display:block;font-size:13px;font-weight:600;color:rgba(255,255,255,.8);margin-top:4px;text-shadow:none}
 /* View B — แผนที่ผู้ว่าฯ */
@@ -1940,7 +1940,7 @@ function ovSidePaint(){
       const v=`<div class="ovs-acard-votes">${votes}<small>คะแนน</small></div>`;
       if(c.sideArt)return `<div class="ovs-acard${skgIsElected(c)?' win':''}" style="background-image:url('${c.sideArt}')">${rank}${v}</div>`;
       if(c.avatar)return `<div class="ovs-acard ovs-acard--plain${skgIsElected(c)?' win':''}" style="--cc:${cc}">${rank}<div class="ovs-acard-fb" style="background:transparent;overflow:hidden"><img src="${c.avatar}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentNode.style.background='${cc}';this.parentNode.textContent='${(c.name||'?').trim().slice(0,1)}'"></div><div class="ovs-acard-name">${c.name||''}</div>${v}</div>`;
-      return `<div class="ovs-acard${skgIsElected(c)?' win':''}" style="background-image:url('${SKG_SIDE_DEFAULT}')"><div class="ovs-acard-name ovs-acard-name--default">${c.name||''}</div>${rank}${v}</div>`;
+      return `<div class="ovs-acard${skgIsElected(c)?' win':''}" style="background-image:url('${SKG_SIDE_DEFAULT}')">${rank}<div class="ovs-acard-name ovs-acard-name--shadow">${c.name||''}</div>${v}</div>`;
     }).join('');
     a.innerHTML=ovsDistbar(dname,pct)+`<div class="ovsg-list">${cards}</div>`;
     if(t)t.textContent='ผลการนับคะแนน\nส.ก. รายเขต';
