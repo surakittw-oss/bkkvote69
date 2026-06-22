@@ -582,8 +582,8 @@ body.ctrl #ctrl-panel{display:block}
 .cp-preview-wrap iframe{border:none;display:block;transform-origin:top left;pointer-events:none}
 .cp-preview-badge{position:absolute;top:8px;left:10px;font-size:10px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:.8px;text-transform:uppercase;pointer-events:none;z-index:2;background:rgba(0,0,0,.5);padding:3px 8px;border-radius:5px}
 /* ── Studio Mode: Preview / Program panes ── */
-.cp-pp{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:22px}
-@media(max-width:640px){.cp-pp{grid-template-columns:1fr}}
+.cp-pp{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;margin-bottom:22px}
+@media(max-width:640px){.cp-pp{grid-template-columns:minmax(0,1fr)}}
 .cp-pane{display:flex;flex-direction:column;gap:8px}
 .cp-pane-lbl{font-size:12px;font-weight:800;letter-spacing:.6px;display:flex;align-items:center;gap:7px}
 .cp-pane-lbl small{font-weight:600;color:var(--t4);letter-spacing:0}
@@ -2930,7 +2930,7 @@ const CTRL_REF='overlay/control';
 /* state แบบเลเยอร์: footer / side / full แยกอิสระ + sub-control (program = ออกอากาศจริง บน Firebase) */
 const CTRL_DEFAULT={footer:'off',side:'off',full:'off',barView:0,barPlaying:false,sideIdx:0,sidePlaying:false,sideFilter:'both',govPick:'',skgPick:'',bgColor:'',sideSpeed:7000};
 let ctrlState=Object.assign({},CTRL_DEFAULT);          // program (on air)
-let pvwState={footer:'off',side:'off',full:'off',sideIdx:0,sidePlaying:false,sideFilter:'both',govPick:'',skgPick:''}; // preview (staged — controller เท่านั้น)
+let pvwState={footer:'off',side:'off',full:'off',barView:0,barPlaying:false,sideIdx:0,sidePlaying:false,sideFilter:'both',govPick:'',skgPick:''}; // preview (staged — controller เท่านั้น)
 const CP_ICONS={
   off:'<svg viewBox="0 0 32 22" fill="none"><circle cx="16" cy="11" r="6.5" stroke="currentColor" stroke-width="2"/><path d="M16 3.5v6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
   bottombar:'<svg viewBox="0 0 32 22" fill="none"><rect x="1" y="1" width="30" height="20" rx="2.5" stroke="currentColor" stroke-width="1.4" opacity=".4"/><rect x="6.5" y="14.5" width="19" height="4.5" rx="1.2" fill="currentColor"/></svg>',
@@ -2958,16 +2958,17 @@ function cpStage(layer,val){pvwState[layer]=val;renderControlPanel();cpPushPrevi
 /* TAKE: ยืนยัน → push เลเยอร์นั้นออกอากาศจริง (side รวมเขตที่เลือก + โหมดค้าง/วน) */
 function cpTake(layer){
   if(layer==='side')ctrlWrite({side:pvwState.side,sideIdx:pvwState.sideIdx|0,sidePlaying:!!pvwState.sidePlaying,sideFilter:pvwState.sideFilter||'both',govPick:pvwState.govPick||'',skgPick:pvwState.skgPick||''});
+  else if(layer==='footer')ctrlWrite({footer:pvwState.footer,barView:pvwState.barView|0,barPlaying:!!pvwState.barPlaying});
   else ctrlWrite({[layer]:pvwState[layer]});
 }
-function cpTakeAll(){ctrlWrite({footer:pvwState.footer,side:pvwState.side,full:pvwState.full,sideIdx:pvwState.sideIdx|0,sidePlaying:!!pvwState.sidePlaying,sideFilter:pvwState.sideFilter||'both',govPick:pvwState.govPick||'',skgPick:pvwState.skgPick||''});}
+function cpTakeAll(){ctrlWrite({footer:pvwState.footer,side:pvwState.side,full:pvwState.full,barView:pvwState.barView|0,barPlaying:!!pvwState.barPlaying,sideIdx:pvwState.sideIdx|0,sidePlaying:!!pvwState.sidePlaying,sideFilter:pvwState.sideFilter||'both',govPick:pvwState.govPick||'',skgPick:pvwState.skgPick||''});}
 /* CUT: ปิดทุกเลเยอร์ทันที (panic OFF AIR) */
-function cpCutAll(){pvwState={footer:'off',side:'off',full:'off',sideIdx:0,sidePlaying:false,sideFilter:'both',govPick:'',skgPick:''};ctrlWrite({footer:'off',side:'off',full:'off'});}
-/* footer sub-control: ปรับสด บน program */
-function ctrlBarView(v){ctrlWrite({barView:v,barPlaying:false});}
-function ctrlBarAuto(){ctrlWrite({barPlaying:!ctrlState.barPlaying});}
-/* side: ทุก action ออกอากาศทันที (ไม่ต้องกด TAKE) */
-function cpSideLive(filter,idx,playing){pvwState.sideFilter=filter;pvwState.sideIdx=idx|0;pvwState.sidePlaying=playing;if(pvwState.side==='on')cpTake('side');else renderControlPanel();}
+function cpCutAll(){pvwState={footer:'off',side:'off',full:'off',barView:0,barPlaying:false,sideIdx:0,sidePlaying:false,sideFilter:'both',govPick:'',skgPick:''};ctrlWrite({footer:'off',side:'off',full:'off'});cpPushPreview();}
+/* footer sub-control: จัดลง preview (ยังไม่ออกอากาศ จนกว่าจะกด Confirm) */
+function ctrlBarView(v){pvwState.barView=v;pvwState.barPlaying=false;renderControlPanel();cpPushPreview();}
+function ctrlBarAuto(){pvwState.barPlaying=!pvwState.barPlaying;renderControlPanel();cpPushPreview();}
+/* side: จัดลง preview เท่านั้น — กด Confirm เพื่อออกอากาศจริง */
+function cpSideLive(filter,idx,playing){pvwState.sideFilter=filter;pvwState.sideIdx=idx|0;pvwState.sidePlaying=playing;renderControlPanel();cpPushPreview();}
 function cpStageSideIdx(i){cpSideLive(pvwState.sideFilter||'both',parseInt(i)||0,false);}
 function cpStageSideStep(d){const f=pvwState.sideFilter||ctrlState.sideFilter||'both';const n=ovSideScenes(f).length||1;cpSideLive(f,(((pvwState.sideIdx||0)+d)%n+n)%n,false);}
 function cpStageSideAuto(){cpSideLive(pvwState.sideFilter||'both',pvwState.sideIdx|0,!pvwState.sidePlaying);}
@@ -3011,7 +3012,11 @@ function ctrlSetupListener(){
   fbDb.ref(CTRL_REF).on('value',snap=>{
     ctrlState=Object.assign({},CTRL_DEFAULT,snap.val()||{});
     if(!PVW_MODE)applyControlForOverlay(ctrlState);
-    if(CTRL_MODE){renderControlPanel();cpPushPreview();}
+    if(CTRL_MODE){
+      // seed preview = program ครั้งแรก เพื่อให้ PREVIEW ตรงกับ ON AIR ก่อนเริ่มจัด
+      if(!window._pvwSeeded){window._pvwSeeded=true;['footer','side','full','barView','barPlaying','sideIdx','sidePlaying','sideFilter','govPick','skgPick'].forEach(k=>pvwState[k]=ctrlState[k]);}
+      renderControlPanel();cpPushPreview();
+    }
   });
 }
 /* ── route controller state ตามชนิด overlay ── */
@@ -3100,35 +3105,47 @@ function renderControlPanel(){
   const base=location.origin+location.pathname;
   // scaffold สร้างครั้งเดียว — iframe preview จะไม่ถูกโหลดใหม่ทุกครั้งที่ render (ไม่งั้นเขตที่เลือกหลุด)
   if(!$('cp-ctrls')){
-    el.innerHTML=`<div id="cp-static"></div><div id="cp-ctrls"></div>`;
+    el.innerHTML=`<div id="cp-static"></div>
+      <div class="cp-pp">
+        <div class="cp-pane">
+          <div class="cp-pane-lbl pvw">PREVIEW <small>กำลังจัด · ยังไม่ออกอากาศ — กด Confirm เพื่อยิงขึ้น Program</small></div>
+          <div class="cp-preview-wrap"><span class="cp-preview-badge">PREVIEW · 1920×1080</span><iframe id="cp-pvw-frame" src="${base}?overlay=live&pvw=1" onload="cpPushPreview()"></iframe></div>
+        </div>
+        <div class="cp-pane">
+          <div class="cp-pane-lbl pgm">PROGRAM <small>ออกอากาศจริง · ON AIR (?overlay=live)</small></div>
+          <div class="cp-preview-wrap"><span class="cp-preview-badge">PROGRAM · LIVE</span><iframe id="cp-pgm-frame" src="${base}?overlay=live"></iframe></div>
+        </div>
+      </div>
+      <div id="cp-ctrls"></div>`;
   }
   const anyLive=s.footer!=='off'||s.side!=='off'||s.full!=='off';
   const sideModeLbl={gov:'ผู้ว่าฯ',skg:'ส.ก.',both:'ทั้งคู่'}[s.sideFilter||'both'];
-  const onairTxt=[s.footer!=='off'?'Footer: '+cpLabel('footer',s.footer):'',s.side!=='off'?'Side: '+(s.sidePlaying?'Auto '+sideModeLbl:cpSideName(s.sideIdx,s.sideFilter)):'',s.full!=='off'?'Full: '+cpLabel('full',s.full):''].filter(Boolean).join(' · ')||'Nothing on air';
+  const onairTxt=[s.footer!=='off'?'Footer: '+cpLabel('footer',s.footer):'',s.side!=='off'?'Side: '+(s.sidePlaying?'วน '+sideModeLbl:cpSideName(s.sideIdx,s.sideFilter)):'',s.full!=='off'?'Full: '+cpLabel('full',s.full):''].filter(Boolean).join(' · ')||'Nothing on air';
   const conn=fbReady?'● Connected':'○ Connecting…';
   // เลเยอร์: แต่ละอันมีปุ่มเลือก (stage→preview) + TAKE
   const layers=CP_LAYERS.map(L=>{
     const pgm=s[L.key],pvw=pvwState[L.key];
     // side ถือว่า "dirty" ถ้าค่า on/off ต่าง หรือ (ขณะ staged on) เขต/โหมดที่จัดไว้ต่างจากที่ออกอากาศ
     let dirty=pgm!==pvw;
+    if(L.key==='footer'&&pvw==='bottombar')dirty=dirty||((s.barView|0)!==(pvwState.barView|0))||(!!s.barPlaying!==!!pvwState.barPlaying);
     if(L.key==='side'&&pvw==='on')dirty=dirty||((s.sideIdx|0)!==(pvwState.sideIdx|0))||(!!s.sidePlaying!==!!pvwState.sidePlaying)||((s.sideFilter||'both')!==(pvwState.sideFilter||'both'));
     const opts=L.options.map(o=>{
       const isPvw=pvw===o.k,isPgm=pgm===o.k;
       return `<button class="cp-opt${isPvw?' pvw':''}${isPgm?' pgm':''}" onclick="cpStage('${L.key}','${o.k}')">${CP_ICONS[o.k]||''}<b>${o.label}</b>${isPgm?'<span class="cp-opt-air">ON AIR</span>':''}</button>`;
     }).join('');
     let sub='';
-    if(L.key==='footer'&&pgm==='bottombar'){
-      const autoOn=s.barPlaying;
+    if(L.key==='footer'&&pvw==='bottombar'){
+      const autoOn=pvwState.barPlaying;
       sub=`<div class="cp-sub">
         <span class="cp-sub-lbl">ล็อคหน้า:</span>
-        <button class="cp-btn${!autoOn&&s.barView===0?' on':''}" onclick="ctrlBarView(0)">Governor</button>
-        <button class="cp-btn${!autoOn&&s.barView===1?' on':''}" onclick="ctrlBarView(1)">Councilors</button>
-        <button class="cp-btn${!autoOn&&s.barView===2?' on':''}" onclick="ctrlBarView(2)">Count Stats</button>
+        <button class="cp-btn${!autoOn&&pvwState.barView===0?' on':''}" onclick="ctrlBarView(0)">Governor</button>
+        <button class="cp-btn${!autoOn&&pvwState.barView===1?' on':''}" onclick="ctrlBarView(1)">Councilors</button>
+        <button class="cp-btn${!autoOn&&pvwState.barView===2?' on':''}" onclick="ctrlBarView(2)">Count Stats</button>
       </div>
       <div class="cp-sub">
-        <span class="cp-sub-lbl">Auto-rotate:</span>
-        <button class="cp-btn${autoOn?' on':''}" onclick="ctrlBarAuto()">${autoOn?'⏸ หยุด Auto':'▶ เปิด Auto'}</button>
-        ${autoOn?`<span style="font-size:11px;color:var(--t3)">กำลังวนอัตโนมัติ — กด ล็อคหน้า หรือ ⏸ หยุด Auto เพื่อหยุด</span>`:''}
+        <span class="cp-sub-lbl">วนอัตโนมัติ:</span>
+        <button class="cp-btn${autoOn?' on':''}" onclick="ctrlBarAuto()">${autoOn?'⏸ หยุดวนหน้า':'▶ เปิดวนหน้า'}</button>
+        <span style="font-size:11px;color:var(--t3)">เลือกแล้วดูที่ PREVIEW · กด <b>Confirm</b> ด้านล่างเพื่อออกอากาศ</span>
       </div>`;
     }else if(L.key==='side'&&pvw==='on'){
       const pf=pvwState.sideFilter||'both';
@@ -3158,7 +3175,7 @@ function renderControlPanel(){
       sub=`<div class="cp-side-sec">
         <div class="cp-side-sec-hd">
           <span class="cp-side-sec-title">ผู้ว่าฯ รายเขต</span>
-          <button class="cp-btn ${pf==='gov'&&pvwState.sidePlaying?'on':''}" onclick="cpStageSideAutoGov()">▶ Auto</button>
+          <button class="cp-btn ${pf==='gov'&&pvwState.sidePlaying?'on':''}" onclick="cpStageSideAutoGov()">▶ วนอัตโนมัติ</button>
           <select class="cp-select" onchange="pvwState.sideFilter='gov';cpStageSideIdx(this.value)">${govSelOpts||'<option>ไม่มีเขตที่เลือก</option>'}</select>
           <button class="cp-btn" onclick="pvwState.sideFilter='gov';cpStageSideStep(-1)" title="Previous">◀</button>
           <button class="cp-btn" onclick="pvwState.sideFilter='gov';cpStageSideStep(1)" title="Next">▶</button>
@@ -3172,7 +3189,7 @@ function renderControlPanel(){
       <div class="cp-side-sec">
         <div class="cp-side-sec-hd">
           <span class="cp-side-sec-title">ส.ก. รายเขต</span>
-          <button class="cp-btn ${pf==='skg'&&pvwState.sidePlaying?'on':''}" onclick="cpStageSideAutoSkg()">▶ Auto</button>
+          <button class="cp-btn ${pf==='skg'&&pvwState.sidePlaying?'on':''}" onclick="cpStageSideAutoSkg()">▶ วนอัตโนมัติ</button>
           <select class="cp-select" onchange="pvwState.sideFilter='skg';cpStageSideIdx(this.value)">${skgSelOpts||'<option>ไม่มีเขตที่เลือก</option>'}</select>
           <button class="cp-btn" onclick="pvwState.sideFilter='skg';cpStageSideStep(-1)" title="Previous">◀</button>
           <button class="cp-btn" onclick="pvwState.sideFilter='skg';cpStageSideStep(1)" title="Next">▶</button>
@@ -3184,8 +3201,8 @@ function renderControlPanel(){
         </details>
       </div>
       <div class="cp-sub" style="margin-top:8px">
-        <button class="cp-btn ${pf==='both'&&pvwState.sidePlaying?'on':''}" onclick="cpSideLive('both',0,true)">▶ Auto ทั้งคู่</button>
-        <button class="cp-btn ${!pvwState.sidePlaying?'on':''}" onclick="cpSideLive(pvwState.sideFilter||'both',pvwState.sideIdx|0,false)">⏹ หยุด Auto</button>
+        <button class="cp-btn ${pf==='both'&&pvwState.sidePlaying?'on':''}" onclick="cpSideLive('both',0,true)">▶ วนอัตโนมัติ ทั้งคู่</button>
+        <button class="cp-btn ${!pvwState.sidePlaying?'on':''}" onclick="cpSideLive(pvwState.sideFilter||'both',pvwState.sideIdx|0,false)">⏹ หยุดวน</button>
       </div>`;
     }
     return `<div class="cp-layer${pgm!=='off'?' on':''}">
@@ -3193,7 +3210,7 @@ function renderControlPanel(){
         <span class="cp-layer-pgm${pgm!=='off'?' air':''}">${pgm!=='off'?'● ON AIR: '+cpLabel(L.key,pgm):'○ Off'}</span></div>
       <div class="cp-opts">${opts}</div>
       ${sub}
-      <button class="cp-take${dirty?'':' disabled'}" ${dirty?'':'disabled'} onclick="cpTake('${L.key}')">TAKE ▶ ${cpLabel(L.key,pvw)}${L.key==='side'&&pvw==='on'?' · '+(pvwState.sidePlaying?({gov:'Auto ผู้ว่าฯ',skg:'Auto ส.ก.',both:'Auto ทั้งคู่'}[pvwState.sideFilter||'both']):cpSideName(pvwState.sideIdx)):''}</button>
+      <button class="cp-take${dirty?'':' disabled'}" ${dirty?'':'disabled'} onclick="cpTake('${L.key}')">✓ Confirm ออกอากาศ · ${cpLabel(L.key,pvw)}${L.key==='footer'&&pvw==='bottombar'?' · '+(pvwState.barPlaying?'วนหน้า':({0:'Governor',1:'Councilors',2:'Count Stats'}[pvwState.barView|0])):''}${L.key==='side'&&pvw==='on'?' · '+(pvwState.sidePlaying?({gov:'วนผู้ว่าฯ',skg:'วนส.ก.',both:'วนทั้งคู่'}[pvwState.sideFilter||'both']):cpSideName(pvwState.sideIdx)):''}</button>
     </div>`;
   }).join('');
   $('cp-static').innerHTML=`
@@ -3213,8 +3230,8 @@ function renderControlPanel(){
   $('cp-ctrls').querySelectorAll('details[data-cpkey]').forEach(d=>{if(d.open)_openDetails.add(d.dataset.cpkey);});
   $('cp-ctrls').innerHTML=`
     <div class="cp-global">
-      <button class="cp-take cp-take-all" onclick="cpTakeAll()">TAKE ALL ▶</button>
-      <button class="cp-cut" onclick="cpCutAll()">CUT · Turn All Off</button>
+      <button class="cp-take cp-take-all" onclick="cpTakeAll()">✓ Confirm ทั้งหมด ▶ ออกอากาศ</button>
+      <button class="cp-cut" onclick="cpCutAll()">CUT · ปิดทุกเลเยอร์ทันที</button>
     </div>
     <div class="cp-studio">
       <div class="cp-sec-lbl">STUDIO SETTINGS</div>
@@ -3233,7 +3250,7 @@ function renderControlPanel(){
       </div>
     </div>
     ${layers}
-    <div class="cp-hint">ลิงค์ overlay สำหรับ OBS / vMix (เลือก scene → <b>PREVIEW</b> → กด <b>TAKE</b> เพื่อออกอากาศ):<br>
+    <div class="cp-hint">ลิงค์ overlay สำหรับ OBS / vMix (เลือก scene → ดูที่ <b>PREVIEW</b> → กด <b>Confirm</b> เพื่อออกอากาศ → เช็คที่ <b>PROGRAM</b>):<br>
       • <b>Footer</b> (Bottom Bar / Count Stats รวมลิงค์เดียว): <code>?overlay=footer</code><br>
       • <b>Side Panel</b>: <code>?overlay=side</code><br>
       • <b>รวมทุกเลเยอร์</b> (Footer + Side + Fullscreen): <code>?overlay=live</code><br>
