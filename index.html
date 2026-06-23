@@ -3223,7 +3223,6 @@ function renderControlPanel(){
           <span class="cp-side-sec-title">ผู้ว่าฯ รายเขต</span>
           <button class="cp-btn ${pf==='gov'&&pvwState.sidePlaying?'on':''}" onclick="cpStageSideAutoGov()" title="วนหลายเขต (หลายเขต)">▶ วนอัตโนมัติ</button>
           <select class="cp-select" onchange="pvwState.sideFilter='gov';cpStageSideIdx(this.value)">${govSelOpts||'<option>ไม่มีเขตที่เลือก</option>'}</select>
-          <button class="cp-btn cp-btn-confirm" onclick="cpConfirmSection('gov')" title="โชว์เขตที่เลือกใน Preview (ไม่วน)">✓ Confirm เขตนี้</button>
         </div>
         <details data-cpkey="gov-dist"><summary style="font-size:12px;color:var(--t3);cursor:pointer">เลือกเขตที่จะโชว์ (${govGCnt}/${DISTRICTS.length})</summary>
           <input class="cp-dist-search" placeholder="ค้นหาเขต…" value="${window._cpDistSrchgov||''}" oninput="cpDistSearch('gov',this.value)">
@@ -3236,7 +3235,6 @@ function renderControlPanel(){
           <span class="cp-side-sec-title">ส.ก. รายเขต</span>
           <button class="cp-btn ${pf==='skg'&&pvwState.sidePlaying?'on':''}" onclick="cpStageSideAutoSkg()" title="วนหลายเขต (หลายเขต)">▶ วนอัตโนมัติ</button>
           <select class="cp-select" onchange="pvwState.sideFilter='skg';cpStageSideIdx(this.value)">${skgSelOpts||'<option>ไม่มีเขตที่เลือก</option>'}</select>
-          <button class="cp-btn cp-btn-confirm" onclick="cpConfirmSection('skg')" title="โชว์เขตที่เลือกใน Preview (ไม่วน)">✓ Confirm เขตนี้</button>
         </div>
         <details data-cpkey="skg-dist"><summary style="font-size:12px;color:var(--t3);cursor:pointer">เลือกเขตที่จะโชว์ (${skgGCnt}/${DISTRICTS.length})</summary>
           <input class="cp-dist-search" placeholder="ค้นหาเขต…" value="${window._cpDistSrchskg||''}" oninput="cpDistSearch('skg',this.value)">
