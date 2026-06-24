@@ -1948,7 +1948,6 @@ function ovSidePaint(){
       const rank=`<div class="ovs-acard-rank">${i+1}</div>`;
       const v=`<div class="ovs-acard-votes">${votes}<small>คะแนน</small></div>`;
       if(c.sideArt)return `<div class="ovs-acard${skgIsElected(c)?' win':''}" style="background-image:url('${c.sideArt}')">${rank}${v}</div>`;
-      if(c.avatar)return `<div class="ovs-acard ovs-acard--plain${skgIsElected(c)?' win':''}" style="--cc:${cc}">${rank}<div class="ovs-acard-fb" style="background:transparent;overflow:hidden"><img src="${c.avatar}" style="width:100%;height:100%;object-fit:cover" onerror="this.parentNode.style.background='${cc}';this.parentNode.textContent='${(c.name||'?').trim().slice(0,1)}'"></div><div class="ovs-acard-name">${c.name||''}</div>${v}</div>`;
       const nm2=(c.name||'').replace(/\s+(\S+)$/,'<br>$1');
       return `<div class="ovs-acard${skgIsElected(c)?' win':''}" style="background-image:url('${SKG_SIDE_DEFAULT}')">${rank}<div class="ovs-acard-name" style="left:50%;text-shadow:0 2px 10px rgba(0,0,0,.65)">${nm2}</div>${v}</div>`;
     }).join('');
