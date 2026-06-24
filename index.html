@@ -1723,9 +1723,11 @@ function renderMbPanel(){
 }
 function renderStat(){
   const el=$('ov-stat');if(!el)return;
-  const govCov=mbStats?.gov?.data?.coverage;
-  const covPct=govCov?.percentage??null;
-  const cntPct=covPct!=null?((+covPct)%1===0?String(+covPct):(+covPct).toFixed(1)):((countedDistricts||0)/50*100).toFixed(0);
+  const govSt=mbStats?.gov?.data?.statistics;
+  const goodVotes=govSt?.good_votes??govSt?.goodVotes??null;
+  const totalVotes=govSt?.total_votes??govSt?.totalVotes??null;
+  const covPct=(goodVotes!=null&&totalVotes>0)?(goodVotes/totalVotes*100):null;
+  const cntPct=covPct!=null?covPct.toFixed(1):((countedDistricts||0)/50*100).toFixed(0);
   el.innerHTML=`
     <div class="ovst-hd">
       <span class="ovst-hd-title">รายงานความคืบหน้า</span>
