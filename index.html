@@ -265,16 +265,16 @@ body.ov #top-logo{display:none}
 /* ผล สก. ภาพรวมรายพรรค */
 .skg-note{font-size:12px;color:var(--t4);margin:-12px 0 16px}
 .skg-parties{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
-.skg-prow{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:14px 16px;background:var(--bg2);border:1px solid var(--line2);border-radius:10px;transition:.15s}
+.skg-prow{display:grid;grid-template-columns:auto auto 1fr auto;gap:12px;align-items:center;padding:14px 16px;background:var(--bg2);border:1px solid var(--line2);border-radius:10px;transition:.15s}
 .skg-prow:hover{border-color:var(--line);background:var(--bg3)}
 .skg-prow .pno{font-size:18px;font-weight:900;color:var(--t4);min-width:18px}
-.skg-prow.r1 .pno{color:var(--brand-l)}
+.skg-plogo{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;overflow:hidden;background:var(--bg4,#26282a);font-size:14px;font-weight:800;color:#fff;flex-shrink:0}
+.skg-plogo img{width:100%;height:100%;object-fit:contain}
 .skg-pname{font-size:14px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .skg-pbarwrap{height:5px;border-radius:3px;background:var(--bg4,#26282a);overflow:hidden;margin-top:6px}
 .skg-pbar{height:100%;border-radius:3px;width:0;transition:width 1s cubic-bezier(.2,.8,.2,1)}
 .skg-pseat{text-align:right}
 .skg-pseat b{font-size:22px;font-weight:900;color:#fff;line-height:1}
-.skg-pseat.r1 b{color:var(--brand-l)}
 .skg-pseat span{display:block;font-size:11px;color:var(--t4)}
 /* district modal lists */
 .dd-sec{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--t4);margin:18px 0 10px;display:flex;align-items:center;gap:10px}
@@ -1388,13 +1388,14 @@ function renderSkgOverview(){
   const maxV=Math.max(1,...parties.map(p=>p.votes));
   $('skgMeta').textContent=`· ${districts.length} เขต · ${totalSeats} ที่นั่ง · ${parties.length} พรรค/กลุ่ม`;
   $('skgParties').innerHTML=parties.map((p,i)=>`
-    <div class="skg-prow${i===0?' r1':''}" onclick="openSkgParty('${p.name.replace(/'/g,'')}')">
+    <div class="skg-prow" onclick="openSkgParty('${p.name.replace(/'/g,'')}')">
       <span class="pno">${i+1}</span>
+      <span class="skg-plogo" style="background:${p.logo?'transparent':p.color}">${p.logo?`<img src="${p.logo}" onerror="this.parentNode.style.background='${p.color}';this.parentNode.textContent='${(p.name||'?').replace(/^(พรรค|กลุ่ม)\s*/,'').trim().slice(0,1)}'">`:`${(p.name||'?').replace(/^(พรรค|กลุ่ม)\s*/,'').trim().slice(0,1)}`}</span>
       <span style="min-width:0">
-        <span class="skg-pname" style="color:${i===0?p.color:'#fff'}">${p.name}</span>
+        <span class="skg-pname">${p.name}</span>
         <span class="skg-pbarwrap"><span class="skg-pbar" data-w="${(p.votes/maxV*100).toFixed(1)}" style="background:${p.color}"></span></span>
       </span>
-      <span class="skg-pseat${i===0?' r1':''}"><b>${p.seats}</b><span>ที่นั่ง · ${fmt(p.votes)}</span></span>
+      <span class="skg-pseat"><b>${p.seats}</b><span>ที่นั่ง · ${fmt(p.votes)}</span></span>
     </div>`).join('');
   card.style.display='block';
   requestAnimationFrame(()=>requestAnimationFrame(()=>document.querySelectorAll('#skgParties .skg-pbar').forEach(e=>e.style.width=e.dataset.w+'%')));
@@ -1650,7 +1651,7 @@ function mbStatsCard(icon,title,s){
   return `<div class="mb-stat"><div class="mb-stat-hd">${icon} ${title}</div>
     <div class="mb-stat-grid">
       ${cell('ผู้มาใช้สิทธิ',totalVotes.toLocaleString()+' <small>คน</small>')}
-      ${cell('คะแนนที่ถูกต้อง',goodVotes.toLocaleString()+' <small>ใบ</small>')}
+      ${cell('คะแนนที่นับแล้ว',goodVotes.toLocaleString()+' <small>ใบ</small>')}
       ${cell('ผู้มีสิทธิเลือกตั้ง',eligibleVoters.toLocaleString()+' <small>คน</small>')}
       ${cell('% ผู้มาใช้สิทธิ',(turnoutPct!=null?turnoutPct.toFixed(2):'—')+'<small>%</small>','accent')}
     </div>
@@ -1708,11 +1709,7 @@ function renderMbPanel(){
     </div>`;
   }
   el.innerHTML=`
-    <div class="mb-2col mb-stats-row">${mbStatsCard(SVG_GOV,'ผู้ว่าฯ กทม.',mbStats.gov)}${mbStatsCard(SVG_SKG,'ส.ก. กทม.',mbStats.skg)}</div>
-    <div class="mb-sec" style="margin-top:16px">
-      <div class="mb-sec-hd">${SVG_TARGET} Data Source Decision <small>เลือกแหล่งข้อมูลอัตโนมัติ — ใช้ Final เมื่อผลทางการครอบคลุม ≥ 20% ของเขต</small></div>
-      <div class="mb-2col">${decCardMb('ผู้ว่าฯ กทม.',mbStats?.gov)}${decCardMb('ส.ก. กทม.',mbStats?.skg)}</div>
-    </div>`;
+    <div class="mb-2col mb-stats-row">${mbStatsCard(SVG_GOV,'ผู้ว่าฯ กทม.',mbStats.gov)}${mbStatsCard(SVG_SKG,'ส.ก. กทม.',mbStats.skg)}</div>`;
 }
 function renderStat(){
   const el=$('ov-stat');if(!el)return;
