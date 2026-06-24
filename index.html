@@ -412,7 +412,7 @@ body.ov-bottombar #ov-bar{display:flex}
 .ovb-stat b{font-size:15px;font-weight:900;color:#fff;font-family:var(--font-num);font-variant-numeric:tabular-nums}
 .ovb-stat b.pct{color:var(--brand-l)}
 .ovb-hd-brand{display:none}
-.ovb-stage{position:relative;flex:1;overflow:hidden;background:var(--ov-stripe),var(--ov-grad)}
+.ovb-stage{position:relative;flex:1;overflow:hidden;background:var(--ov-stripe),var(--ov-grad);z-index:2}
 .ovb-view{position:absolute;inset:0;display:flex;opacity:0;transition:opacity .5s ease;pointer-events:none}
 .ovb-view.on{opacity:1;pointer-events:auto}
 /* Top 5 governor */
@@ -531,10 +531,12 @@ body.ov-stat #ov-stat{display:flex}
    มีไฟล์ในโฟลเดอร์ → init() จะ probe แล้วใส่ attribute data-art อัตโนมัติ */
 #ov-stat,#ov-bar,#ov-side{background-size:cover;background-position:center;background-repeat:no-repeat}
 #ov-stat[data-art]{background-image:url('bg-stats.png')}
-#ov-bar[data-art]{background-image:url('bg-bottombar.png')}
+#ov-bar[data-art]{background-image:none}
 #ov-bar[data-art]::before{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:url('bg-bottombar-headline.png') no-repeat top left;background-size:100% auto;pointer-events:none;z-index:0}
+#ov-bar[data-art]::after{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:url('bg-bottombar.png') no-repeat center;background-size:cover;pointer-events:none;z-index:1}
 #ov-bar[data-art][data-bar="skg"]::before{background:url('bg-skg-headline.png') no-repeat top left;background-size:100% auto}
-#ov-bar[data-art][data-bar="skg"]{background-image:url('bg-skg.png');position:fixed;bottom:0}
+#ov-bar[data-art][data-bar="skg"]::after{background-image:url('bg-skg.png')}
+#ov-bar[data-art][data-bar="skg"]{position:fixed;bottom:0}
 #ov-side,#ov-side[data-side="skg"]{background-image:url('bg-side-skg.png')}
 #ov-side[data-side="gov"]{background-image:url('bg-side-gov.png')}
 /* เมื่อตรวจพบไฟล์ Art (data-art) → ใช้ PNG ล้วน ซ่อน mock เดิม (กรอบ lime / หัวแท็บ / พื้น gradient ที่ฝังในภาพแล้ว) */
