@@ -517,6 +517,13 @@ body.ov-stat #ov-stat{display:flex}
 .ovst-body--solo .ovst-label{flex:1;font-size:48px;font-weight:900;color:#fff;letter-spacing:.5px;margin:0;text-shadow:0 2px 12px rgba(0,0,0,.35);text-align:center}
 .ovst-body--solo .ovst-num.ovst-num--big{flex:1;font-size:120px;font-weight:900;color:#fff;line-height:1;letter-spacing:1px;text-shadow:0 3px 14px rgba(0,0,0,.4);text-align:center}
 .ovst-body--solo .ovst-num.ovst-num--big span{font-size:84px;color:#fff;margin-left:2px}
+.ovst-body--duo{flex-direction:row;align-items:center;justify-content:center;padding:38px 24px 12px;gap:24px}
+.ovst-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.ovst-col-ttl{font-size:26px;font-weight:900;color:#fff;letter-spacing:.3px;margin-bottom:6px;text-shadow:0 2px 10px rgba(0,0,0,.4)}
+.ovst-col-lbl{font-size:18px;font-weight:700;color:rgba(255,255,255,.92);letter-spacing:.2px;margin-bottom:4px;text-shadow:0 2px 8px rgba(0,0,0,.35)}
+.ovst-col-pct{font-size:88px;font-weight:900;color:#fff;line-height:1;letter-spacing:1px;font-family:var(--font-num);font-variant-numeric:tabular-nums;text-shadow:0 3px 12px rgba(0,0,0,.4)}
+.ovst-col-pct span{font-size:56px;color:#fff;margin-left:2px}
+.ovst-divider{width:2px;height:60%;background:linear-gradient(180deg,transparent,rgba(255,255,255,.4),transparent)}
 .ovst-sub{display:none}
 .ovst-bar{display:none}
 .ovst-bar-fill{height:100%;background:var(--brand);transition:width .8s cubic-bezier(.4,0,.2,1)}
@@ -1723,19 +1730,26 @@ function renderMbPanel(){
 }
 function renderStat(){
   const el=$('ov-stat');if(!el)return;
-  const govSt=mbStats?.gov?.data?.statistics;
-  const goodVotes=govSt?.good_votes??govSt?.goodVotes??null;
-  const totalVotes=govSt?.total_votes??govSt?.totalVotes??null;
-  const covPct=(goodVotes!=null&&totalVotes>0)?(goodVotes/totalVotes*100):null;
-  const cntPct=covPct!=null?covPct.toFixed(1):((countedDistricts||0)/50*100).toFixed(0);
+  const calcPct=(s)=>{const st=s?.data?.statistics;const g=st?.good_votes??st?.goodVotes??null;const t=st?.total_votes??st?.totalVotes??null;return (g!=null&&t>0)?(g/t*100).toFixed(1):((countedDistricts||0)/50*100).toFixed(0);};
+  const govPct=calcPct(mbStats?.gov);
+  const skgPct=calcPct(mbStats?.skg);
   el.innerHTML=`
     <div class="ovst-hd">
       <span class="ovst-hd-title">รายงานความคืบหน้า</span>
       <span class="ovst-hd-sub">อย่างไม่เป็นทางการ</span>
     </div>
-    <div class="ovst-body ovst-body--solo">
-      <div class="ovst-label">นับคะแนนแล้ว</div>
-      <div class="ovst-num ovst-num--big">${cntPct}<span>%</span></div>
+    <div class="ovst-body ovst-body--duo">
+      <div class="ovst-col">
+        <div class="ovst-col-ttl">ผู้ว่าฯ กทม.</div>
+        <div class="ovst-col-lbl">นับคะแนนแล้ว</div>
+        <div class="ovst-col-pct">${govPct}<span>%</span></div>
+      </div>
+      <div class="ovst-divider"></div>
+      <div class="ovst-col">
+        <div class="ovst-col-ttl">ส.ก.</div>
+        <div class="ovst-col-lbl">นับคะแนนแล้ว</div>
+        <div class="ovst-col-pct">${skgPct}<span>%</span></div>
+      </div>
     </div>`;
 }
 function ovPartySeats(){
