@@ -1586,15 +1586,17 @@ function renderDashSummary(){
   const govSrc=mbStats?.gov?.source;
   const skgSrc=mbStats?.skg?.source;
   const counted=countedDistricts||0;
-  function progBox(label,cov){
-    const pct=cov?.percentage!=null?+cov.percentage:(counted/50*100);
-    const totSt=cov?.total_stations??cov?.totalStations??0;
-    const repSt=cov?.stations_reported??cov?.stationsReported??0;
-    const stLabel=totSt?`${repSt.toLocaleString()} / ${totSt.toLocaleString()} หน่วย`:`${counted} / 50 เขต`;
+  function progBox(label,sData){
+    const st=sData?.data?.statistics;
+    const turnout=st?.voter_turnout_percentage??st?.voterTurnoutPercentage??null;
+    const totalVotes=st?.total_votes??st?.totalVotes??0;
+    const eligible=st?.eligible_voters??st?.eligibleVoters??0;
+    const pct=turnout!=null?+turnout:(eligible?totalVotes/eligible*100:(counted/50*100));
+    const voterLabel=eligible?`${totalVotes.toLocaleString()} / ${eligible.toLocaleString()} คน`:`${counted} / 50 เขต`;
     return `<div class="mb-dec">
       <div class="mb-dec-hd"><span>${label}</span><span class="mb-badge final">${pct.toFixed(1)}%</span></div>
       <div class="ds-prog-bar" style="margin-bottom:6px"><i style="width:${Math.min(100,pct)}%"></i></div>
-      <div class="mb-dec-foot"><span>${stLabel}</span></div>
+      <div class="mb-dec-foot"><span>${voterLabel}</span></div>
     </div>`;
   }
   function decCard(label,s){
@@ -1610,8 +1612,8 @@ function renderDashSummary(){
   }
   el.innerHTML=`
     <div class="mb-sec">
-      <div class="mb-sec-hd">${SVG_PROGRESS} ความคืบหน้าการรายงานผล <small>สัดส่วนหน่วยเลือกตั้งที่รายงานผลแล้ว</small></div>
-      <div class="mb-2col">${progBox('ผู้ว่าฯ กทม.',govCov)}${progBox('ส.ก. กทม.',skgCov)}</div>
+      <div class="mb-sec-hd">${SVG_PROGRESS} ผู้มาใช้สิทธิเลือกตั้ง <small>สัดส่วนผู้มาใช้สิทธิต่อผู้มีสิทธิเลือกตั้ง</small></div>
+      <div class="mb-2col">${progBox('ผู้ว่าฯ กทม.',mbStats?.gov)}${progBox('ส.ก. กทม.',mbStats?.skg)}</div>
     </div>`;
 }
 /* ── central-backend monitoring panel: Data Source Decision + coverage gauge + สถิติ + ตาราง RT/Final ── */
