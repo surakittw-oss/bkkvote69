@@ -3347,6 +3347,14 @@ function init(){
       renderAll();
     }).catch(()=>{});
   }
+  {
+    const PARTY_LOGO_SHEET='https://docs.google.com/spreadsheets/d/1abANACpNrqcd_Yv7S2qeTe2vdDkJZkoAgRgqQ-DWqcE/edit?gid=443283205#gid=443283205';
+    loadSkgPartyLogoSheet(PARTY_LOGO_SHEET).then(map=>{
+      if(!map||!Object.keys(map).length)return;
+      skgPartyLogoMap=map;
+      renderAll();
+    }).catch(()=>{});
+  }
   if(OVERLAY){
     // ไฟล์ Art composite ส.ก. (Drive) สำหรับ side panel เต็มใบ — แยกจากรูป portrait dashboard
     const SKG_SIDE_SHEET='https://docs.google.com/spreadsheets/d/1abANACpNrqcd_Yv7S2qeTe2vdDkJZkoAgRgqQ-DWqcE/edit?gid=916858386#gid=916858386';
