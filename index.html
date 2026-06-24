@@ -1384,6 +1384,16 @@ function renderSkgOverview(){
     if(c.color&&pm[p].color===undefined)pm[p].color=c.color;
   }));
   const parties=Object.values(pm).sort((a,b)=>b.seats-a.seats||b.votes-a.votes);
+  const logoMap=skgDashLogoMap||skgPartyLogoMap;
+  if(logoMap){
+    const normPname=n=>(n||'').replace(/^(กลุ่ม|พรรค)\s*/,'').replace(/\s+/g,' ').trim().toLowerCase();
+    parties.forEach(p=>{
+      let l=logoMap[p.name];
+      if(!l){const k=Object.keys(logoMap).find(n=>p.name.includes(n)||n.includes(p.name));if(k)l=logoMap[k];}
+      if(!l){const np=normPname(p.name);const k=Object.keys(logoMap).find(n=>normPname(n)===np||normPname(n).includes(np)||np.includes(normPname(n)));if(k)l=logoMap[k];}
+      if(l)p.logo=l;
+    });
+  }
   const totalSeats=parties.reduce((s,p)=>s+p.seats,0);
   const maxV=Math.max(1,...parties.map(p=>p.votes));
   $('skgMeta').textContent=`· ${districts.length} เขต · ${totalSeats} ที่นั่ง · ${parties.length} พรรค/กลุ่ม`;
@@ -2553,7 +2563,7 @@ function mbRestoreFromFb(saved){
   if(c&&typeof c.percentage==='number')ectCovPct=c.percentage;
   renderMbPanel();
 }
-let ectTimer=null,ectImageMap=null,ovImgMap=null,skgImgMap=null,skgSideMap=null,govSideMap=null,skgPartyLogoMap=null;
+let ectTimer=null,ectImageMap=null,ovImgMap=null,skgImgMap=null,skgSideMap=null,govSideMap=null,skgPartyLogoMap=null,skgDashLogoMap=null;
 let autoSaveTimer=null,lastSnapshotAt=0;
 async function fbAutoSave(){
   if(!fbReady||!fbDb)return;
@@ -3348,10 +3358,10 @@ function init(){
     }).catch(()=>{});
   }
   {
-    const PARTY_LOGO_SHEET='https://docs.google.com/spreadsheets/d/1M3_JgQ9CVxkU6GQ1pMGpERsVmXlFx-ftyQsKYt713yw/edit?gid=398211398#gid=398211398';
-    loadSkgPartyLogoSheet(PARTY_LOGO_SHEET).then(map=>{
+    const DASH_LOGO_SHEET='https://docs.google.com/spreadsheets/d/1abANACpNrqcd_Yv7S2qeTe2vdDkJZkoAgRgqQ-DWqcE/edit?gid=443283205#gid=443283205';
+    loadSkgPartyLogoSheet(DASH_LOGO_SHEET).then(map=>{
       if(!map||!Object.keys(map).length)return;
-      skgPartyLogoMap=map;
+      skgDashLogoMap=map;
       renderAll();
     }).catch(()=>{});
   }
