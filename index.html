@@ -532,7 +532,7 @@ body.ov-stat #ov-stat{display:flex}
 #ov-stat,#ov-bar,#ov-side{background-size:cover;background-position:center;background-repeat:no-repeat}
 #ov-stat[data-art]{background-image:url('bg-stats.png')}
 #ov-bar[data-art]{background-image:url('bg-bottombar.png')}
-#ov-bar[data-art]::before{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:url('bg-bottombar-headline.png') no-repeat top left;background-size:100% auto;pointer-events:none;z-index:1}
+#ov-bar[data-art]::before{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:url('bg-bottombar-headline.png') no-repeat top left;background-size:100% auto;pointer-events:none;z-index:0}
 #ov-bar[data-art][data-bar="skg"]::before{background:url('bg-skg-headline.png') no-repeat top left;background-size:100% auto}
 #ov-bar[data-art][data-bar="skg"]{background-image:url('bg-skg.png');position:fixed;bottom:0}
 #ov-side,#ov-side[data-side="skg"]{background-image:url('bg-side-skg.png')}
