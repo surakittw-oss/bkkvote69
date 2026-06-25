@@ -518,11 +518,13 @@ body.ov-stat #ov-stat{display:flex}
 .ovst-body--solo .ovst-num.ovst-num--big{flex:1;font-size:120px;font-weight:900;color:#fff;line-height:1;letter-spacing:1px;text-shadow:0 3px 14px rgba(0,0,0,.4);text-align:center}
 .ovst-body--solo .ovst-num.ovst-num--big span{font-size:84px;color:#fff;margin-left:2px}
 .ovst-body--duo{flex-direction:row;align-items:center;justify-content:space-around;padding:38px 24px 12px;gap:24px}
-.ovst-body--solo{flex-direction:row;align-items:center;justify-content:center;padding:38px 48px 12px;gap:28px}
-.ovst-body--solo .ovst-col-ttl{font-size:32px}
-.ovst-body--solo .ovst-col-lbl{font-size:22px}
-.ovst-body--solo .ovst-col-pct{font-size:120px}
-.ovst-body--solo .ovst-col-pct span{font-size:72px}
+.ovst-body--solo{flex-direction:row;align-items:center;justify-content:space-between;padding:20px 80px 12px}
+.ovst-body--solo .ovst-col{flex:none;flex-direction:row;gap:0}
+.ovst-body--solo .ovst-col-text{align-items:flex-start;text-align:left}
+.ovst-body--solo .ovst-col-ttl{font-size:40px;line-height:1.1}
+.ovst-body--solo .ovst-col-lbl{font-size:28px;font-weight:900;margin-top:2px}
+.ovst-body--solo .ovst-col-pct{font-size:148px}
+.ovst-body--solo .ovst-col-pct span{font-size:88px}
 .ovst-col{flex:1;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:18px}
 .ovst-col-text{display:flex;flex-direction:column;align-items:flex-end;text-align:right}
 .ovst-col-ttl{font-size:24px;font-weight:900;color:#fff;letter-spacing:.3px;text-shadow:0 2px 10px rgba(0,0,0,.4);line-height:1.2}
@@ -1853,7 +1855,7 @@ function ovPhoto(cls,fbcls,avatar,init,color){
 /* ── BOTTOM BAR (1264×209): % + turnout + rotate[ Top5 ผู้ว่าฯ ↔ ส.ก.ตามพรรค ] ── */
 let ovBarTimer=null, ovBarView=0, ovBarPaused=false, ovBarCtlT=null, ovBarWired=false, ovBarHasSkg=false;
 const OV_BAR_MS=8000;
-function _ovBarPickArr(){const p=((ctrlState&&ctrlState.barPick)||'').split(',').filter(x=>x!=='').map(Number).filter(n=>!isNaN(n)&&n>=0&&n<=4);return p.length?[...new Set(p)].sort((a,b)=>a-b):[0,1,2];}
+function _ovBarPickArr(){const p=((ctrlState&&ctrlState.barPick)||'').split(',').filter(x=>x!=='').map(Number).filter(n=>!isNaN(n)&&n>=0&&n<=4&&n!==2);return p.length?[...new Set(p)].sort((a,b)=>a-b):[0,1];}
 function _ovBarStep(d){const arr=_ovBarPickArr();if(arr.length<=1){ovBarView=arr[0]||0;return;}let i=arr.indexOf(ovBarView);if(i<0)i=0;ovBarView=arr[((i+d)%arr.length+arr.length)%arr.length];}
 function ovBarStartTimer(){if(ovBarTimer){clearInterval(ovBarTimer);ovBarTimer=null;}const arr=_ovBarPickArr();if(arr.length<2)return;if(!ovBarPaused)ovBarTimer=setInterval(()=>{_ovBarStep(1);ovBarApply();},OV_BAR_MS);}
 function ovBarGo(d){_ovBarStep(d);ovBarApply();ovBarStartTimer();ovBarFlash();}
@@ -3070,7 +3072,7 @@ function cpTakeAll(){ctrlWrite({footer:pvwState.footer,side:pvwState.side,full:p
 /* CUT: ปิดทุกเลเยอร์ทันที (panic OFF AIR) */
 function cpCutAll(){pvwState={footer:'off',side:'off',full:'off',barView:0,barPlaying:false,barPick:'',sideIdx:0,sidePlaying:false,sideFilter:'both',govPick:'',skgPick:''};ctrlWrite({footer:'off',side:'off',full:'off'});cpPushPreview();}
 /* footer sub-control: จัดลง preview (ยังไม่ออกอากาศ จนกว่าจะกด Confirm) */
-function _barPickArr(s){const p=(s||'').split(',').filter(x=>x!=='').map(Number).filter(n=>!isNaN(n)&&n>=0&&n<=4);return p.length?[...new Set(p)].sort((a,b)=>a-b):[0,1,2];}
+function _barPickArr(s){const p=(s||'').split(',').filter(x=>x!=='').map(Number).filter(n=>!isNaN(n)&&n>=0&&n<=4&&n!==2);return p.length?[...new Set(p)].sort((a,b)=>a-b):[0,1];}
 function ctrlBarToggle(v){
   const arr=_barPickArr(pvwState.barPick);
   const set=new Set(arr);
@@ -3276,8 +3278,9 @@ function renderControlPanel(){
       const pickArr=_barPickArr(pvwState.barPick);
       const pickSet=new Set(pickArr);
       const onlyOne=pickArr.length===1;
-      const lbl=['Governor','Councilors','Count Stats','Stats ผู้ว่าฯ','Stats ส.ก.'];
+      const lbl=['Governor','Councilors',null,'Stats ผู้ว่าฯ','Stats ส.ก.'];
       const btns=lbl.map((nm,i)=>{
+        if(!nm)return '';
         const sel=pickSet.has(i);
         const isLocked=onlyOne&&sel;
         const isLive=autoOn&&sel;
