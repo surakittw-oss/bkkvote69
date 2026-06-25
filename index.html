@@ -2634,9 +2634,10 @@ function ectAreasToConst(areasResp){
     const an=a.area_number||a.areaNumber||a.number;
     const nm=(a.area_name||a.areaName||a.name||a.electionArea?.name||'').replace(/^เขต\s*/,'เขต').trim()||('เขต '+an);
     const v=a.total_votes||a.totalVotes||a.good_votes||a.goodVotes||0;
-    const pct=a.percentage??a.coverage?.percentage??null;
     const rep=a.stations_reported??a.stationsReported??a.coverage?.stations_reported??a.coverage?.stationsReported??null;
     const tot=a.total_stations??a.totalStations??a.coverage?.total_stations??a.coverage?.totalStations??null;
+    const pctRaw=a.percentage??a.coverage?.percentage??null;
+    const pct=pctRaw!=null?pctRaw:(rep!=null&&tot>0?rep/tot*100:null);
     return {areaNumber:an,name:nm.startsWith('เขต')?nm:('เขต'+nm),realtimeVotes:v,finalVotes:v,difference:0,percentage:pct,stationsReported:rep,totalStations:tot};
   }).filter(r=>r.areaNumber);
   const reported=constituencies.filter(r=>r.realtimeVotes>0).length;
