@@ -2014,8 +2014,9 @@ function ovSidePaint(){
   const sideEl=$('ov-side');if(sideEl)sideEl.setAttribute('data-side',scene.t==='gov'?'gov':'skg');
   const dname='เขต'+(scene.name||'').replace(/^เขต/,'');
   const d=DISTRICTS.find(x=>x.name===scene.name||normName(x.name)===normName(scene.name));
-  // ใช้ % จริงจาก API ถ้ามี (DISTRICTS.pct → mbStats.govConst/skgConst fallback) — สุดท้าย fallback binary
-  let pctSrc=(d&&d.pct!=null)?+d.pct:null;
+  // ใช้ % จริงจาก API — gov ใช้ d.pct (govAreas), skg ใช้ skgConst ตรงๆ ไม่ใช้ d.pct (ซึ่งมาจาก govAreas)
+  let pctSrc=null;
+  if(scene.t==='gov'&&d&&d.pct!=null)pctSrc=+d.pct;
   if(pctSrc==null){
     const mc=(scene.t==='gov'?mbStats?.govConst:mbStats?.skgConst)?.data?.constituencies;
     if(mc){const hit=mc.find(c=>normName((c.name||'').replace(/^เขต/,''))===normName(scene.name));if(hit&&hit.percentage!=null)pctSrc=+hit.percentage;}
