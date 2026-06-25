@@ -694,6 +694,7 @@ body.ctrl #ctrl-panel{display:block}
     <section class="map-card">
       <h2 class="col-head banner">คะแนนรายเขต</h2>
       <div class="map-bar">
+        <input class="mb-tbl-search" id="mapSearch" placeholder="ค้นหาเขต…" style="max-width:240px" oninput="window._mapSearch=this.value;applyMapSearch()">
         <span class="map-layer" id="mapLayer">
           <button class="ml-btn on" data-l="gov" onclick="setGeoLayer('gov')">ผู้ว่าฯ</button>
           <button class="ml-btn" data-l="skg" onclick="setGeoLayer('skg')">ส.ก. (พรรค)</button>
@@ -1327,6 +1328,7 @@ let mapPanMoved=false;
 
 /* ════════════ TOOLTIP ════════════ */
 function bindBoxes(){
+  applyMapSearch();
   const tip=$('tip');
   document.querySelectorAll('#map .box, #map .geop, #map .sky-hit, #map .rad-hit, #map .bub-hit').forEach(el=>{
     const i=+el.dataset.i;if(i<0)return;
@@ -1489,6 +1491,18 @@ function renderModes(){
   $('modes').innerHTML=items.map(([k,l])=>`<div class="mode${k===MODE?' on':''}" onclick="setMode('${k}')"><div class="ic">${ICONS[k]}</div><div class="lb">${l}</div></div>`).join('');
 }
 function setMode(m){MODE=m;renderModes();renderMap();postHeight();}
+function applyMapSearch(){
+  const q=(window._mapSearch||'').trim().toLowerCase();
+  const map=$('map');if(!map)return;
+  const nodes=map.querySelectorAll('[data-i]');
+  if(!q){nodes.forEach(n=>{n.style.opacity='';n.style.transition='';});return;}
+  nodes.forEach(n=>{
+    const i=parseInt(n.dataset.i);const d=DISTRICTS[i];if(!d)return;
+    const match=d.name.toLowerCase().includes(q);
+    n.style.transition='opacity .2s';
+    n.style.opacity=match?'1':'0.15';
+  });
+}
 
 /* ════════════ RENDER ALL ════════════ */
 function renderAll(){
