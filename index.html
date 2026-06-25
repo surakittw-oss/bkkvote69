@@ -1244,10 +1244,8 @@ function renderListTable(){
 }
 function renderList(){
   const df=$('dtable-filter');
-  if(df){
-    df.style.display='block';
-    df.innerHTML=`<div class="mb-tbl-filter"><input class="mb-tbl-search" id="dtable-search-input" placeholder="ค้นหาเขต…" value="${(window._dtableSearch||'').replace(/"/g,'&quot;')}" oninput="window._dtableSearch=this.value;renderListTable()"></div>`;
-  }
+  if(df){df.style.display='none';df.innerHTML='';}
+  window._dtableSearch=window._mapSearch||'';
   renderListTable();
 }
 
@@ -1493,6 +1491,7 @@ function renderModes(){
 function setMode(m){MODE=m;renderModes();renderMap();postHeight();}
 function applyMapSearch(){
   const q=(window._mapSearch||'').trim().toLowerCase();
+  if(MODE==='list'){window._dtableSearch=window._mapSearch||'';if(typeof renderListTable==='function')renderListTable();return;}
   const map=$('map');if(!map)return;
   const nodes=map.querySelectorAll('[data-i]');
   if(!q){nodes.forEach(n=>{n.style.opacity='';n.style.transition='';n.style.filter='';n.classList.remove('map-match');});zoomReset();return;}
