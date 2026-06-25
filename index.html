@@ -2872,6 +2872,7 @@ async function loadFromECT(){
     else if((cov.stations_reported??cov.stationsReported)&&(cov.total_stations??cov.totalStations))ectCovPct=((cov.stations_reported??cov.stationsReported)/(cov.total_stations??cov.totalStations))*100;
     else ectCovPct=null;
     renderMbPanel();
+    if(OV_IS_FOOTER&&ctrlState.footer==='stat')renderStat();
     let pctTxt='';
     if(typeof cov.percentage==='number')pctTxt=' · นับ '+cov.percentage.toFixed(1)+'%';
     else if(cov.areasReported!=null&&cov.totalAreas)pctTxt=' · นับ '+cov.areasReported+'/'+cov.totalAreas+' เขต';
