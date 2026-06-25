@@ -1495,12 +1495,36 @@ function applyMapSearch(){
   const q=(window._mapSearch||'').trim().toLowerCase();
   const map=$('map');if(!map)return;
   const nodes=map.querySelectorAll('[data-i]');
-  if(!q){nodes.forEach(n=>{n.style.opacity='';n.style.transition='';});return;}
+  if(!q){nodes.forEach(n=>{n.style.opacity='';n.style.transition='';n.style.filter='';n.classList.remove('map-match');});zoomReset();return;}
+  const matchedIdx=new Set();
   nodes.forEach(n=>{
     const i=parseInt(n.dataset.i);const d=DISTRICTS[i];if(!d)return;
     const match=d.name.toLowerCase().includes(q);
-    n.style.transition='opacity .2s';
-    n.style.opacity=match?'1':'0.15';
+    n.style.transition='opacity .2s, filter .2s';
+    n.style.opacity=match?'1':'0.12';
+    if(match){n.classList.add('map-match');n.style.filter='drop-shadow(0 0 8px #ffb020) drop-shadow(0 0 14px rgba(255,176,32,.55))';matchedIdx.add(i);}
+    else{n.classList.remove('map-match');n.style.filter='';}
+  });
+  if(matchedIdx.size===1){
+    const i=[...matchedIdx][0];
+    const hit=map.querySelector(`[data-i="${i}"]`);
+    if(hit)zoomToNode(hit);
+  }else{
+    zoomReset();
+  }
+}
+function zoomToNode(node){
+  zoomReset();
+  requestAnimationFrame(()=>{
+    const w=$('mapWrap');if(!w||!node)return;
+    const wr=w.getBoundingClientRect();
+    const nr=node.getBoundingClientRect();
+    const cx=(nr.left+nr.width/2)-wr.left;
+    const cy=(nr.top+nr.height/2)-wr.top;
+    zoomState.tx=wr.width/2-cx;
+    zoomState.ty=wr.height/2-cy;
+    zoomState.s=1;applyZoom();
+    zoomAt(wr.width/2,wr.height/2,3);
   });
 }
 
