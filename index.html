@@ -518,6 +518,11 @@ body.ov-stat #ov-stat{display:flex}
 .ovst-body--solo .ovst-num.ovst-num--big{flex:1;font-size:120px;font-weight:900;color:#fff;line-height:1;letter-spacing:1px;text-shadow:0 3px 14px rgba(0,0,0,.4);text-align:center}
 .ovst-body--solo .ovst-num.ovst-num--big span{font-size:84px;color:#fff;margin-left:2px}
 .ovst-body--duo{flex-direction:row;align-items:center;justify-content:space-around;padding:38px 24px 12px;gap:24px}
+.ovst-body--solo{flex-direction:row;align-items:center;justify-content:center;padding:38px 48px 12px;gap:28px}
+.ovst-body--solo .ovst-col-ttl{font-size:32px}
+.ovst-body--solo .ovst-col-lbl{font-size:22px}
+.ovst-body--solo .ovst-col-pct{font-size:120px}
+.ovst-body--solo .ovst-col-pct span{font-size:72px}
 .ovst-col{flex:1;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:18px}
 .ovst-col-text{display:flex;flex-direction:column;align-items:flex-end;text-align:right}
 .ovst-col-ttl{font-size:24px;font-weight:900;color:#fff;letter-spacing:.3px;text-shadow:0 2px 10px rgba(0,0,0,.4);line-height:1.2}
@@ -1765,17 +1770,38 @@ function renderMbPanel(){
   el.innerHTML=`
     <div class="mb-2col mb-stats-row">${mbStatsCard(SVG_GOV,'ผู้ว่าฯ กทม.',mbStats.gov)}${mbStatsCard(SVG_SKG,'ส.ก. กทม.',mbStats.skg)}</div>`;
 }
-function renderStat(){
+function renderStat(mode){
   const el=$('ov-stat');if(!el)return;
+  const m=mode||(ovBarView===3?'gov':ovBarView===4?'skg':'duo');
   const calcPct=(s)=>{const st=s?.data?.statistics;const g=st?.good_votes??st?.goodVotes??null;const t=st?.total_votes??st?.totalVotes??null;return (g!=null&&t>0)?(g/t*100).toFixed(1):((countedDistricts||0)/50*100).toFixed(0);};
   const govPct=calcPct(mbStats?.gov);
   const skgPct=calcPct(mbStats?.skg);
-  el.innerHTML=`
-    <div class="ovst-hd">
-      <span class="ovst-hd-title">รายงานความคืบหน้า</span>
-      <span class="ovst-hd-sub">อย่างไม่เป็นทางการ</span>
-    </div>
-    <div class="ovst-body ovst-body--duo">
+  const hd=`<div class="ovst-hd">
+    <span class="ovst-hd-title">รายงานความคืบหน้า</span>
+    <span class="ovst-hd-sub">อย่างไม่เป็นทางการ</span>
+  </div>`;
+  if(m==='gov'){
+    el.innerHTML=`${hd}<div class="ovst-body ovst-body--solo">
+      <div class="ovst-col">
+        <div class="ovst-col-text">
+          <div class="ovst-col-ttl">ผู้ว่าฯ กทม.</div>
+          <div class="ovst-col-lbl">นับคะแนนแล้ว</div>
+        </div>
+        <div class="ovst-col-pct">${govPct}<span>%</span></div>
+      </div>
+    </div>`;
+  }else if(m==='skg'){
+    el.innerHTML=`${hd}<div class="ovst-body ovst-body--solo">
+      <div class="ovst-col">
+        <div class="ovst-col-text">
+          <div class="ovst-col-ttl">ส.ก.</div>
+          <div class="ovst-col-lbl">นับคะแนนแล้ว</div>
+        </div>
+        <div class="ovst-col-pct">${skgPct}<span>%</span></div>
+      </div>
+    </div>`;
+  }else{
+    el.innerHTML=`${hd}<div class="ovst-body ovst-body--duo">
       <div class="ovst-col">
         <div class="ovst-col-text">
           <div class="ovst-col-ttl">ผู้ว่าฯ กทม.</div>
@@ -1791,6 +1817,7 @@ function renderStat(){
         <div class="ovst-col-pct">${skgPct}<span>%</span></div>
       </div>
     </div>`;
+  }
 }
 function ovPartySeats(){
   const pm={};
@@ -1826,7 +1853,7 @@ function ovPhoto(cls,fbcls,avatar,init,color){
 /* ── BOTTOM BAR (1264×209): % + turnout + rotate[ Top5 ผู้ว่าฯ ↔ ส.ก.ตามพรรค ] ── */
 let ovBarTimer=null, ovBarView=0, ovBarPaused=false, ovBarCtlT=null, ovBarWired=false, ovBarHasSkg=false;
 const OV_BAR_MS=8000;
-function _ovBarPickArr(){const p=((ctrlState&&ctrlState.barPick)||'').split(',').filter(x=>x!=='').map(Number).filter(n=>!isNaN(n)&&n>=0&&n<=2);return p.length?[...new Set(p)].sort((a,b)=>a-b):[0,1,2];}
+function _ovBarPickArr(){const p=((ctrlState&&ctrlState.barPick)||'').split(',').filter(x=>x!=='').map(Number).filter(n=>!isNaN(n)&&n>=0&&n<=4);return p.length?[...new Set(p)].sort((a,b)=>a-b):[0,1,2];}
 function _ovBarStep(d){const arr=_ovBarPickArr();if(arr.length<=1){ovBarView=arr[0]||0;return;}let i=arr.indexOf(ovBarView);if(i<0)i=0;ovBarView=arr[((i+d)%arr.length+arr.length)%arr.length];}
 function ovBarStartTimer(){if(ovBarTimer){clearInterval(ovBarTimer);ovBarTimer=null;}const arr=_ovBarPickArr();if(arr.length<2)return;if(!ovBarPaused)ovBarTimer=setInterval(()=>{_ovBarStep(1);ovBarApply();},OV_BAR_MS);}
 function ovBarGo(d){_ovBarStep(d);ovBarApply();ovBarStartTimer();ovBarFlash();}
@@ -1903,7 +1930,7 @@ function renderBottomBar(){
 function ovBarApply(){
   const gv=$('ovb-view-gov'),sv=$('ovb-view-skg'),t=$('ovb-title'),bar=$('ov-bar');if(!gv)return;
   const b=document.body;
-  if(ovBarView===2){
+  if(ovBarView>=2){
     gv.classList.remove('on');if(sv)sv.classList.remove('on');
     b.classList.remove('ov-bottombar');b.classList.add('ov-stat');
     renderStat();
@@ -1912,7 +1939,8 @@ function ovBarApply(){
     gv.classList.toggle('on',ovBarView===0);if(sv)sv.classList.toggle('on',ovBarView===1);
   }
   if(bar)bar.setAttribute('data-bar',ovBarView===1?'skg':'gov');
-  if(t)t.textContent=ovBarView===0?'ผลการเลือกตั้ง ผู้ว่าฯ กทม.':ovBarView===1?'ผลการเลือกตั้ง สก.':'สถิติการนับคะแนน';
+  const titles={0:'ผลการเลือกตั้ง ผู้ว่าฯ กทม.',1:'ผลการเลือกตั้ง สก.',2:'สถิติการนับคะแนน',3:'สถิติการนับคะแนน ผู้ว่าฯ',4:'สถิติการนับคะแนน ส.ก.'};
+  if(t)t.textContent=titles[ovBarView]||titles[0];
   const pp=$('ovb-pp');if(pp)pp.innerHTML=ovBarPaused?OV_ICO_PLAY:OV_ICO_PAUSE;
 }
 
@@ -3042,7 +3070,7 @@ function cpTakeAll(){ctrlWrite({footer:pvwState.footer,side:pvwState.side,full:p
 /* CUT: ปิดทุกเลเยอร์ทันที (panic OFF AIR) */
 function cpCutAll(){pvwState={footer:'off',side:'off',full:'off',barView:0,barPlaying:false,barPick:'',sideIdx:0,sidePlaying:false,sideFilter:'both',govPick:'',skgPick:''};ctrlWrite({footer:'off',side:'off',full:'off'});cpPushPreview();}
 /* footer sub-control: จัดลง preview (ยังไม่ออกอากาศ จนกว่าจะกด Confirm) */
-function _barPickArr(s){const p=(s||'').split(',').filter(x=>x!=='').map(Number).filter(n=>!isNaN(n)&&n>=0&&n<=2);return p.length?[...new Set(p)].sort((a,b)=>a-b):[0,1,2];}
+function _barPickArr(s){const p=(s||'').split(',').filter(x=>x!=='').map(Number).filter(n=>!isNaN(n)&&n>=0&&n<=4);return p.length?[...new Set(p)].sort((a,b)=>a-b):[0,1,2];}
 function ctrlBarToggle(v){
   const arr=_barPickArr(pvwState.barPick);
   const set=new Set(arr);
@@ -3130,7 +3158,7 @@ function applyControlForOverlay(s){
 function footerApplyControl(s){
   const b=document.body;
   b.classList.remove('ov-bottombar','ov-stat');
-  if(s.footer==='bottombar'&&(s.barView|0)===2)b.classList.add('ov-stat');
+  if(s.footer==='bottombar'&&(s.barView|0)>=2)b.classList.add('ov-stat');
   else if(s.footer==='bottombar')b.classList.add('ov-bottombar');
   else if(s.footer==='stat')b.classList.add('ov-stat');
   if(s.bgColor)b.style.setProperty('background-color',s.bgColor,'important');
@@ -3139,7 +3167,7 @@ function footerApplyControl(s){
   if(s.footer==='bottombar'){
     ovBarView=s.barView|0;ovBarPaused=!s.barPlaying;
     renderBottomBar();
-    if(ovBarView===2)renderStat();
+    if(ovBarView>=2)renderStat();
     ovBarStartTimer();
   }
   else if(s.footer==='stat')renderStat();
@@ -3157,7 +3185,7 @@ function sideApplyControl(s){
 function liveApplyControl(s){
   const b=document.body;
   b.classList.remove('ov-totals','ov-map','ov-bottombar','ov-side','ov-stat');
-  if(s.footer==='bottombar'&&(s.barView|0)===2)b.classList.add('ov-stat');
+  if(s.footer==='bottombar'&&(s.barView|0)>=2)b.classList.add('ov-stat');
   else if(s.footer==='bottombar')b.classList.add('ov-bottombar');
   else if(s.footer==='stat')b.classList.add('ov-stat');
   if(s.side==='on')b.classList.add('ov-side');
@@ -3174,7 +3202,7 @@ function renderLiveScene(s){
   s=s||ctrlState;
   if(s.footer==='bottombar'){
     renderBottomBar();
-    if((s.barView|0)===2)renderStat();
+    if((s.barView|0)>=2)renderStat();
     ovBarStartTimer();
   }
   else if(s.footer==='stat')renderStat();
@@ -3248,7 +3276,7 @@ function renderControlPanel(){
       const pickArr=_barPickArr(pvwState.barPick);
       const pickSet=new Set(pickArr);
       const onlyOne=pickArr.length===1;
-      const lbl=['Governor','Councilors','Count Stats'];
+      const lbl=['Governor','Councilors','Count Stats','Stats ผู้ว่าฯ','Stats ส.ก.'];
       const btns=lbl.map((nm,i)=>{
         const sel=pickSet.has(i);
         const isLocked=onlyOne&&sel;
