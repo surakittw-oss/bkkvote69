@@ -2044,7 +2044,7 @@ function ovSidePaint(){
       const v=`<div class="ovs-acard-votes">${votes}<small>คะแนน</small></div>`;
       if(c.sideArt)return `<div class="ovs-acard${skgIsElected(c)?' win':''}" style="background-image:url('${c.sideArt}')">${rank}${v}</div>`;
       const nm2=(c.name||'').replace(/\s+(\S+)$/,'<br>$1');
-      return `<div class="ovs-acard${skgIsElected(c)?' win':''}" style="background-image:url('${SKG_SIDE_DEFAULT}')">${rank}<div class="ovs-acard-name" style="left:50%;text-shadow:0 2px 10px rgba(0,0,0,.65)">${nm2}</div>${v}</div>`;
+      return `<div class="ovs-acard${skgIsElected(c)?' win':''}" style="background-image:url('${SKG_SIDE_DEFAULT}')">${rank}<div class="ovs-acard-name" style="text-shadow:0 2px 10px rgba(0,0,0,.65)">${nm2}</div>${v}</div>`;
     }).join('');
     a.innerHTML=ovsDistbar(dname,pct)+`<div class="ovsg-list">${cards}</div>`;
     if(t)t.textContent='ผลการนับคะแนน\nส.ก. รายเขต';
