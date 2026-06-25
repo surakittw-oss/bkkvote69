@@ -3080,7 +3080,7 @@ function ctrlBarToggle(v){
   if(set.has(v))set.delete(v);else set.add(v);
   if(!set.size)set.add(v);
   const next=[...set].sort((a,b)=>a-b);
-  pvwState.barPick=(next.length===3)?'':next.join(',');
+  pvwState.barPick=next.join(',');
   if(next.length===1){pvwState.barView=next[0];pvwState.barPlaying=false;}
   else if(!set.has(pvwState.barView))pvwState.barView=next[0];
   renderControlPanel();cpPushPreview();
