@@ -374,6 +374,9 @@ body.embed #top-logo,body.embed #top-actions,body.embed .hd,body.embed .hr{displ
 /* ฝังเฉพาะส่วน totals → แสดงครบ ไม่ต้อง scroll (ให้ iframe ปรับความสูงเอง) */
 body.section-totals #totals{max-height:none;overflow:visible;padding-right:0}
 
+.site-footer{text-align:center;padding:24px 0 18px;color:var(--t4);font-size:11px;font-weight:600;letter-spacing:.5px}
+body.ov .site-footer{display:none}
+
 /* ══════════ OVERLAY MODE ══════════ */
 body.ov{background:transparent!important}
 body.ov::before,body.ov::after{display:none!important}
@@ -733,6 +736,7 @@ body.ctrl #ctrl-panel{display:block}
   </section>
 
   <div class="mb-panel" id="mbPanel" style="margin-top:32px"></div>
+  <footer class="site-footer">© 2026 THE STANDARD</footer>
 </div>
 
 
@@ -3404,7 +3408,8 @@ function renderControlPanel(){
       • <b>Footer</b> (Bottom Bar / Count Stats รวมลิงค์เดียว): <code>?overlay=footer</code><br>
       • <b>Side Panel</b>: <code>?overlay=side</code><br>
       • <b>รวมทุกเลเยอร์</b> (Footer + Side + Fullscreen): <code>?overlay=live</code><br>
-      ลิงค์แยกแต่ละอันโชว์เฉพาะเลเยอร์ของตัวเอง · มีแต่ <code>?overlay=live</code> ที่รวมทุกเลเยอร์พร้อมกัน</div>`;
+      ลิงค์แยกแต่ละอันโชว์เฉพาะเลเยอร์ของตัวเอง · มีแต่ <code>?overlay=live</code> ที่รวมทุกเลเยอร์พร้อมกัน</div>
+    <footer class="site-footer" style="padding:32px 0 12px">© 2026 THE STANDARD</footer>`;
   // คืน open state ของ <details> ที่เปิดอยู่ก่อนหน้า
   if(_openDetails.size)$('cp-ctrls').querySelectorAll('details[data-cpkey]').forEach(d=>{if(_openDetails.has(d.dataset.cpkey))d.open=true;});
   cpDistReapplySearch();
