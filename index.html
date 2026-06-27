@@ -2531,17 +2531,10 @@ function startFbListener(){
     let totalV=arr.reduce((s,c)=>s+(parseInt(c.votes)||0),0);
     if(!totalV&&data.districts){const da=Array.isArray(data.districts)?data.districts:Object.values(data.districts);da.forEach(d=>{if(d)Object.keys(d).forEach(k=>{if(k.startsWith('votes_'))totalV+=parseInt(d[k])||0})})}
     if(currentSource!=='firebase'&&totalV<=0){
-      const restored=await fbLatestNonzeroSnapshot(data);
-      if(restored){
-        currentSource='firebase';
-        applyExternal(restored.data,'Firebase (Snapshot)');
-        mbRestoreFromFb(restored.data.mbstats);
-        setSrcDot('on');
-        if($('fb-status'))$('fb-status').textContent='● Sync จาก snapshot ล่าสุด '+new Date(restored.ts).toLocaleString('th-TH');
-        return;
-      }
-      if($('fb-status'))$('fb-status').textContent='● เชื่อมต่อ — ยังไม่มีคะแนน (คงข้อมูลตัวอย่างไว้)';
-      return; // ไม่ override ข้อมูลตัวอย่างด้วยข้อมูลเปล่า
+      currentSource='firebase';
+      applyExternal(data,'Firebase (Live · รอคะแนน)');mbRestoreFromFb(data.mbstats);setSrcDot('on');
+      if($('fb-status'))$('fb-status').textContent='● เชื่อมต่อ — ยังไม่มีคะแนน (แสดงรายชื่อผู้สมัครจริง)';
+      return;
     }
     currentSource='firebase';
     applyExternal(data,'Firebase (Live)');mbRestoreFromFb(data.mbstats);setSrcDot('on');
