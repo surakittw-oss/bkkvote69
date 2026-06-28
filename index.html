@@ -371,6 +371,7 @@ body.ov #top-logo{display:none}
 @media(max-width:560px){.wrap{padding:22px 14px 30px}.trow .nm{white-space:normal}.mode{width:46%}#top-actions{top:12px;right:0;gap:5px}.src-btn{padding:3px 8px;font-size:11px}.hd{padding-top:50px}}
 body.embed .wrap{padding:14px}
 body.embed #top-logo,body.embed #top-actions,body.embed .hd,body.embed .hr{display:none!important}
+body.section-map #dashSummary,body.section-map #skgCard,body.section-map #mbPanel,body.section-map .site-footer{display:none!important}
 /* ฝังเฉพาะส่วน totals → แสดงครบ ไม่ต้อง scroll (ให้ iframe ปรับความสูงเอง) */
 body.section-totals #totals{max-height:none;overflow:visible;padding-right:0}
 
@@ -2975,7 +2976,7 @@ function postHeight(){try{const p=new URLSearchParams(location.search);const fid
   if(p.get('embed')==='1')document.body.classList.add('embed');
   const sec=p.get('section');
   if(sec){document.body.classList.add('embed');document.body.classList.add('section-'+sec);document.querySelector('.hd').style.display='none';document.querySelector('.hr').style.display='none';
-    if(sec==='map'){document.querySelector('.grid').children[0].style.display='none';var _ds=document.getElementById('dashSummary');if(_ds)_ds.style.display='none';var _skgC=document.getElementById('skgCard');if(_skgC)_skgC.style.display='none';var _mbP=document.getElementById('mbPanel');if(_mbP)_mbP.style.display='none';var _sf=document.querySelector('.site-footer');if(_sf)_sf.style.display='none';}
+    if(sec==='map'){document.querySelector('.grid').children[0].style.display='none';}
     if(sec==='totals'){document.querySelector('.map-card').style.display='none';document.querySelector('.modes').style.display='none';document.querySelector('.grid').style.gridTemplateColumns='1fr'}
     if(sec==='skg'){document.querySelector('.grid').style.display='none'}}
 })();
