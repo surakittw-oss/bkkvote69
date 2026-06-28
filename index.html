@@ -2542,6 +2542,21 @@ function startFbListener(){
     if($('fb-status'))$('fb-status').textContent='● Sync แล้ว '+(Array.isArray(data.candidates)?data.candidates.length:Object.keys(data.candidates).length)+' ผู้สมัคร';
   });
 }
+const FB_REST_BASE=firebaseConfig.databaseURL;
+async function fbRestPoll(){
+  try{
+    const res=await fetch(FB_REST_BASE+'/election.json');
+    if(!res.ok)return;
+    const data=await res.json();
+    if(!data||!data.candidates)return;
+    if(!autoFirebase&&currentSource!=='firebase')return;
+    const arr=Array.isArray(data.candidates)?data.candidates:Object.values(data.candidates);
+    let totalV=arr.reduce((s,c)=>s+(parseInt(c.votes)||0),0);
+    if(!totalV&&data.districts){const da=Array.isArray(data.districts)?data.districts:Object.values(data.districts);da.forEach(d=>{if(d)Object.keys(d).forEach(k=>{if(k.startsWith('votes_'))totalV+=parseInt(d[k])||0})})}
+    currentSource='firebase';
+    applyExternal(data,'Firebase (REST)');mbRestoreFromFb(data.mbstats);setSrcDot('on');
+  }catch(e){}
+}
 async function fbLatestNonzeroSnapshot(baseData){
   if(!fbDb)return null;
   try{
@@ -3489,7 +3504,13 @@ function init(){
   }
   // auto-connect Firebase หลัง paint แรก (ไม่บล็อกการโหลด) — ถ้ามีข้อมูลจะ override อัตโนมัติ
   // PREVIEW iframe: ไม่ delay เพื่อให้ข้อมูลตรงกับ PROGRAM ทันที (ไม่เห็น flash sample data)
-  if(PVW_MODE)ensureFirebase();else setTimeout(()=>{ensureFirebase()},400);
+  // Public dashboard/embed: ใช้ REST API poll แทน SDK เพื่อไม่กิน concurrent connection limit
+  const _needsSdk=OVERLAY||CTRL_MODE||PVW_MODE;
+  if(_needsSdk){
+    if(PVW_MODE)ensureFirebase();else setTimeout(()=>{ensureFirebase()},400);
+  }else{
+    setTimeout(()=>{fbRestPoll();setInterval(fbRestPoll,30000);},400);
+  }
   setTimeout(postHeight,1600);
 }
 let _rt;addEventListener('resize',()=>{clearTimeout(_rt);_rt=setTimeout(()=>{fitMap();postHeight();cpScalePreview()},120)});
